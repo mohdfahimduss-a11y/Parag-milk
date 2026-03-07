@@ -488,6 +488,10 @@
       <h3>🏪 Add Distributor</h3>
       <div class="form-grid">
         <div class="form-group">
+          <label>Distributor Code</label>
+          <input type="text" id="cust-code" placeholder="e.g. D001, DIST-01">
+        </div>
+        <div class="form-group">
           <label>Distributor Name</label>
           <input type="text" id="cust-name" placeholder="Full name">
         </div>
@@ -496,12 +500,16 @@
           <input type="tel" id="cust-phone" placeholder="Mobile number">
         </div>
         <div class="form-group">
+          <label>Rate (₹)</label>
+          <input type="number" id="cust-rate" placeholder="Default rate" min="0">
+        </div>
+        <div class="form-group">
           <label>Area / Zone</label>
-          <input type="text" id="cust-daily" placeholder="e.g. North Zone, Market Area">
+          <input type="text" id="cust-daily" placeholder="e.g. North Zone">
         </div>
         <div class="form-group">
           <label>GST / ID No.</label>
-          <input type="text" id="cust-rate" placeholder="Optional">
+          <input type="text" id="cust-gst" placeholder="Optional">
         </div>
         <div class="form-group full">
           <label>Address</label>
@@ -516,8 +524,8 @@
     <div class="table-card">
       <div class="table-header"><h3>🏪 Distributor List</h3></div>
       <table>
-        <thead><tr><th>Name</th><th>Phone</th><th>Area/Zone</th><th>GST/ID</th><th>Address</th><th>Del</th></tr></thead>
-        <tbody id="cust-table"><tr><td colspan="6" class="empty">No distributors added yet.</td></tr></tbody>
+        <thead><tr><th>Code</th><th>Name</th><th>Phone</th><th>Rate(₹)</th><th>Area</th><th>Address</th><th>Del</th></tr></thead>
+        <tbody id="cust-table"><tr><td colspan="7" class="empty">No distributors added yet.</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -680,7 +688,7 @@
   auth.onAuthStateChanged(user => {
     if (user) {
       currentUser = user;
-      dbRef = db.ref('users/' + user.uid);
+      dbRef = db.ref('sharedData'); // Shared data for all users
       document.getElementById('login-screen').style.display = 'none';
       loadDataFromFirebase();
     } else {
@@ -841,21 +849,25 @@
   function addCustomer() {
     const rec = {
       id: Date.now(),
+      code: document.getElementById('cust-code').value.trim(),
       name: document.getElementById('cust-name').value,
       phone: document.getElementById('cust-phone').value,
-      daily: parseFloat(document.getElementById('cust-daily').value) || 0,
       rate: parseFloat(document.getElementById('cust-rate').value) || 0,
+      daily: document.getElementById('cust-daily').value,
+      gst: document.getElementById('cust-gst').value,
       address: document.getElementById('cust-address').value
     };
-    if (!rec.name) { alert('Please enter customer name!'); return; }
+    if (!rec.name) { alert('Please enter distributor name!'); return; }
     data.customers.unshift(rec);
     saveData();
     renderCustomers();
     updateCustomerList();
+    document.getElementById('cust-code').value = '';
     document.getElementById('cust-name').value = '';
     document.getElementById('cust-phone').value = '';
-    document.getElementById('cust-daily').value = '';
     document.getElementById('cust-rate').value = '';
+    document.getElementById('cust-daily').value = '';
+    document.getElementById('cust-gst').value = '';
     document.getElementById('cust-address').value = '';
   }
 
@@ -864,10 +876,11 @@
     if (!data.customers.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">No distributors added yet.</td></tr>'; return; }
     tb.innerHTML = data.customers.map(r => `
       <tr>
+        <td><span class="badge badge-amber">${r.code || '-'}</span></td>
         <td><strong>${r.name}</strong></td>
         <td>${r.phone || '-'}</td>
+        <td><strong style="color:var(--green)">₹${r.rate || '-'}</strong></td>
         <td>${r.daily || '-'}</td>
-        <td>${r.rate || '-'}</td>
         <td>${r.address || '-'}</td>
         <td><button class="btn btn-danger btn-sm" onclick="delRecord('customers',${r.id})">✕</button></td>
       </tr>`).join('');
@@ -1085,7 +1098,10 @@
         <div style="border-bottom:2px solid var(--border);">
           <div style="padding:10px 16px;background:var(--cream);display:flex;justify-content:space-between;align-items:center;">
             <strong style="color:var(--brown);">🏪 ${e.distName}</strong>
-            <span style="font-size:0.75rem;color:var(--muted);">${formatDate(e.date)}</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-primary btn-sm" onclick="generateInvoice('${e.distName}','${e.date}')">🧾 Invoice</button>
+              <span style="font-size:0.75rem;color:var(--muted);">${formatDate(e.date)}</span>
+            </div>
           </div>
           <table>
             <thead><tr><th>Product</th><th>Cat</th><th>Qty</th><th>Rate</th><th>Value</th><th>Del</th></tr></thead>
@@ -1128,6 +1144,93 @@
     data.demandEntries = (data.demandEntries||[]).filter(e => e.id !== id);
     saveData();
     renderDemandSummaryPage(today());
+  }
+
+  // INVOICE GENERATOR
+  function generateInvoice(distName, date) {
+    const allProds = getAllProducts();
+    const entry = (data.demandEntries||[]).find(e => e.date===date && e.distName===distName);
+    if (!entry) { alert('Koi demand nahi mili!'); return; }
+
+    const items = Object.entries(entry.items).map(([pid, qty]) => {
+      const prod = allProds.find(p => String(p.id)===String(pid));
+      if (!prod) return null;
+      return { name: prod.name, size: prod.size||'', qty, rate: prod.rate||0, amount: (prod.rate||0)*qty };
+    }).filter(Boolean);
+
+    const total = items.reduce((s,i) => s+i.amount, 0);
+    const invoiceNo = 'INV-' + Date.now().toString().slice(-6);
+
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Invoice - ${distName}</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; color: #000; max-width: 700px; margin: 0 auto; }
+  .header { text-align: center; border-bottom: 3px solid #3D1F00; padding-bottom: 15px; margin-bottom: 20px; }
+  .company { font-size: 28px; font-weight: 900; color: #3D1F00; }
+  .sub { font-size: 13px; color: #666; margin-top: 4px; }
+  .info-row { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 13px; }
+  .info-box { background: #f9f0e0; border-radius: 8px; padding: 12px 16px; min-width: 200px; }
+  .info-box label { font-weight: 700; color: #3D1F00; display: block; font-size: 11px; margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  th { background: #3D1F00; color: white; padding: 10px; text-align: left; font-size: 13px; }
+  td { padding: 9px 10px; font-size: 13px; border-bottom: 1px solid #eee; }
+  tr:nth-child(even) td { background: #fef9f0; }
+  .total-row td { font-weight: 900; font-size: 15px; background: #f9f0e0 !important; border-top: 2px solid #3D1F00; }
+  .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #888; border-top: 1px solid #ddd; padding-top: 15px; }
+  .sign { margin-top: 40px; display: flex; justify-content: space-between; font-size: 13px; }
+  @media print { .no-print { display: none; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="company">🥛 Parag Milk</div>
+  <div class="sub">Dairy Products | Quality Assured</div>
+</div>
+<div class="info-row">
+  <div class="info-box">
+    <label>BILL TO:</label>
+    <strong>${distName}</strong>
+  </div>
+  <div class="info-box" style="text-align:right;">
+    <label>INVOICE NO:</label> ${invoiceNo}<br>
+    <label>DATE:</label> ${formatDate(date)}
+  </div>
+</div>
+<table>
+  <thead>
+    <tr><th>#</th><th>Product</th><th>Size</th><th>Qty</th><th>Rate (₹)</th><th>Amount (₹)</th></tr>
+  </thead>
+  <tbody>
+    ${items.map((it,i) => `<tr>
+      <td>${i+1}</td>
+      <td><strong>${it.name}</strong></td>
+      <td>${it.size}</td>
+      <td>${it.qty}</td>
+      <td>${it.rate.toFixed(2)}</td>
+      <td><strong>${it.amount.toFixed(2)}</strong></td>
+    </tr>`).join('')}
+    <tr class="total-row">
+      <td colspan="5" style="text-align:right;">TOTAL AMOUNT:</td>
+      <td>₹${total.toFixed(2)}</td>
+    </tr>
+  </tbody>
+</table>
+<div class="sign">
+  <div>Receiver Signature: ______________</div>
+  <div>Authorized Signature: ______________</div>
+</div>
+<div class="footer">Parag Milk — Thank you for your business!</div>
+<br>
+<div class="no-print" style="text-align:center;">
+  <button onclick="window.print()" style="padding:10px 30px;background:#3D1F00;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer;">🖨️ Print / Save PDF</button>
+</div>
+</body>
+</html>`);
+    win.document.close();
   }
 
   function exportDemandExcel() {
@@ -1206,14 +1309,24 @@
 
   // DEFAULT PRODUCTS
   const DEFAULT_PRODUCTS = [
-    { id: 'fcm500', name: 'FCM', size: '500 ml', cat: 'FCM' },
-    { id: 'fcm1l',  name: 'FCM', size: '1 Ltr',  cat: 'FCM' },
-    { id: 'fcm6l',  name: 'FCM', size: '6 Ltr',  cat: 'FCM' },
-    { id: 'std500', name: 'STD', size: '500 ml', cat: 'STD' },
-    { id: 'std1l',  name: 'STD', size: '1 Ltr',  cat: 'STD' },
-    { id: 'ton500', name: 'Toned', size: '500 ml', cat: 'Toned' },
-    { id: 'ton1l',  name: 'Toned', size: '1 Ltr',  cat: 'Toned' },
-    { id: 'ton6l',  name: 'Toned', size: '6 Ltr',  cat: 'Toned' },
+    { id: 'fcm500',    name: 'F.C.M.',      size: '500 ML',   cat: 'FCM' },
+    { id: 'fcm1l',     name: 'F.C.M.',      size: '01 LTR',   cat: 'FCM' },
+    { id: 'fcm6l',     name: 'F.C.M.',      size: '06 LTR',   cat: 'FCM' },
+    { id: 'std500',    name: 'STD MILK',    size: '500 ML',   cat: 'STD' },
+    { id: 'std350',    name: 'COW MILK',    size: '350 ML',   cat: 'STD' },
+    { id: 'std1l',     name: 'STD MILK',    size: '01 LTR',   cat: 'STD' },
+    { id: 'ton500',    name: 'TONED',       size: '500 ML',   cat: 'Toned' },
+    { id: 'ton1l',     name: 'TONED',       size: '01 LTR',   cat: 'Toned' },
+    { id: 'ton6l',     name: 'TONED',       size: '06 LTR',   cat: 'Toned' },
+    { id: 'matka5',    name: 'MATKA',       size: '5 KG',     cat: 'Other' },
+    { id: 'matka15',   name: 'DAHI MATKA',  size: '15 KG',    cat: 'Curd' },
+    { id: 'chhach300', name: 'CHHACH',      size: '300 ML',   cat: 'Other' },
+    { id: 'curd200',   name: 'P. CURD',     size: '200 GM',   cat: 'Curd' },
+    { id: 'dahi140',   name: 'DAHI P.PACK', size: '140 GM',   cat: 'Curd' },
+    { id: 'kheer90',   name: 'P. KHEER',    size: '90 GM',    cat: 'Other' },
+    { id: 'paneer1kg', name: 'PANEER LITE', size: '01 KG',    cat: 'Paneer' },
+    { id: 'ghee1l',    name: 'GHEE',        size: '01 LTR',   cat: 'Ghee' },
+    { id: 'butter500', name: 'BUTTER',      size: '500 GM',   cat: 'Butter' },
   ];
 
   const catColors = { FCM:'badge-amber', STD:'badge-green', Toned:'badge-blue', Paneer:'badge-amber', Ghee:'badge-green', Curd:'badge-blue', Butter:'badge-red', Other:'badge-blue' };
