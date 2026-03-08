@@ -450,72 +450,146 @@
         </div>
       </div>
 
-      <!-- Product Quantity Table - like the pink form -->
+      <!-- Product Quantity Grid - Mobile Friendly -->
       <div style="margin-top:14px;">
-        <h4 style="font-size:0.85rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">📦 Products — Qty bharo jo deliver hui</h4>
-        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-          <table style="width:100%;border-collapse:collapse;min-width:900px;">
-            <thead>
-              <tr style="background:var(--brown);color:var(--cream);">
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">FCM<br>300ml</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">FCM<br>1 Ltr</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">FCM<br>6 Ltr</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">STD</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">TOND<br>500ml</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Tond<br>6 Ltr</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">DTM<br>500ml</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">DTM<br>1 Ltr</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">T-Dite<br>Pack</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Cow<br>Milk</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Dahi<br>5Kg</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Dahi<br>15Kg</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Chhachh<br>Ltr</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Chhachh<br>300ml</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Plain Curd<br>200g</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Plain Curd<br>100g</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">F-M</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">N/M</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Milk<br>Cake</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Paneer<br>Kg</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Paneer<br>500g</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Paneer<br>Litr</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Paneer<br>Khawa</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Chawla<br>Khower</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Rice<br>Kheer</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Pada</th>
-                <th style="padding:8px 6px;font-size:0.7rem;text-align:center;white-space:nowrap;">Kala<br>Kand</th>
-              </tr>
-              <tr style="background:var(--cream);">
-                <td style="padding:4px;"><input type="number" id="sq-fcm300" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-fcm1" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-fcm6" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-std" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-tond500" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-tond6" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-dtm500" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-dtm1" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-tdite" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-cowmilk" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-dahi5" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-dahi15" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-chhachhltr" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-chhachh300" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-plaincurd200" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-plaincurd100" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-fm" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-nm" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-milkcake" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-paneerkg" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-paneer500" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-paneerlitr" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-paneerkhawa" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-chawla" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-ricekheer" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-pada" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-                <td style="padding:4px;"><input type="number" id="sq-kalakand" min="0" placeholder="0" style="width:52px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.85rem;"></td>
-              </tr>
-            </thead>
-          </table>
+        <h4 style="font-size:0.85rem;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">📦 Products — Qty bharo jo deliver hui</h4>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">FCM 300ml</label>
+            <input type="number" id="sq-fcm300" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">FCM 1 Ltr</label>
+            <input type="number" id="sq-fcm1l" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">FCM 6 Ltr</label>
+            <input type="number" id="sq-fcm6l" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">STD</label>
+            <input type="number" id="sq-std" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">TOND 500ml</label>
+            <input type="number" id="sq-tond500" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Tond 6 Ltr</label>
+            <input type="number" id="sq-tond6l" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">DTM 500ml</label>
+            <input type="number" id="sq-dtm500" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">DTM 1 Ltr</label>
+            <input type="number" id="sq-dtm1l" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">T-Dite Pack</label>
+            <input type="number" id="sq-tdite" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Cow Milk</label>
+            <input type="number" id="sq-cowmilk" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Dahi 5Kg</label>
+            <input type="number" id="sq-dahi5kg" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Dahi 15Kg</label>
+            <input type="number" id="sq-dahi15kg" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Chhachh Ltr</label>
+            <input type="number" id="sq-chhachltr" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Chhachh 300ml</label>
+            <input type="number" id="sq-chhach300" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Plain Curd 200g</label>
+            <input type="number" id="sq-plaincurd200" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Plain Curd 100g</label>
+            <input type="number" id="sq-plaincurd100" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">F-M</label>
+            <input type="number" id="sq-fm" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">N/M</label>
+            <input type="number" id="sq-nm" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Milk Cake</label>
+            <input type="number" id="sq-milkcake" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Paneer Kg</label>
+            <input type="number" id="sq-paneerkg" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Paneer 500g</label>
+            <input type="number" id="sq-paneer500" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Paneer Litr</label>
+            <input type="number" id="sq-paneerlitr" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Paneer Khawa</label>
+            <input type="number" id="sq-paneerkhawa" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Chawla Khower</label>
+            <input type="number" id="sq-chawla" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Rice Kheer</label>
+            <input type="number" id="sq-ricekheer" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Pada</label>
+            <input type="number" id="sq-pada" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
+          <div style="background:var(--milk);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;color:var(--brown);">Kala Kand</label>
+            <input type="number" id="sq-kalakand" min="0" placeholder="0" style="width:60px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;">
+          </div>
+
         </div>
       </div>
 
@@ -871,33 +945,33 @@
   // SALES
   // All Parag product fields
   const SALE_PRODUCTS = [
-    {id:'fcm300',    label:'FCM 300ml'},
-    {id:'fcm1',      label:'FCM 1Ltr'},
-    {id:'fcm6',      label:'FCM 6Ltr'},
-    {id:'std',       label:'STD'},
-    {id:'tond500',   label:'TOND 500ml'},
-    {id:'tond6',     label:'Tond 6Ltr'},
-    {id:'dtm500',    label:'DTM 500ml'},
-    {id:'dtm1',      label:'DTM 1Ltr'},
-    {id:'tdite',     label:'T-Dite'},
-    {id:'cowmilk',   label:'Cow Milk'},
-    {id:'dahi5',     label:'Dahi 5Kg'},
-    {id:'dahi15',    label:'Dahi 15Kg'},
-    {id:'chhachhltr',label:'Chhachh Ltr'},
-    {id:'chhachh300',label:'Chhachh 300ml'},
-    {id:'plaincurd200',label:'Plain Curd 200g'},
-    {id:'plaincurd100',label:'Plain Curd 100g'},
-    {id:'fm',        label:'F-M'},
-    {id:'nm',        label:'N/M'},
-    {id:'milkcake',  label:'Milk Cake'},
-    {id:'paneerkg',  label:'Paneer Kg'},
-    {id:'paneer500', label:'Paneer 500g'},
-    {id:'paneerlitr',label:'Paneer Litr'},
-    {id:'paneerkhawa',label:'Paneer Khawa'},
-    {id:'chawla',    label:'Chawla Khower'},
-    {id:'ricekheer', label:'Rice Kheer'},
-    {id:'pada',      label:'Pada'},
-    {id:'kalakand',  label:'Kala Kand'},
+    {id:'fcm300',       label:'FCM 300ml'},
+    {id:'fcm1l',        label:'FCM 1Ltr'},
+    {id:'fcm6l',        label:'FCM 6Ltr'},
+    {id:'std',          label:'STD'},
+    {id:'tond500',      label:'TOND 500ml'},
+    {id:'tond6l',       label:'Tond 6Ltr'},
+    {id:'dtm500',       label:'DTM 500ml'},
+    {id:'dtm1l',        label:'DTM 1Ltr'},
+    {id:'tdite',        label:'T-Dite'},
+    {id:'cowmilk',      label:'Cow Milk'},
+    {id:'dahi5kg',      label:'Dahi 5Kg'},
+    {id:'dahi15kg',     label:'Dahi 15Kg'},
+    {id:'chhachltr',    label:'Chhachh Ltr'},
+    {id:'chhach300',    label:'Chhachh 300ml'},
+    {id:'plaincurd200', label:'Plain Curd 200g'},
+    {id:'plaincurd100', label:'Plain Curd 100g'},
+    {id:'fm',           label:'F-M'},
+    {id:'nm',           label:'N/M'},
+    {id:'milkcake',     label:'Milk Cake'},
+    {id:'paneerkg',     label:'Paneer Kg'},
+    {id:'paneer500',    label:'Paneer 500g'},
+    {id:'paneerlitr',   label:'Paneer Litr'},
+    {id:'paneerkhawa',  label:'Paneer Khawa'},
+    {id:'chawla',       label:'Chawla Khower'},
+    {id:'ricekheer',    label:'Rice Kheer'},
+    {id:'pada',         label:'Pada'},
+    {id:'kalakand',     label:'Kala Kand'},
   ];
 
   function addSale() {
@@ -1681,24 +1755,33 @@
 
   // DEFAULT PRODUCTS
   const DEFAULT_PRODUCTS = [
-    { id: 'fcm500',    name: 'F.C.M.',      size: '500 ML',   cat: 'FCM' },
-    { id: 'fcm1l',     name: 'F.C.M.',      size: '01 LTR',   cat: 'FCM' },
-    { id: 'fcm6l',     name: 'F.C.M.',      size: '06 LTR',   cat: 'FCM' },
-    { id: 'std500',    name: 'STD MILK',    size: '500 ML',   cat: 'STD' },
-    { id: 'std350',    name: 'COW MILK',    size: '350 ML',   cat: 'STD' },
-    { id: 'std1l',     name: 'STD MILK',    size: '01 LTR',   cat: 'STD' },
-    { id: 'ton500',    name: 'TONED',       size: '500 ML',   cat: 'Toned' },
-    { id: 'ton1l',     name: 'TONED',       size: '01 LTR',   cat: 'Toned' },
-    { id: 'ton6l',     name: 'TONED',       size: '06 LTR',   cat: 'Toned' },
-    { id: 'matka5',    name: 'MATKA',       size: '5 KG',     cat: 'Other' },
-    { id: 'matka15',   name: 'DAHI MATKA',  size: '15 KG',    cat: 'Curd' },
-    { id: 'chhach300', name: 'CHHACH',      size: '300 ML',   cat: 'Other' },
-    { id: 'curd200',   name: 'P. CURD',     size: '200 GM',   cat: 'Curd' },
-    { id: 'dahi140',   name: 'DAHI P.PACK', size: '140 GM',   cat: 'Curd' },
-    { id: 'kheer90',   name: 'P. KHEER',    size: '90 GM',    cat: 'Other' },
-    { id: 'paneer1kg', name: 'PANEER LITE', size: '01 KG',    cat: 'Paneer' },
-    { id: 'ghee1l',    name: 'GHEE',        size: '01 LTR',   cat: 'Ghee' },
-    { id: 'butter500', name: 'BUTTER',      size: '500 GM',   cat: 'Butter' },
+    { id: 'fcm300',       name: 'FCM',           size: '300 ML',   cat: 'FCM' },
+    { id: 'fcm1l',        name: 'FCM',           size: '1 LTR',    cat: 'FCM' },
+    { id: 'fcm6l',        name: 'FCM',           size: '6 LTR',    cat: 'FCM' },
+    { id: 'std',          name: 'STD',           size: 'Ltr',      cat: 'STD' },
+    { id: 'tond500',      name: 'TOND',          size: '500 ML',   cat: 'Toned' },
+    { id: 'tond6l',       name: 'TOND',          size: '6 LTR',    cat: 'Toned' },
+    { id: 'dtm500',       name: 'DTM',           size: '500 ML',   cat: 'Toned' },
+    { id: 'dtm1l',        name: 'DTM',           size: '1 LTR',    cat: 'Toned' },
+    { id: 'tdite',        name: 'T-Dite',        size: 'Pack',     cat: 'Toned' },
+    { id: 'cowmilk',      name: 'Cow Milk',      size: 'Pack',     cat: 'STD' },
+    { id: 'dahi5kg',      name: 'Dahi Matka',    size: '5 KG',     cat: 'Curd' },
+    { id: 'dahi15kg',     name: 'Dahi Matka',    size: '15 KG',    cat: 'Curd' },
+    { id: 'chhachltr',    name: 'Chhachh',       size: 'Ltr',      cat: 'Other' },
+    { id: 'chhach300',    name: 'Chhachh',       size: '300 ML',   cat: 'Other' },
+    { id: 'plaincurd200', name: 'Plain Curd',    size: '200 GM',   cat: 'Curd' },
+    { id: 'plaincurd100', name: 'Plain Curd',    size: '100 GM',   cat: 'Curd' },
+    { id: 'fm',           name: 'F-M',           size: 'Ltr',      cat: 'FCM' },
+    { id: 'nm',           name: 'N/M',           size: 'Ltr',      cat: 'FCM' },
+    { id: 'milkcake',     name: 'Milk Cake',     size: 'Kg',       cat: 'Other' },
+    { id: 'paneerkg',     name: 'Paneer',        size: 'Kg',       cat: 'Paneer' },
+    { id: 'paneer500',    name: 'Paneer',        size: '500 GM',   cat: 'Paneer' },
+    { id: 'paneerlitr',   name: 'Paneer',        size: 'Ltr',      cat: 'Paneer' },
+    { id: 'paneerkhawa',  name: 'Paneer Khawa',  size: 'Kg',       cat: 'Paneer' },
+    { id: 'chawla',       name: 'Chawla Khower', size: 'Kg',       cat: 'Other' },
+    { id: 'ricekheer',    name: 'Rice Kheer',    size: 'Kg',       cat: 'Other' },
+    { id: 'pada',         name: 'Pada',          size: 'Kg',       cat: 'Other' },
+    { id: 'kalakand',     name: 'Kala Kand',     size: 'Kg',       cat: 'Other' },
   ];
 
   const catColors = { FCM:'badge-amber', STD:'badge-green', Toned:'badge-blue', Paneer:'badge-amber', Ghee:'badge-green', Curd:'badge-blue', Butter:'badge-red', Other:'badge-blue' };
