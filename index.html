@@ -489,7 +489,7 @@
       <div class="form-grid">
         <div class="form-group">
           <label>Distributor Code</label>
-          <input type="text" id="cust-code" placeholder="e.g. D001, DIST-01">
+          <input type="text" id="cust-code" placeholder="e.g. D001, 0177">
         </div>
         <div class="form-group">
           <label>Distributor Name</label>
@@ -500,16 +500,8 @@
           <input type="tel" id="cust-phone" placeholder="Mobile number">
         </div>
         <div class="form-group">
-          <label>Rate (₹)</label>
-          <input type="number" id="cust-rate" placeholder="Default rate" min="0">
-        </div>
-        <div class="form-group">
           <label>Area / Zone</label>
-          <input type="text" id="cust-daily" placeholder="e.g. North Zone">
-        </div>
-        <div class="form-group">
-          <label>GST / ID No.</label>
-          <input type="text" id="cust-gst" placeholder="Optional">
+          <input type="text" id="cust-daily" placeholder="e.g. Moradabad">
         </div>
         <div class="form-group full">
           <label>Address</label>
@@ -524,9 +516,20 @@
     <div class="table-card">
       <div class="table-header"><h3>🏪 Distributor List</h3></div>
       <table>
-        <thead><tr><th>Code</th><th>Name</th><th>Phone</th><th>Rate(₹)</th><th>Area</th><th>Address</th><th>Del</th></tr></thead>
-        <tbody id="cust-table"><tr><td colspan="7" class="empty">No distributors added yet.</td></tr></tbody>
+        <thead><tr><th>Code</th><th>Name</th><th>Phone</th><th>Area</th><th>Rates</th><th>Del</th></tr></thead>
+        <tbody id="cust-table"><tr><td colspan="6" class="empty">No distributors added yet.</td></tr></tbody>
       </table>
+    </div>
+
+    <!-- Product-wise Rate Panel -->
+    <div class="form-card" id="dist-rate-panel" style="display:none;">
+      <h3 id="dist-rate-title">📋 Product Rates</h3>
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">Har product ka alag rate set karo is distributor ke liye</p>
+      <div id="dist-rate-grid" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div style="margin-top:16px;display:flex;gap:10px;">
+        <button class="btn btn-primary" onclick="saveDistRates()">💾 Save Rates</button>
+        <button class="btn" onclick="closeDistRates()" style="background:var(--cream);">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -635,7 +638,7 @@
     <div class="table-card">
       <div class="table-header"><h3>📦 All Products & Rates</h3></div>
       <table>
-        <thead><tr><th>#</th><th>Product</th><th>Size</th><th>Category</th><th>Rate (₹)</th><th>Stock Qty</th><th>Edit</th><th>Del</th></tr></thead>
+        <thead><tr><th>#</th><th>Product</th><th>Cat</th><th>Rate(₹)</th><th>Stock</th><th>Edit</th><th>Active</th><th>Del</th></tr></thead>
         <tbody id="products-table"><tr><td colspan="8" class="empty">No products yet.</td></tr></tbody>
       </table>
     </div>
@@ -850,12 +853,11 @@
     const rec = {
       id: Date.now(),
       code: document.getElementById('cust-code').value.trim(),
-      name: document.getElementById('cust-name').value,
+      name: document.getElementById('cust-name').value.trim(),
       phone: document.getElementById('cust-phone').value,
-      rate: parseFloat(document.getElementById('cust-rate').value) || 0,
       daily: document.getElementById('cust-daily').value,
-      gst: document.getElementById('cust-gst').value,
-      address: document.getElementById('cust-address').value
+      address: document.getElementById('cust-address').value,
+      productRates: {} // product-wise rates
     };
     if (!rec.name) { alert('Please enter distributor name!'); return; }
     data.customers.unshift(rec);
@@ -865,9 +867,7 @@
     document.getElementById('cust-code').value = '';
     document.getElementById('cust-name').value = '';
     document.getElementById('cust-phone').value = '';
-    document.getElementById('cust-rate').value = '';
     document.getElementById('cust-daily').value = '';
-    document.getElementById('cust-gst').value = '';
     document.getElementById('cust-address').value = '';
   }
 
@@ -879,9 +879,8 @@
         <td><span class="badge badge-amber">${r.code || '-'}</span></td>
         <td><strong>${r.name}</strong></td>
         <td>${r.phone || '-'}</td>
-        <td><strong style="color:var(--green)">₹${r.rate || '-'}</strong></td>
         <td>${r.daily || '-'}</td>
-        <td>${r.address || '-'}</td>
+        <td><button class="btn btn-primary btn-sm" onclick="openDistRates(${r.id})">💰 Set Rates</button></td>
         <td><button class="btn btn-danger btn-sm" onclick="delRecord('customers',${r.id})">✕</button></td>
       </tr>`).join('');
   }
@@ -890,6 +889,62 @@
     const dl = document.getElementById('customer-list');
     if (dl) dl.innerHTML = data.customers.map(c => `<option value="${c.name}">`).join('');
     updateDistList();
+  }
+
+  let currentDistId = null;
+
+  function openDistRates(distId) {
+    const dist = data.customers.find(c => c.id === distId);
+    if (!dist) return;
+    currentDistId = distId;
+    const allProds = getAllProducts();
+    const panel = document.getElementById('dist-rate-panel');
+    document.getElementById('dist-rate-title').textContent = `💰 ${dist.name} — Product Rates`;
+    const grid = document.getElementById('dist-rate-grid');
+    if (!allProds.length) {
+      grid.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">Pehle Products tab mein products add karo!</p>';
+    } else {
+      grid.innerHTML = allProds.map(p => {
+        const savedRate = (dist.productRates || {})[p.id] || '';
+        return `<div style="display:flex;align-items:center;gap:10px;background:var(--cream);border-radius:10px;padding:10px 14px;border:1.5px solid var(--border);">
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:0.88rem;">${p.name} <span style="color:var(--muted);font-size:0.78rem;">${p.size||''}</span></div>
+            <span class="badge ${catColors[p.cat]||'badge-blue'}" style="margin-top:2px;">${p.cat}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="color:var(--muted);font-weight:700;">₹</span>
+            <input type="number" id="drate-${p.id}" value="${savedRate}" placeholder="Rate" min="0"
+              style="width:80px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;">
+          </div>
+        </div>`;
+      }).join('');
+    }
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function saveDistRates() {
+    const dist = data.customers.find(c => c.id === currentDistId);
+    if (!dist) return;
+    const allProds = getAllProducts();
+    if (!dist.productRates) dist.productRates = {};
+    allProds.forEach(p => {
+      const inp = document.getElementById('drate-' + p.id);
+      if (inp) {
+        const val = parseFloat(inp.value);
+        if (val > 0) dist.productRates[p.id] = val;
+        else delete dist.productRates[p.id];
+      }
+    });
+    saveData();
+    document.getElementById('dist-rate-panel').style.display = 'none';
+    renderCustomers();
+    alert('✅ Rates save ho gaye!');
+  }
+
+  function closeDistRates() {
+    document.getElementById('dist-rate-panel').style.display = 'none';
+    currentDistId = null;
   }
 
   // EXPENSES
@@ -943,7 +998,8 @@
       return saved ? saved : { ...dp, rate: 0 };
     });
     const customs = data.products.filter(p => p.custom);
-    return [...defaults.filter(p => p.rate > 0), ...customs];
+    // Filter out inactive products
+    return [...defaults.filter(p => p.rate > 0 && p.active !== false), ...customs.filter(p => p.active !== false)];
   }
 
   let demandRowCount = 0;
@@ -991,9 +1047,16 @@
 
   function onDemandProductSelect(sel, rowId) {
     const opt = sel.options[sel.selectedIndex];
+    const pid = opt.value;
     document.getElementById(rowId + '-size').textContent = opt.dataset.size || '-';
-    document.getElementById(rowId + '-rate').textContent = opt.dataset.rate ? '₹' + opt.dataset.rate : '-';
-    // Auto focus qty
+    // Check distributor-specific rate first
+    const distName = document.getElementById('demand-dist-name').value;
+    const dist = data.customers.find(c => c.name === distName);
+    let rate = opt.dataset.rate || 0;
+    if (dist && dist.productRates && dist.productRates[pid]) {
+      rate = dist.productRates[pid];
+    }
+    document.getElementById(rowId + '-rate').textContent = rate ? '₹' + rate : '-';
     document.getElementById(rowId + '-qty').focus();
   }
 
@@ -1389,20 +1452,88 @@
     const tb = document.getElementById('products-table');
     if (!data.products.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No products yet. Set rates above!</td></tr>'; return; }
     tb.innerHTML = data.products.map((p, i) => `
-      <tr>
+      <tr style="opacity:${p.active===false?'0.45':'1'}">
         <td>${i+1}</td>
-        <td><strong>${p.name}</strong></td>
-        <td>${p.size || '-'}</td>
+        <td><strong>${p.name}</strong><br><span style="font-size:0.72rem;color:var(--muted)">${p.size||''}</span></td>
         <td><span class="badge ${catColors[p.cat] || 'badge-blue'}">${p.cat}</span></td>
         <td><strong style="color:var(--green)">₹${p.rate}</strong></td>
         <td>
           <input type="number" value="${p.qty || 0}" min="0" onchange="updateQty('${p.id}', this.value)"
-            style="width:70px;padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--mono);font-size:0.85rem;background:var(--cream);">
+            style="width:65px;padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--mono);font-size:0.85rem;background:var(--cream);">
         </td>
-        <td>${p.custom ? `<button class="btn btn-sm" style="background:#FFF3E0;color:var(--amber);border:1px solid #F0D8A0" onclick="editCustomProduct(${p.id})">✏️</button>` : '<span style="color:var(--muted);font-size:0.75rem;">Default</span>'}</td>
+        <td>
+          <button class="btn btn-sm" style="background:#FFF3E0;color:var(--amber);border:1px solid #F0D8A0" onclick="openEditProduct('${p.id}')">✏️</button>
+        </td>
+        <td>
+          <button class="btn btn-sm" onclick="toggleActive('${p.id}')"
+            style="background:${p.active===false?'#eee':'#E8F5E9'};color:${p.active===false?'#999':'#2A7A4A'};border:1px solid ${p.active===false?'#ccc':'#A5D6A7'}">
+            ${p.active===false?'❌ Off':'✅ On'}
+          </button>
+        </td>
         <td>${p.custom ? `<button class="btn btn-danger btn-sm" onclick="delRecord('products',${p.id})">✕</button>` : '-'}</td>
       </tr>`).join('');
     renderDefaultProductsGrid();
+  }
+
+  // Edit product inline panel
+  let editingProductId = null;
+  function openEditProduct(id) {
+    const p = data.products.find(x => String(x.id) === String(id));
+    if (!p) return;
+    editingProductId = id;
+    // Show edit panel
+    let panel = document.getElementById('edit-prod-panel');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'edit-prod-panel';
+      panel.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:white;border-top:3px solid var(--orange);padding:18px;z-index:999;box-shadow:0 -4px 20px rgba(0,0,0,0.15);';
+      document.body.appendChild(panel);
+    }
+    panel.innerHTML = `
+      <h3 style="color:var(--brown);margin-bottom:12px;">✏️ Product Edit Karo</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div><label style="font-size:0.75rem;font-weight:700;color:var(--muted);">NAME</label>
+          <input id="ep-name" value="${p.name}" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;"></div>
+        <div><label style="font-size:0.75rem;font-weight:700;color:var(--muted);">SIZE</label>
+          <input id="ep-size" value="${p.size||''}" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;"></div>
+        <div><label style="font-size:0.75rem;font-weight:700;color:var(--muted);">RATE (₹)</label>
+          <input id="ep-rate" type="number" value="${p.rate||0}" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;"></div>
+        <div><label style="font-size:0.75rem;font-weight:700;color:var(--muted);">CATEGORY</label>
+          <select id="ep-cat" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;">
+            ${['FCM','STD','Toned','Paneer','Ghee','Curd','Butter','Other'].map(c=>`<option ${c===p.cat?'selected':''}>${c}</option>`).join('')}
+          </select></div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="saveEditProduct()" style="flex:1;padding:11px;background:var(--brown);color:white;border:none;border-radius:10px;font-weight:800;font-size:0.9rem;cursor:pointer;">💾 Save</button>
+        <button onclick="closeEditProduct()" style="padding:11px 18px;background:var(--cream);border:1.5px solid var(--border);border-radius:10px;font-weight:700;cursor:pointer;">Cancel</button>
+      </div>`;
+    panel.style.display = 'block';
+  }
+
+  function saveEditProduct() {
+    const p = data.products.find(x => String(x.id) === String(editingProductId));
+    if (!p) return;
+    p.name = document.getElementById('ep-name').value.trim() || p.name;
+    p.size = document.getElementById('ep-size').value.trim();
+    p.rate = parseFloat(document.getElementById('ep-rate').value) || 0;
+    p.cat  = document.getElementById('ep-cat').value;
+    saveData();
+    renderProducts();
+    closeEditProduct();
+  }
+
+  function closeEditProduct() {
+    const panel = document.getElementById('edit-prod-panel');
+    if (panel) panel.style.display = 'none';
+    editingProductId = null;
+  }
+
+  function toggleActive(id) {
+    const p = data.products.find(x => String(x.id) === String(id));
+    if (!p) return;
+    p.active = p.active === false ? true : false;
+    saveData();
+    renderProducts();
   }
 
   function updateQty(id, val) {
