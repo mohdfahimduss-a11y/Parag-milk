@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Parag Milk</title>
+
+<!-- PWA Meta Tags -->
+<meta name="application-name" content="Parag Milk">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Parag Milk">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#3D1F00">
+<meta name="description" content="Parag Milk - Dairy Business Manager">
+
+<!-- PWA Icons (inline SVG as data URI) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%233D1F00'/%3E%3Ctext y='70' x='15' font-size='60'%3E🥛%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%233D1F00'/%3E%3Ctext y='70' x='15' font-size='60'%3E🥛%3C/text%3E%3C/svg%3E">
+
+<!-- PWA Manifest (inline) -->
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Parag%20Milk%22%2C%22short_name%22%3A%22Parag%20Milk%22%2C%22description%22%3A%22Dairy%20Business%20Manager%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23FFF8EE%22%2C%22theme_color%22%3A%22%233D1F00%22%2C%22orientation%22%3A%22portrait%22%7D">
+<style>
+  :root {
+    --cream: #FFF8EE;
+    --milk: #FFFDF9;
+    --brown: #3D1F00;
+    --amber: #C97A2A;
+    --amber-light: #E8A84A;
+    --green: #2A7A4A;
+    --green-light: #E8F5EE;
+    --red: #C93A2A;
+    --red-light: #FFF0EE;
+    --blue: #2A4A7A;
+    --blue-light: #EEF2FF;
+    --border: #E8D8C0;
+    --text: #3D1F00;
+    --muted: #8B6A4A;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --mono: 'Courier New', Courier, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: var(--brown);
+    color: var(--cream);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(61,31,0,0.3);
+  }
+  .header h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
+  .header h1 span { color: var(--amber-light); }
+  .header .date { font-family: var(--mono); font-size: 0.8rem; color: #C8A882; }
+
+  /* Nav Tabs */
+  .nav {
+    background: var(--brown);
+    display: flex;
+    padding: 0 24px 12px;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  .nav button {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #C8A882;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .nav button.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: white;
+  }
+  .nav button:hover:not(.active) { background: rgba(255,255,255,0.1); color: white; }
+
+  /* Main Content */
+  .main { padding: 20px; max-width: 900px; margin: 0 auto; }
+
+  /* Section */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Dashboard Cards */
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+  .card {
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    border: 1.5px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .card.amber::before { background: var(--amber); }
+  .card.green::before { background: var(--green); }
+  .card.red::before { background: var(--red); }
+  .card.blue::before { background: var(--blue); }
+  .card-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .card-value { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+  .card-value.amber { color: var(--amber); }
+  .card-value.green { color: var(--green); }
+  .card-value.red { color: var(--red); }
+  .card-value.blue { color: var(--blue); }
+  .card-sub { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+  .card-icon { font-size: 1.8rem; position: absolute; top: 14px; right: 14px; opacity: 0.2; }
+
+  /* Form */
+  .form-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1.5px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .form-card h3 { font-size: 1rem; font-weight: 800; margin-bottom: 16px; color: var(--brown); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+  input, select, textarea {
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 0.88rem;
+    background: var(--cream);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--amber); background: white; }
+  textarea { resize: vertical; min-height: 70px; }
+
+  .btn {
+    padding: 11px 22px;
+    border: none;
+    border-radius: 10px;
+    font-family: var(--font);
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--brown); color: white; }
+  .btn-primary:hover { background: var(--amber); transform: translateY(-1px); }
+  .btn-danger { background: var(--red-light); color: var(--red); border: 1px solid #F0C0BC; }
+  .btn-danger:hover { background: var(--red); color: white; }
+  .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+
+  /* Table */
+  .table-card {
+    background: white;
+    border-radius: 16px;
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .table-header {
+    padding: 14px 18px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .table-header h3 { font-size: 0.95rem; font-weight: 800; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 11px 14px;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #F5EDE0;
+    font-family: var(--mono);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--cream); }
+  .empty { text-align: center; padding: 30px; color: var(--muted); font-size: 0.9rem; }
+
+  /* Badges */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-amber { background: #FFF3E0; color: var(--amber); }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+
+  /* Today summary bar */
+  .today-bar {
+    background: linear-gradient(135deg, var(--brown), #6B3A10);
+    color: white;
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .today-bar .emoji { font-size: 2rem; }
+  .today-bar h2 { font-size: 1rem; font-weight: 800; }
+  .today-bar p { font-size: 0.8rem; opacity: 0.75; margin-top: 2px; }
+
+  @media (max-width: 500px) {
+    .cards { grid-template-columns: 1fr 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: 1; }
+    td, th { padding: 8px 10px; font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body style="background:#FFF8EE;">
+
+<!-- Loading Screen -->
+<div id="app-loading" style="position:fixed;inset:0;background:#3D1F00;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;">
+  <div style="font-size:4rem;margin-bottom:16px;">🥛</div>
+  <div style="font-size:1.4rem;font-weight:800;color:#e2c97e;">Parag Milk</div>
+  <div style="font-size:0.85rem;color:#8B6A4A;margin-top:8px;">Loading...</div>
+</div>
+
+<!-- PWA Install Banner -->
+<div id="install-banner" style="display:none;background:#2A7A4A;color:white;padding:12px 16px;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:999;">
+  <div style="font-size:0.85rem;font-weight:700;">📱 Parag Milk ko App ki tarah install karo!</div>
+  <div style="display:flex;gap:8px;">
+    <button onclick="installApp()" style="background:white;color:#2A7A4A;border:none;padding:7px 14px;border-radius:8px;font-weight:700;font-size:0.82rem;cursor:pointer;">Install ✅</button>
+    <button onclick="this.parentElement.parentElement.style.display='none'" style="background:rgba(255,255,255,0.2);color:white;border:none;padding:7px 10px;border-radius:8px;cursor:pointer;">✕</button>
+  </div>
+</div>
+
+<div class="header">
+  <h1>🥛 Parag <span>Milk</span></h1>
+  <div class="date" id="headerDate"></div>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
+  <button onclick="showTab('demand')">📦 Demand</button>
+  <button onclick="showTab('sales')">💰 Sales</button>
+  <button onclick="showTab('customers')">🏪 Distributors</button>
+  <button onclick="showTab('expenses')">📋 Expenses</button>
+  <button onclick="showTab('products')">🧀 Products</button>
+  <button onclick="logoutUser()" style="background:var(--red-light);color:var(--red);">🚪 Logout</button>
+</div>
+
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div class="section active" id="dashboard">
+    <div class="today-bar">
+      <div class="emoji">🌅</div>
+      <div>
+        <h2>Today's Overview</h2>
+        <p id="todayDate">Loading...</p>
+      </div>
+    </div>
+    <div class="cards">
+      <div class="card green">
+        <div class="card-icon">💰</div>
+        <div class="card-label">Today's Income</div>
+        <div class="card-value green" id="dash-income">₹0</div>
+        <div class="card-sub">Total sales today</div>
+      </div>
+      <div class="card red">
+        <div class="card-icon">📋</div>
+        <div class="card-label">Today's Expenses</div>
+        <div class="card-value red" id="dash-expense">₹0</div>
+        <div class="card-sub">Total spent today</div>
+      </div>
+      <div class="card blue">
+        <div class="card-icon">📈</div>
+        <div class="card-label">Net Profit</div>
+        <div class="card-value blue" id="dash-profit">₹0</div>
+        <div class="card-sub">Income - Expenses</div>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card green">
+        <div class="card-label">Total Distributors</div>
+        <div class="card-value green" id="dash-customers">0</div>
+        <div class="card-sub">Active distributors</div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header"><h3>📅 Recent Records</h3></div>
+      <table>
+        <thead><tr><th>Date</th><th>Type</th><th>Details</th><th>Amount</th></tr></thead>
+        <tbody id="recent-table"><tr><td colspan="4" class="empty">No records yet. Start adding data!</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="form-card" style="background:linear-gradient(135deg,var(--brown),#6B3A10);border:none;">
+      <h3 style="color:white;margin-bottom:6px;">📊 Export All Data to Excel</h3>
+      <p style="color:#C8A882;font-size:0.8rem;margin-bottom:14px;">Saara data ek Excel file mein download karo</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn" style="background:var(--amber);color:white;border:none;" onclick="exportAllExcel()">📥 Export All — Full Report</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);" onclick="exportDemandExcel()">📦 Demand Only</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);" onclick="exportSalesExcel()">💰 Sales Only</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);" onclick="exportExpensesExcel()">📋 Expenses Only</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEMAND -->
+  <div class="section" id="demand">
+    <div class="today-bar">
+      <div class="emoji">📦</div>
+      <div>
+        <h2>Distributor Demand</h2>
+        <p id="demand-date-label">Collect demands & export to Excel for production</p>
+      </div>
+    </div>
+
+    <!-- Step 1: Select/Add Distributor -->
+    <div class="form-card">
+      <h3>🏪 Step 1 — Enter Distributor Demand</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="demand-entry-date">
+        </div>
+        <div class="form-group">
+          <label>Distributor Name</label>
+          <select id="demand-dist-name">
+            <option value="">-- Select Distributor --</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;" id="demand-rows-table">
+            <thead>
+              <tr style="background:var(--cream);">
+                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">#</th>
+                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Product</th>
+                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Size</th>
+                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Rate ₹</th>
+                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Quantity</th>
+                <th style="padding:9px 12px;border-bottom:1.5px solid var(--border);"></th>
+              </tr>
+            </thead>
+            <tbody id="demand-entry-grid"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="6" style="padding:10px 12px;">
+                  <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);border:1px solid #B0D8C0;" onclick="addDemandRow()">+ Add Product Row</button>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="saveDemandEntry()">✅ Save Demand</button>
+        <button class="btn" style="background:var(--blue-light);color:var(--blue);border:1px solid #C0D0F0;" onclick="clearDemandForm()">🔄 Clear Form</button>
+      </div>
+    </div>
+
+    <!-- Step 2: All Demands for Today -->
+    <div class="table-card">
+      <div class="table-header" style="flex-wrap:wrap;gap:8px;">
+        <h3>📋 Today's Demands — <span id="demand-day-label" style="color:var(--amber)"></span></h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="exportDemandExcel()">📊 Export to Excel</button>
+          <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:1px solid #F0C0BC;" onclick="clearAllDemandToday()">🗑 Clear Today</button>
+        </div>
+      </div>
+
+      <!-- Distributor-wise table -->
+      <div id="demand-dist-tables"></div>
+
+      <!-- Total Summary -->
+      <div id="demand-total-section" style="display:none;">
+        <div style="padding:12px 16px;background:var(--brown);color:white;">
+          <strong style="font-size:0.9rem;">📊 TOTAL PRODUCTION REQUIRED</strong>
+        </div>
+        <table>
+          <thead><tr><th>Product</th><th>Size</th><th>Category</th><th style="background:#E8F5EE;color:var(--green);">TOTAL QTY</th><th>Rate</th><th>Total Value</th></tr></thead>
+          <tbody id="demand-total-table"></tbody>
+        </table>
+        <div style="padding:12px 16px;text-align:right;">
+          <strong id="demand-grand-total" style="font-size:1rem;color:var(--green);"></strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALES -->
+  <div class="section" id="sales">
+    <div class="form-card">
+      <h3>💰 Add Sale Record</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="sale-date">
+        </div>
+        <div class="form-group">
+          <label>Distributor Name</label>
+          <input type="text" id="sale-customer" placeholder="Distributor name" list="customer-list">
+          <datalist id="customer-list"></datalist>
+        </div>
+        <div class="form-group">
+          <label>Product</label>
+          <select id="sale-product">
+            <option>Cow Milk</option>
+            <option>Buffalo Milk</option>
+            <option>Paneer</option>
+            <option>Ghee</option>
+            <option>Curd</option>
+            <option>Butter</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Quantity (L/Kg)</label>
+          <input type="number" id="sale-qty" placeholder="0.0" step="0.1" min="0">
+        </div>
+        <div class="form-group">
+          <label>Rate (₹ per L/Kg)</label>
+          <input type="number" id="sale-rate" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Total Amount (₹)</label>
+          <input type="number" id="sale-amount" placeholder="Auto-calculated" min="0">
+        </div>
+        <div class="form-group">
+          <label>Payment</label>
+          <select id="sale-payment">
+            <option>Paid</option>
+            <option>Pending</option>
+            <option>Partial</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <input type="text" id="sale-notes" placeholder="Optional notes">
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="addSale()">+ Add Sale</button>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header"><h3>💵 Sales History</h3></div>
+      <table>
+        <thead><tr><th>Date</th><th>Distributor</th><th>Product</th><th>Qty</th><th>Amount</th><th>Status</th><th>Del</th></tr></thead>
+        <tbody id="sales-table"><tr><td colspan="7" class="empty">No sales records yet.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DISTRIBUTORS -->
+  <div class="section" id="customers">
+    <div class="form-card">
+      <h3>🏪 Add Distributor</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Distributor Code</label>
+          <input type="text" id="cust-code" placeholder="e.g. D001, 0177">
+        </div>
+        <div class="form-group">
+          <label>Distributor Name</label>
+          <input type="text" id="cust-name" placeholder="Full name">
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" id="cust-phone" placeholder="Mobile number">
+        </div>
+        <div class="form-group">
+          <label>Area / Zone</label>
+          <input type="text" id="cust-daily" placeholder="e.g. Moradabad">
+        </div>
+        <div class="form-group">
+          <label>Vehicle Number</label>
+          <input type="text" id="cust-vehicle" placeholder="e.g. UP32 AB 1234" style="text-transform:uppercase;">
+        </div>
+        <div class="form-group full">
+          <label>Address</label>
+          <input type="text" id="cust-address" placeholder="Address">
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="addCustomer()">+ Add Distributor</button>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header"><h3>🏪 Distributor List</h3></div>
+      <table>
+        <thead><tr><th>Code</th><th>Name</th><th>Phone</th><th>Vehicle</th><th>Area</th><th>Rates</th><th>Del</th></tr></thead>
+        <tbody id="cust-table"><tr><td colspan="7" class="empty">No distributors added yet.</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- Product-wise Rate Panel -->
+    <div class="form-card" id="dist-rate-panel" style="display:none;">
+      <h3 id="dist-rate-title">📋 Product Rates</h3>
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">Har product ka alag rate set karo is distributor ke liye</p>
+      <div id="dist-rate-grid" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div style="margin-top:16px;display:flex;gap:10px;">
+        <button class="btn btn-primary" onclick="saveDistRates()">💾 Save Rates</button>
+        <button class="btn" onclick="closeDistRates()" style="background:var(--cream);">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPENSES -->
+  <div class="section" id="expenses">
+    <div class="form-card">
+      <h3>📋 Add Expense</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="exp-date">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="exp-category">
+            <option>Animal Feed</option>
+            <option>Medicine/Vet</option>
+            <option>Labour</option>
+            <option>Equipment</option>
+            <option>Transport</option>
+            <option>Electricity</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" id="exp-amount" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Paid To</label>
+          <input type="text" id="exp-paid" placeholder="Vendor/Person name">
+        </div>
+        <div class="form-group full">
+          <label>Description</label>
+          <textarea id="exp-desc" placeholder="Details about expense..."></textarea>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="addExpense()">+ Add Expense</button>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header"><h3>💸 Expense History</h3></div>
+      <table>
+        <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Del</th></tr></thead>
+        <tbody id="exp-table"><tr><td colspan="5" class="empty">No expenses recorded yet.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div class="section" id="products">
+
+    <!-- Default Products Grid -->
+    <div class="form-card" style="margin-bottom:16px;">
+      <h3>🥛 Set Rates for Your Products</h3>
+      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">Enter rate and stock quantity for each product. Click 💾 to save.</p>
+      <div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:6px;padding-right:4px;">
+        <span style="width:75px;text-align:center;font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;">Rate ₹</span>
+        <span style="width:65px;text-align:center;font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;">Stock</span>
+        <span style="width:36px;"></span>
+      </div>
+      <div id="default-products-grid" style="display:grid;gap:10px;"></div>
+    </div>
+
+    <!-- Add Custom Product -->
+    <div class="form-card">
+      <h3>➕ Add New Product</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" id="new-prod-name" placeholder="e.g. Paneer 200g">
+        </div>
+        <div class="form-group">
+          <label>Size / Volume</label>
+          <input type="text" id="new-prod-size" placeholder="e.g. 500ml, 1Ltr, 1Kg">
+        </div>
+        <div class="form-group">
+          <label>Rate (₹)</label>
+          <input type="number" id="new-prod-rate" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Stock Quantity</label>
+          <input type="number" id="new-prod-qty" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="new-prod-cat">
+            <option>FCM</option>
+            <option>STD</option>
+            <option>Toned</option>
+            <option>Paneer</option>
+            <option>Ghee</option>
+            <option>Curd</option>
+            <option>Butter</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="addCustomProduct()">+ Add Product</button>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header"><h3>📦 All Products & Rates</h3></div>
+      <table>
+        <thead><tr><th>#</th><th>Product</th><th>Cat</th><th>Rate(₹)</th><th>Stock</th><th>Edit</th><th>Active</th><th>Del</th></tr></thead>
+        <tbody id="products-table"><tr><td colspan="8" class="empty">No products yet.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+<!-- Login Screen -->
+<div id="login-screen" style="display:none;position:fixed;inset:0;background:#1a0a00;z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+  <div style="font-size:3rem;margin-bottom:8px;">🥛</div>
+  <h2 style="color:#e2c97e;font-size:1.6rem;font-weight:800;margin-bottom:4px;">Parag Milk</h2>
+  <p style="color:#8B6A4A;font-size:0.85rem;margin-bottom:28px;">Login to continue</p>
+  <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;">
+    <input type="email" id="login-email" placeholder="Email" style="padding:12px 16px;border:1.5px solid #3D1F00;border-radius:10px;font-size:0.95rem;background:#2a1000;color:white;outline:none;">
+    <input type="password" id="login-pass" placeholder="Password" style="padding:12px 16px;border:1.5px solid #3D1F00;border-radius:10px;font-size:0.95rem;background:#2a1000;color:white;outline:none;">
+    <button onclick="doLogin()" style="padding:13px;background:#C97A2A;color:white;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;">Login ✅</button>
+    <button onclick="doRegister()" style="padding:13px;background:transparent;color:#C97A2A;border:1.5px solid #C97A2A;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;">New User? Register</button>
+    <p id="login-error" style="color:#ff6b6b;font-size:0.82rem;text-align:center;display:none;"></p>
+  </div>
+</div>
+
+<script>
+  // Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyC6I01bVVQvR0ChtcvWoH6unciAR9cbGtY",
+    authDomain: "parag-milk-af613.firebaseapp.com",
+    databaseURL: "https://parag-milk-af613-default-rtdb.firebaseio.com",
+    projectId: "parag-milk-af613",
+    storageBucket: "parag-milk-af613.firebasestorage.app",
+    messagingSenderId: "972291445809",
+    appId: "1:972291445809:web:bec6ee42bd03f10dbf7110",
+    measurementId: "G-WM6831G105"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+
+  let currentUser = null;
+  let dbRef = null;
+
+  // Show login screen on load
+  document.getElementById('login-screen').style.display = 'flex';
+
+  // Auth state
+  auth.onAuthStateChanged(user => {
+    document.getElementById('app-loading').style.display = 'none';
+    if (user) {
+      currentUser = user;
+      dbRef = db.ref('sharedData');
+      document.getElementById('login-screen').style.display = 'none';
+      loadDataFromFirebase();
+    } else {
+      document.getElementById('login-screen').style.display = 'flex';
+    }
+  });
+
+  function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    const errEl = document.getElementById('login-error');
+    errEl.style.display = 'none';
+    if (!email || !pass) { showLoginError('Email aur password daalo!'); return; }
+    auth.signInWithEmailAndPassword(email, pass)
+      .catch(e => showLoginError('Email ya password galat hai!'));
+  }
+
+  function doRegister() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    if (!email || !pass) { showLoginError('Email aur password daalo!'); return; }
+    if (pass.length < 6) { showLoginError('Password kam se kam 6 characters ka ho!'); return; }
+    auth.createUserWithEmailAndPassword(email, pass)
+      .catch(e => showLoginError('Registration fail! Email already use mein hai.'));
+  }
+
+  function showLoginError(msg) {
+    const el = document.getElementById('login-error');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function logoutUser() {
+    auth.signOut();
+  }
+
+  // Data Store
+  let data = {
+    production: [],
+    sales: [],
+    customers: [],
+    expenses: [],
+    products: [],
+    demand: [],
+    demandEntries: [],
+    distributors: []
+  };
+
+  function loadDataFromFirebase() {
+    dbRef.once('value').then(snap => {
+      const val = snap.val();
+      if (val) data = { ...data, ...val };
+      renderSales();
+      renderCustomers();
+      renderExpenses();
+      renderProducts();
+      renderDefaultProductsGrid();
+      updateCustomerList();
+      updateDashboard();
+    });
+    // Live sync
+    dbRef.on('value', snap => {
+      const val = snap.val();
+      if (val) { data = { ...data, ...val }; updateDashboard(); }
+    });
+  }
+
+  function saveData() {
+    if (dbRef) {
+      dbRef.set(data).catch(e => console.log('Firebase save error:', e));
+    }
+    // Also save locally as backup
+    try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
+  }
+
+  function loadDataFallback() {
+    // Handled by Firebase now
+  }
+
+
+  // Date helpers
+  function today() { return new Date().toISOString().split('T')[0]; }
+  function formatDate(d) {
+    if (!d) return '';
+    const dt = new Date(d + 'T00:00:00');
+    return dt.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'2-digit' });
+  }
+
+  // Init dates
+  document.getElementById('sale-date').value = today();
+  document.getElementById('exp-date').value = today();
+  document.getElementById('demand-entry-date').value = today();
+
+  const now = new Date();
+  document.getElementById('headerDate').textContent = now.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' });
+  document.getElementById('todayDate').textContent = now.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  // Auto-calculate sale amount
+  document.getElementById('sale-qty').addEventListener('input', calcSale);
+  document.getElementById('sale-rate').addEventListener('input', calcSale);
+  function calcSale() {
+    const q = parseFloat(document.getElementById('sale-qty').value) || 0;
+    const r = parseFloat(document.getElementById('sale-rate').value) || 0;
+    if (q && r) document.getElementById('sale-amount').value = (q * r).toFixed(0);
+  }
+
+  // Tab Navigation
+  function showTab(tab) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(tab).classList.add('active');
+    event.target.classList.add('active');
+    if (tab === 'dashboard') updateDashboard();
+    if (tab === 'demand') { renderDemandEntryGrid(); renderDemandSummaryPage(today()); updateDistList(); }
+  }
+
+  // SALES
+  function addSale() {
+    const rec = {
+      id: Date.now(),
+      date: document.getElementById('sale-date').value,
+      customer: document.getElementById('sale-customer').value,
+      product: document.getElementById('sale-product').value,
+      qty: parseFloat(document.getElementById('sale-qty').value) || 0,
+      rate: parseFloat(document.getElementById('sale-rate').value) || 0,
+      amount: parseFloat(document.getElementById('sale-amount').value) || 0,
+      payment: document.getElementById('sale-payment').value,
+      notes: document.getElementById('sale-notes').value
+    };
+    if (!rec.amount) { alert('Please enter amount!'); return; }
+    data.sales.unshift(rec);
+    saveData();
+    renderSales();
+    updateCustomerList();
+    document.getElementById('sale-customer').value = '';
+    document.getElementById('sale-qty').value = '';
+    document.getElementById('sale-rate').value = '';
+    document.getElementById('sale-amount').value = '';
+    document.getElementById('sale-notes').value = '';
+  }
+
+  function renderSales() {
+    const tb = document.getElementById('sales-table');
+    if (!data.sales.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">No sales records yet.</td></tr>'; return; }
+    tb.innerHTML = data.sales.map(r => `
+      <tr>
+        <td>${formatDate(r.date)}</td>
+        <td>${r.customer || '-'}</td>
+        <td>${r.product}</td>
+        <td>${r.qty} L</td>
+        <td><strong>₹${r.amount}</strong></td>
+        <td><span class="badge ${r.payment==='Paid'?'badge-green':r.payment==='Pending'?'badge-red':'badge-amber'}">${r.payment}</span></td>
+        <td><button class="btn btn-danger btn-sm" onclick="delRecord('sales',${r.id})">✕</button></td>
+      </tr>`).join('');
+  }
+
+  // CUSTOMERS
+  function addCustomer() {
+    const rec = {
+      id: Date.now(),
+      code: document.getElementById('cust-code').value.trim(),
+      name: document.getElementById('cust-name').value.trim(),
+      phone: document.getElementById('cust-phone').value,
+      daily: document.getElementById('cust-daily').value,
+      vehicle: document.getElementById('cust-vehicle').value.trim().toUpperCase(),
+      address: document.getElementById('cust-address').value,
+      productRates: {}
+    };
+    if (!rec.name) { alert('Please enter distributor name!'); return; }
+    data.customers.unshift(rec);
+    saveData();
+    renderCustomers();
+    updateCustomerList();
+    document.getElementById('cust-code').value = '';
+    document.getElementById('cust-name').value = '';
+    document.getElementById('cust-phone').value = '';
+    document.getElementById('cust-daily').value = '';
+    document.getElementById('cust-vehicle').value = '';
+    document.getElementById('cust-address').value = '';
+  }
+
+  function renderCustomers() {
+    const tb = document.getElementById('cust-table');
+    if (!data.customers.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">No distributors added yet.</td></tr>'; return; }
+    tb.innerHTML = data.customers.map(r => `
+      <tr>
+        <td><span class="badge badge-amber">${r.code || '-'}</span></td>
+        <td><strong>${r.name}</strong></td>
+        <td>${r.phone || '-'}</td>
+        <td>${r.vehicle || '-'}</td>
+        <td>${r.daily || '-'}</td>
+        <td><button class="btn btn-primary btn-sm" onclick="openDistRates(${r.id})">💰 Set Rates</button></td>
+        <td><button class="btn btn-danger btn-sm" onclick="delRecord('customers',${r.id})">✕</button></td>
+      </tr>`).join('');
+  }
+
+  function updateCustomerList() {
+    const dl = document.getElementById('customer-list');
+    if (dl) dl.innerHTML = data.customers.map(c => `<option value="${c.name}">`).join('');
+    updateDistList();
+  }
+
+  let currentDistId = null;
+
+  function openDistRates(distId) {
+    const dist = data.customers.find(c => c.id === distId);
+    if (!dist) return;
+    currentDistId = distId;
+    const allProds = getAllProducts();
+    const panel = document.getElementById('dist-rate-panel');
+    document.getElementById('dist-rate-title').textContent = `💰 ${dist.name} — Product Rates`;
+    const grid = document.getElementById('dist-rate-grid');
+    if (!allProds.length) {
+      grid.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">Pehle Products tab mein products add karo!</p>';
+    } else {
+      grid.innerHTML = allProds.map(p => {
+        const savedRate = (dist.productRates || {})[p.id] || '';
+        return `<div style="display:flex;align-items:center;gap:10px;background:var(--cream);border-radius:10px;padding:10px 14px;border:1.5px solid var(--border);">
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:0.88rem;">${p.name} <span style="color:var(--muted);font-size:0.78rem;">${p.size||''}</span></div>
+            <span class="badge ${catColors[p.cat]||'badge-blue'}" style="margin-top:2px;">${p.cat}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="color:var(--muted);font-weight:700;">₹</span>
+            <input type="number" id="drate-${p.id}" value="${savedRate}" placeholder="Rate" min="0"
+              style="width:80px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;">
+          </div>
+        </div>`;
+      }).join('');
+    }
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function saveDistRates() {
+    const dist = data.customers.find(c => c.id === currentDistId);
+    if (!dist) return;
+    const allProds = getAllProducts();
+    if (!dist.productRates) dist.productRates = {};
+    allProds.forEach(p => {
+      const inp = document.getElementById('drate-' + p.id);
+      if (inp) {
+        const val = parseFloat(inp.value);
+        if (val > 0) dist.productRates[p.id] = val;
+        else delete dist.productRates[p.id];
+      }
+    });
+    saveData();
+    document.getElementById('dist-rate-panel').style.display = 'none';
+    renderCustomers();
+    alert('✅ Rates save ho gaye!');
+  }
+
+  function closeDistRates() {
+    document.getElementById('dist-rate-panel').style.display = 'none';
+    currentDistId = null;
+  }
+
+  // EXPENSES
+  function addExpense() {
+    const rec = {
+      id: Date.now(),
+      date: document.getElementById('exp-date').value,
+      category: document.getElementById('exp-category').value,
+      amount: parseFloat(document.getElementById('exp-amount').value) || 0,
+      paid: document.getElementById('exp-paid').value,
+      desc: document.getElementById('exp-desc').value
+    };
+    if (!rec.amount) { alert('Please enter amount!'); return; }
+    data.expenses.unshift(rec);
+    saveData();
+    renderExpenses();
+    document.getElementById('exp-amount').value = '';
+    document.getElementById('exp-paid').value = '';
+    document.getElementById('exp-desc').value = '';
+  }
+
+  function renderExpenses() {
+    const tb = document.getElementById('exp-table');
+    if (!data.expenses.length) { tb.innerHTML = '<tr><td colspan="5" class="empty">No expenses recorded yet.</td></tr>'; return; }
+    tb.innerHTML = data.expenses.map(r => `
+      <tr>
+        <td>${formatDate(r.date)}</td>
+        <td><span class="badge badge-blue">${r.category}</span></td>
+        <td>${r.desc || r.paid || '-'}</td>
+        <td><strong style="color:var(--red)">₹${r.amount}</strong></td>
+        <td><button class="btn btn-danger btn-sm" onclick="delRecord('expenses',${r.id})">✕</button></td>
+      </tr>`).join('');
+  }
+
+  // Delete
+  function delRecord(type, id) {
+    if (!confirm('Delete this record?')) return;
+    data[type] = data[type].filter(r => r.id !== id);
+    saveData();
+    if (type === 'production') renderProduction();
+    if (type === 'sales') renderSales();
+    if (type === 'customers') renderCustomers();
+    if (type === 'expenses') renderExpenses();
+    if (type === 'products') renderProducts();
+  }
+
+  // DEMAND — Distributor-wise
+  function getAllProducts() {
+    const defaults = DEFAULT_PRODUCTS.map(dp => {
+      const saved = data.products.find(p => p.id === dp.id);
+      return saved ? saved : { ...dp, rate: 0 };
+    });
+    const customs = data.products.filter(p => p.custom);
+    // Filter out inactive products
+    return [...defaults.filter(p => p.rate > 0 && p.active !== false), ...customs.filter(p => p.active !== false)];
+  }
+
+  let demandRowCount = 0;
+
+  function renderDemandEntryGrid() {
+    const grid = document.getElementById('demand-entry-grid');
+    grid.innerHTML = '';
+    demandRowCount = 0;
+    addDemandRow(); // Start with one empty row
+  }
+
+  function addDemandRow() {
+    const grid = document.getElementById('demand-entry-grid');
+    const allProds = getAllProducts();
+    if (!allProds.length) {
+      alert('Pehle Products tab mein products add karein!');
+      return;
+    }
+    demandRowCount++;
+    const rowId = 'drow-' + demandRowCount;
+    const options = allProds.map(p => `<option value="${p.id}" data-size="${p.size||''}" data-rate="${p.rate||0}" data-cat="${p.cat}">${p.name} ${p.size||''}</option>`).join('');
+    const tr = document.createElement('tr');
+    tr.id = rowId;
+    tr.style.borderBottom = '1px solid #F5EDE0';
+    tr.innerHTML = `
+      <td style="padding:8px 12px;color:var(--muted);font-size:0.85rem;">${demandRowCount}</td>
+      <td style="padding:8px 10px;">
+        <select onchange="onDemandProductSelect(this, '${rowId}')"
+          style="width:100%;min-width:140px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font);font-size:0.85rem;background:white;cursor:pointer;">
+          <option value="">-- Select Product --</option>
+          ${options}
+        </select>
+      </td>
+      <td id="${rowId}-size" style="padding:8px 12px;font-size:0.85rem;color:var(--muted);">-</td>
+      <td id="${rowId}-rate" style="padding:8px 12px;font-family:var(--mono);font-size:0.85rem;">-</td>
+      <td style="padding:8px 10px;">
+        <input type="number" id="${rowId}-qty" placeholder="0" min="0"
+          style="width:80px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;">
+      </td>
+      <td style="padding:8px 10px;">
+        <button class="btn btn-danger btn-sm" onclick="removeDemandRow('${rowId}')">✕</button>
+      </td>`;
+    grid.appendChild(tr);
+  }
+
+  function onDemandProductSelect(sel, rowId) {
+    const opt = sel.options[sel.selectedIndex];
+    const pid = opt.value;
+    document.getElementById(rowId + '-size').textContent = opt.dataset.size || '-';
+    // Check distributor-specific rate first
+    const distName = document.getElementById('demand-dist-name').value;
+    const dist = data.customers.find(c => c.name === distName);
+    let rate = opt.dataset.rate || 0;
+    if (dist && dist.productRates && dist.productRates[pid]) {
+      rate = dist.productRates[pid];
+    }
+    document.getElementById(rowId + '-rate').textContent = rate ? '₹' + rate : '-';
+    document.getElementById(rowId + '-qty').focus();
+  }
+
+  function removeDemandRow(rowId) {
+    const row = document.getElementById(rowId);
+    if (row) row.remove();
+  }
+
+  function updateDistList() {
+    const sel = document.getElementById('demand-dist-name');
+    if (!sel) return;
+    const current = sel.value;
+    // Get distributors from customers data
+    const names = data.customers.map(c => c.name);
+    // Also include any from demandEntries that may not be in list
+    (data.demandEntries||[]).forEach(e => { if (!names.includes(e.distName)) names.push(e.distName); });
+    sel.innerHTML = '<option value="">-- Select Distributor --</option>' +
+      names.map(n => `<option value="${n}" ${n===current?'selected':''}>${n}</option>`).join('');
+    if (!names.length) {
+      sel.innerHTML = '<option value="">-- Pehle Distributor add karein --</option>';
+    }
+  }
+
+  function saveDemandEntry() {
+    const date = document.getElementById('demand-entry-date').value || today();
+    const distName = document.getElementById('demand-dist-name').value;
+    if (!distName) { alert('Pehle distributor select karein!'); return; }
+
+    // Read from dynamic rows
+    const rows = document.querySelectorAll('#demand-entry-grid tr');
+    const items = {};
+    rows.forEach(row => {
+      const sel = row.querySelector('select');
+      const qtyInput = row.querySelector('input[type="number"]');
+      if (!sel || !qtyInput) return;
+      const pid = sel.value;
+      const qty = parseFloat(qtyInput.value) || 0;
+      if (pid && qty > 0) {
+        items[pid] = (items[pid] || 0) + qty;
+      }
+    });
+
+    if (!Object.keys(items).length) { alert('Kam se kam ek product select karke quantity daalo!'); return; }
+    if (!data.demandEntries) data.demandEntries = [];
+    const idx = data.demandEntries.findIndex(e => e.date === date && e.distName === distName);
+    if (idx >= 0) {
+      if (!confirm(`${distName} ki demand already hai is date ke liye. Update karein?`)) return;
+      data.demandEntries[idx] = { date, distName, items, savedAt: Date.now() };
+    } else {
+      data.demandEntries.push({ id: Date.now(), date, distName, items, savedAt: Date.now() });
+    }
+    saveData();
+    updateDistList();
+    renderDemandSummaryPage(date);
+    clearDemandForm();
+    alert(`✅ ${distName} ki demand save ho gayi!`);
+  }
+
+  function clearDemandForm() {
+    document.getElementById('demand-dist-name').value = '';
+    renderDemandEntryGrid();
+  }
+
+  function clearAllDemandToday() {
+    if (!confirm('Aaj ki saari demands delete karein?')) return;
+    const t = today();
+    data.demandEntries = (data.demandEntries||[]).filter(e => e.date !== t);
+    saveData();
+    renderDemandSummaryPage(t);
+  }
+
+  function renderDemandSummaryPage(date) {
+    date = date || today();
+    const allProds = getAllProducts();
+    const entries = (data.demandEntries||[]).filter(e => e.date === date);
+    const container = document.getElementById('demand-dist-tables');
+    const totalSection = document.getElementById('demand-total-section');
+    document.getElementById('demand-day-label').textContent = formatDate(date);
+
+    if (!entries.length) {
+      container.innerHTML = '<div class="empty" style="padding:24px;">Koi demand nahi aai aaj. Upar form fill karo!</div>';
+      totalSection.style.display = 'none';
+      return;
+    }
+
+    // Distributor-wise tables
+    container.innerHTML = entries.map(e => {
+      const distItems = Object.entries(e.items).map(([pid, qty]) => {
+        const prod = allProds.find(p => String(p.id) === String(pid));
+        if (!prod) return '';
+        const val = (prod.rate||0) * qty;
+        return `<tr>
+          <td><strong>${prod.name}</strong> ${prod.size||''}</td>
+          <td><span class="badge ${catColors[prod.cat]||'badge-blue'}">${prod.cat}</span></td>
+          <td><strong>${qty}</strong></td>
+          <td>₹${prod.rate||0}</td>
+          <td><strong style="color:var(--green)">₹${val}</strong></td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteDemandEntry(${e.id})">✕</button></td>
+        </tr>`;
+      }).join('');
+      return `
+        <div style="border-bottom:2px solid var(--border);">
+          <div style="padding:10px 16px;background:var(--cream);display:flex;justify-content:space-between;align-items:center;">
+            <strong style="color:var(--brown);">🏪 ${e.distName}</strong>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-primary btn-sm" onclick="generateInvoice('${e.distName}','${e.date}')">🧾 Invoice</button>
+              <span style="font-size:0.75rem;color:var(--muted);">${formatDate(e.date)}</span>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Product</th><th>Cat</th><th>Qty</th><th>Rate</th><th>Value</th><th>Del</th></tr></thead>
+            <tbody>${distItems}</tbody>
+          </table>
+        </div>`;
+    }).join('');
+
+    // Total summary
+    const totals = {};
+    entries.forEach(e => {
+      Object.entries(e.items).forEach(([pid, qty]) => {
+        totals[pid] = (totals[pid]||0) + qty;
+      });
+    });
+
+    let grandTotal = 0;
+    const totalRows = Object.entries(totals).map(([pid, qty]) => {
+      const prod = allProds.find(p => String(p.id) === String(pid));
+      if (!prod) return '';
+      const val = (prod.rate||0) * qty;
+      grandTotal += val;
+      return `<tr>
+        <td><strong>${prod.name}</strong></td>
+        <td>${prod.size||'-'}</td>
+        <td><span class="badge ${catColors[prod.cat]||'badge-blue'}">${prod.cat}</span></td>
+        <td><strong style="color:var(--green);font-size:1rem;">${qty}</strong></td>
+        <td>₹${prod.rate||0}</td>
+        <td><strong style="color:var(--green)">₹${val}</strong></td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('demand-total-table').innerHTML = totalRows;
+    document.getElementById('demand-grand-total').textContent = `Grand Total: ₹${grandTotal}`;
+    totalSection.style.display = 'block';
+  }
+
+  function deleteDemandEntry(id) {
+    if (!confirm('Ye demand delete karein?')) return;
+    data.demandEntries = (data.demandEntries||[]).filter(e => e.id !== id);
+    saveData();
+    renderDemandSummaryPage(today());
+  }
+
+  // INVOICE GENERATOR
+  function generateInvoice(distName, date) {
+    const allProds = getAllProducts();
+    const entry = (data.demandEntries||[]).find(e => e.date===date && e.distName===distName);
+    if (!entry) { alert('Koi demand nahi mili!'); return; }
+
+    const items = Object.entries(entry.items).map(([pid, qty]) => {
+      const prod = allProds.find(p => String(p.id)===String(pid));
+      if (!prod) return null;
+      return { name: prod.name, size: prod.size||'', qty, rate: prod.rate||0, amount: (prod.rate||0)*qty };
+    }).filter(Boolean);
+
+    const total = items.reduce((s,i) => s+i.amount, 0);
+    const invoiceNo = 'INV-' + Date.now().toString().slice(-6);
+
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Invoice - ${distName}</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; color: #000; max-width: 700px; margin: 0 auto; }
+  .header { text-align: center; border-bottom: 3px solid #3D1F00; padding-bottom: 15px; margin-bottom: 20px; }
+  .company { font-size: 28px; font-weight: 900; color: #3D1F00; }
+  .sub { font-size: 13px; color: #666; margin-top: 4px; }
+  .info-row { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 13px; }
+  .info-box { background: #f9f0e0; border-radius: 8px; padding: 12px 16px; min-width: 200px; }
+  .info-box label { font-weight: 700; color: #3D1F00; display: block; font-size: 11px; margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  th { background: #3D1F00; color: white; padding: 10px; text-align: left; font-size: 13px; }
+  td { padding: 9px 10px; font-size: 13px; border-bottom: 1px solid #eee; }
+  tr:nth-child(even) td { background: #fef9f0; }
+  .total-row td { font-weight: 900; font-size: 15px; background: #f9f0e0 !important; border-top: 2px solid #3D1F00; }
+  .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #888; border-top: 1px solid #ddd; padding-top: 15px; }
+  .sign { margin-top: 40px; display: flex; justify-content: space-between; font-size: 13px; }
+  @media print { .no-print { display: none; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="company">🥛 Parag Milk</div>
+  <div class="sub">Dairy Products | Quality Assured</div>
+</div>
+<div class="info-row">
+  <div class="info-box">
+    <label>BILL TO:</label>
+    <strong>${distName}</strong>
+  </div>
+  <div class="info-box" style="text-align:right;">
+    <label>INVOICE NO:</label> ${invoiceNo}<br>
+    <label>DATE:</label> ${formatDate(date)}
+  </div>
+</div>
+<table>
+  <thead>
+    <tr><th>#</th><th>Product</th><th>Size</th><th>Qty</th><th>Rate (₹)</th><th>Amount (₹)</th></tr>
+  </thead>
+  <tbody>
+    ${items.map((it,i) => `<tr>
+      <td>${i+1}</td>
+      <td><strong>${it.name}</strong></td>
+      <td>${it.size}</td>
+      <td>${it.qty}</td>
+      <td>${it.rate.toFixed(2)}</td>
+      <td><strong>${it.amount.toFixed(2)}</strong></td>
+    </tr>`).join('')}
+    <tr class="total-row">
+      <td colspan="5" style="text-align:right;">TOTAL AMOUNT:</td>
+      <td>₹${total.toFixed(2)}</td>
+    </tr>
+  </tbody>
+</table>
+<div class="sign">
+  <div>Receiver Signature: ______________</div>
+  <div>Authorized Signature: ______________</div>
+</div>
+<div class="footer">Parag Milk — Thank you for your business!</div>
+<br>
+<div class="no-print" style="text-align:center;">
+  <button onclick="window.print()" style="padding:10px 30px;background:#3D1F00;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer;">🖨️ Print / Save PDF</button>
+</div>
+</body>
+</html>`);
+    win.document.close();
+  }
+
+  function exportDemandExcel() {
+    const date = today();
+    const allProds = getAllProducts();
+    const entries = (data.demandEntries||[]).filter(e => e.date === date);
+    if (!entries.length) { alert('Koi demand nahi hai export karne ke liye!'); return; }
+
+    // Build CSV content
+    let csv = `DAIRY DEMAND REPORT — ${formatDate(date)}\n\n`;
+    csv += `DISTRIBUTOR-WISE DEMAND\n`;
+    csv += `Distributor,Product,Size,Category,Quantity,Rate,Value\n`;
+    entries.forEach(e => {
+      Object.entries(e.items).forEach(([pid, qty]) => {
+        const prod = allProds.find(p => String(p.id) === String(pid));
+        if (!prod) return;
+        csv += `${e.distName},${prod.name},${prod.size||''},${prod.cat},${qty},${prod.rate||0},${(prod.rate||0)*qty}\n`;
+      });
+    });
+
+    // Totals
+    const totals = {};
+    entries.forEach(e => Object.entries(e.items).forEach(([pid,qty]) => { totals[pid]=(totals[pid]||0)+qty; }));
+    csv += `\nTOTAL PRODUCTION REQUIRED\n`;
+    csv += `Product,Size,Category,Total Quantity,Rate,Total Value\n`;
+    let grand = 0;
+    Object.entries(totals).forEach(([pid, qty]) => {
+      const prod = allProds.find(p => String(p.id) === String(pid));
+      if (!prod) return;
+      const val = (prod.rate||0)*qty;
+      grand += val;
+      csv += `${prod.name},${prod.size||''},${prod.cat},${qty},${prod.rate||0},${val}\n`;
+    });
+    csv += `,,,,GRAND TOTAL,${grand}\n`;
+
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Demand_${date}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Dashboard
+  function updateDashboard() {
+    const t = today();
+    const todayIncome = data.sales.filter(r => r.date === t).reduce((s,r) => s + r.amount, 0);
+    const todayExp = data.expenses.filter(r => r.date === t).reduce((s,r) => s + r.amount, 0);
+
+    document.getElementById('dash-income').textContent = '₹' + todayIncome;
+    document.getElementById('dash-expense').textContent = '₹' + todayExp;
+    const profit = todayIncome - todayExp;
+    const profEl = document.getElementById('dash-profit');
+    profEl.textContent = '₹' + profit;
+    profEl.style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
+    document.getElementById('dash-customers').textContent = data.customers.length;
+
+    // Recent records
+    const all = [
+      ...data.sales.map(r => ({date:r.date, type:'Sale', detail: r.customer||r.product, amount:'₹'+r.amount, color:'green'})),
+      ...data.expenses.map(r => ({date:r.date, type:'Expense', detail: r.category, amount:'₹'+r.amount, color:'red'}))
+    ].sort((a,b) => b.date?.localeCompare(a.date)).slice(0,8);
+
+    const rt = document.getElementById('recent-table');
+    if (!all.length) { rt.innerHTML = '<tr><td colspan="4" class="empty">No records yet.</td></tr>'; return; }
+    rt.innerHTML = all.map(r => `
+      <tr>
+        <td>${formatDate(r.date)}</td>
+        <td><span class="badge badge-${r.color}">${r.type}</span></td>
+        <td>${r.detail}</td>
+        <td><strong>${r.amount}</strong></td>
+      </tr>`).join('');
+  }
+
+  // DEFAULT PRODUCTS
+  const DEFAULT_PRODUCTS = [
+    { id: 'fcm500',    name: 'F.C.M.',      size: '500 ML',   cat: 'FCM' },
+    { id: 'fcm1l',     name: 'F.C.M.',      size: '01 LTR',   cat: 'FCM' },
+    { id: 'fcm6l',     name: 'F.C.M.',      size: '06 LTR',   cat: 'FCM' },
+    { id: 'std500',    name: 'STD MILK',    size: '500 ML',   cat: 'STD' },
+    { id: 'std350',    name: 'COW MILK',    size: '350 ML',   cat: 'STD' },
+    { id: 'std1l',     name: 'STD MILK',    size: '01 LTR',   cat: 'STD' },
+    { id: 'ton500',    name: 'TONED',       size: '500 ML',   cat: 'Toned' },
+    { id: 'ton1l',     name: 'TONED',       size: '01 LTR',   cat: 'Toned' },
+    { id: 'ton6l',     name: 'TONED',       size: '06 LTR',   cat: 'Toned' },
+    { id: 'matka5',    name: 'MATKA',       size: '5 KG',     cat: 'Other' },
+    { id: 'matka15',   name: 'DAHI MATKA',  size: '15 KG',    cat: 'Curd' },
+    { id: 'chhach300', name: 'CHHACH',      size: '300 ML',   cat: 'Other' },
+    { id: 'curd200',   name: 'P. CURD',     size: '200 GM',   cat: 'Curd' },
+    { id: 'dahi140',   name: 'DAHI P.PACK', size: '140 GM',   cat: 'Curd' },
+    { id: 'kheer90',   name: 'P. KHEER',    size: '90 GM',    cat: 'Other' },
+    { id: 'paneer1kg', name: 'PANEER LITE', size: '01 KG',    cat: 'Paneer' },
+    { id: 'ghee1l',    name: 'GHEE',        size: '01 LTR',   cat: 'Ghee' },
+    { id: 'butter500', name: 'BUTTER',      size: '500 GM',   cat: 'Butter' },
+  ];
+
+  const catColors = { FCM:'badge-amber', STD:'badge-green', Toned:'badge-blue', Paneer:'badge-amber', Ghee:'badge-green', Curd:'badge-blue', Butter:'badge-red', Other:'badge-blue' };
+
+  function renderDefaultProductsGrid() {
+    const grid = document.getElementById('default-products-grid');
+    grid.innerHTML = DEFAULT_PRODUCTS.map(dp => {
+      const saved = data.products.find(p => p.id === dp.id);
+      const rate = saved ? saved.rate : '';
+      const qty = saved ? (saved.qty || '') : '';
+      return `
+        <div style="display:flex;align-items:center;gap:10px;background:var(--cream);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;">
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:0.9rem;">${dp.name} <span style="color:var(--muted);font-size:0.8rem;">${dp.size}</span></div>
+            <span class="badge ${catColors[dp.cat]}" style="margin-top:4px;">${dp.cat}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+            <span style="font-weight:700;color:var(--muted);font-size:0.9rem;">₹</span>
+            <input type="number" id="rate-${dp.id}" value="${rate}" placeholder="Rate" min="0"
+              style="width:75px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.85rem;background:white;">
+            <input type="number" id="qty-${dp.id}" value="${qty}" placeholder="Qty" min="0"
+              style="width:65px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.85rem;background:white;">
+            <button class="btn btn-primary btn-sm" onclick="saveDefaultProduct('${dp.id}','${dp.name}','${dp.size}','${dp.cat}')">💾</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function saveDefaultProduct(id, name, size, cat) {
+    const rate = parseFloat(document.getElementById('rate-' + id).value) || 0;
+    const qty  = parseFloat(document.getElementById('qty-'  + id).value) || 0;
+    if (!rate) { alert('Please enter a rate!'); return; }
+    const existing = data.products.find(p => p.id === id);
+    if (existing) { existing.rate = rate; existing.qty = qty; }
+    else { data.products.push({ id, name, size, cat, rate, qty, custom: false }); }
+    saveData();
+    renderProducts();
+    const btn = document.querySelector(`button[onclick*="'${id}'"]`);
+    if (btn) { btn.textContent = '✅'; setTimeout(() => btn.textContent = '💾', 1200); }
+  }
+
+  function addCustomProduct() {
+    const name = document.getElementById('new-prod-name').value.trim();
+    const size = document.getElementById('new-prod-size').value.trim();
+    const rate = parseFloat(document.getElementById('new-prod-rate').value) || 0;
+    const cat  = document.getElementById('new-prod-cat').value;
+    const qty  = parseFloat(document.getElementById('new-prod-qty').value) || 0;
+    if (!name) { alert('Please enter product name!'); return; }
+    if (!rate) { alert('Please enter rate!'); return; }
+    data.products.push({ id: Date.now(), name, size, cat, rate, qty, custom: true });
+    saveData();
+    renderProducts();
+    document.getElementById('new-prod-name').value = '';
+    document.getElementById('new-prod-size').value = '';
+    document.getElementById('new-prod-rate').value = '';
+    document.getElementById('new-prod-qty').value = '';
+  }
+
+  function renderProducts() {
+    const tb = document.getElementById('products-table');
+    if (!data.products.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No products yet. Set rates above!</td></tr>'; return; }
+    tb.innerHTML = data.products.map((p, i) => `
+      <tr style="opacity:${p.active===false?'0.45':'1'}">
+        <td>${i+1}</td>
+        <td><strong>${p.name}</strong><br><span style="font-size:0.72rem;color:var(--muted)">${p.size||''}</span></td>
+        <td><span class="badge ${catColors[p.cat] || 'badge-blue'}">${p.cat}</span></td>
+        <td><strong style="color:var(--green)">₹${p.rate}</strong></td>
+        <td>
+          <input type="number" value="${p.qty || 0}" min="0" onchange="updateQty('${p.id}', this.value)"
+            style="width:65px;padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--mono);font-size:0.85rem;background:var(--cream);">
+        </td>
+        <td>
+          <button class="btn btn-sm" style="background:#FFF3E0;color:var(--amber);border:1px solid #F0D8A0" onclick="openEditProduct('${p.id}')">✏️</button>
+        </td>
+        <td>
+          <button class="btn btn-sm" onclick="toggleActive('${p.id}')"
+            style="background:${p.active===false?'#eee':'#E8F5E9'};color:${p.active===false?'#999':'#2A7A4A'};border:1px solid ${p.active===false?'#ccc':'#A5D6A7'}">
+            ${p.active===false?'❌ Off':'✅ On'}
+          </button>
+        </td>
+        <td>${p.custom ? `<button class="btn btn-danger btn-sm" onclick="delRecord('products',${p.id})">✕</button>` : '-'}</td>
+      </tr>`).join('');
+    renderDefaultProductsGrid();
+  }
+
+  // Edit product inline panel
+  let editingProductId = null;
+  function openEditProduct(id) {
+    const p = data.products.find(x => String(x.id) === String(id));
+    if (!p) return;
+    editingProductId = id;
+    // Show edit panel
+    let panel = document.getElementById('edit-prod-panel');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'edit-prod-panel';
+      panel.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:white;border-top:3px solid var(--orange);padding:18px;z-index:999;box-shadow:0 -4px 20px rgba(0,0,0,0.15);';
+      document.body.appendChild(panel);
+    }
+    panel.innerHTML = `
+      <h3 style="color:var(--brown);margin-bottom:12px;">✏️ Product Edit Karo</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div><label style="font-size:0.75rem;font-weight:700;color:var(--muted);">NAME</label>
+          <input id="ep-name" value="${p.name}" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;"></div>
+        <div><label style="font-size:0.75rem;font-weight:700;color:var(--muted);">SIZE</label>
+          <input id="ep-size" value="${p.size||''}" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;"></div>
+        <div><label style="font-size:0.75rem;font-weight:700;color:var(--muted);">RATE (₹)</label>
+          <input id="ep-rate" type="number" value="${p.rate||0}" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;"></div>
+        <div><label style="font-size:0.75rem;font-weight:700;color:var(--muted);">CATEGORY</label>
+          <select id="ep-cat" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;">
+            ${['FCM','STD','Toned','Paneer','Ghee','Curd','Butter','Other'].map(c=>`<option ${c===p.cat?'selected':''}>${c}</option>`).join('')}
+          </select></div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="saveEditProduct()" style="flex:1;padding:11px;background:var(--brown);color:white;border:none;border-radius:10px;font-weight:800;font-size:0.9rem;cursor:pointer;">💾 Save</button>
+        <button onclick="closeEditProduct()" style="padding:11px 18px;background:var(--cream);border:1.5px solid var(--border);border-radius:10px;font-weight:700;cursor:pointer;">Cancel</button>
+      </div>`;
+    panel.style.display = 'block';
+  }
+
+  function saveEditProduct() {
+    const p = data.products.find(x => String(x.id) === String(editingProductId));
+    if (!p) return;
+    p.name = document.getElementById('ep-name').value.trim() || p.name;
+    p.size = document.getElementById('ep-size').value.trim();
+    p.rate = parseFloat(document.getElementById('ep-rate').value) || 0;
+    p.cat  = document.getElementById('ep-cat').value;
+    saveData();
+    renderProducts();
+    closeEditProduct();
+  }
+
+  function closeEditProduct() {
+    const panel = document.getElementById('edit-prod-panel');
+    if (panel) panel.style.display = 'none';
+    editingProductId = null;
+  }
+
+  function toggleActive(id) {
+    const p = data.products.find(x => String(x.id) === String(id));
+    if (!p) return;
+    p.active = p.active === false ? true : false;
+    saveData();
+    renderProducts();
+  }
+
+  function updateQty(id, val) {
+    const p = data.products.find(x => String(x.id) === String(id));
+    if (p) { p.qty = parseFloat(val) || 0; saveData(); }
+  }
+
+  function editCustomProduct(id) {
+    const p = data.products.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('new-prod-name').value = p.name;
+    document.getElementById('new-prod-size').value = p.size || '';
+    document.getElementById('new-prod-rate').value = p.rate;
+    document.getElementById('new-prod-cat').value = p.cat;
+    data.products = data.products.filter(x => x.id !== id);
+    saveData();
+    renderProducts();
+    window.scrollTo(0,0);
+  }
+
+  // EXPORT FUNCTIONS
+  function downloadCSV(content, filename) {
+    const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportSalesExcel() {
+    if (!data.sales.length) { alert('Koi sales data nahi hai!'); return; }
+    let csv = 'PARAG MILK — SALES REPORT\n\n';
+    csv += 'Date,Distributor,Product,Quantity,Rate,Amount,Payment Status,Notes\n';
+    data.sales.forEach(r => {
+      csv += `${r.date},${r.customer||''},${r.product},${r.qty},${r.rate},${r.amount},${r.payment},${r.notes||''}\n`;
+    });
+    const total = data.sales.reduce((s,r) => s+r.amount, 0);
+    csv += `\n,,,,TOTAL,${total},,\n`;
+    downloadCSV(csv, `Parag_Sales_${today()}.csv`);
+  }
+
+  function exportExpensesExcel() {
+    if (!data.expenses.length) { alert('Koi expenses data nahi hai!'); return; }
+    let csv = 'PARAG MILK — EXPENSES REPORT\n\n';
+    csv += 'Date,Category,Description,Paid To,Amount\n';
+    data.expenses.forEach(r => {
+      csv += `${r.date},${r.category},${r.desc||''},${r.paid||''},${r.amount}\n`;
+    });
+    const total = data.expenses.reduce((s,r) => s+r.amount, 0);
+    csv += `\n,,,,TOTAL: ${total}\n`;
+    downloadCSV(csv, `Parag_Expenses_${today()}.csv`);
+  }
+
+  function exportAllExcel() {
+    const allProds = getAllProducts();
+    let csv = 'PARAG MILK — FULL REPORT\n';
+    csv += `Date: ${formatDate(today())}\n\n`;
+
+    // 1. Demand
+    csv += '========== DEMAND DATA ==========\n';
+    csv += 'Date,Distributor,Product,Size,Category,Quantity,Rate,Value\n';
+    (data.demandEntries||[]).forEach(e => {
+      Object.entries(e.items).forEach(([pid, qty]) => {
+        const prod = allProds.find(p => String(p.id) === String(pid));
+        if (!prod) return;
+        csv += `${e.date},${e.distName},${prod.name},${prod.size||''},${prod.cat},${qty},${prod.rate||0},${(prod.rate||0)*qty}\n`;
+      });
+    });
+
+    // 2. Sales
+    csv += '\n========== SALES DATA ==========\n';
+    csv += 'Date,Distributor,Product,Quantity,Rate,Amount,Payment\n';
+    data.sales.forEach(r => {
+      csv += `${r.date},${r.customer||''},${r.product},${r.qty},${r.rate},${r.amount},${r.payment}\n`;
+    });
+    const salesTotal = data.sales.reduce((s,r) => s+r.amount, 0);
+    csv += `,,,,, TOTAL SALES: ${salesTotal},\n`;
+
+    // 3. Expenses
+    csv += '\n========== EXPENSES DATA ==========\n';
+    csv += 'Date,Category,Description,Paid To,Amount\n';
+    data.expenses.forEach(r => {
+      csv += `${r.date},${r.category},${r.desc||''},${r.paid||''},${r.amount}\n`;
+    });
+    const expTotal = data.expenses.reduce((s,r) => s+r.amount, 0);
+    csv += `,,,,TOTAL EXPENSES: ${expTotal}\n`;
+    csv += `,,,,NET PROFIT: ${salesTotal - expTotal}\n`;
+
+    // 4. Distributors
+    csv += '\n========== DISTRIBUTORS LIST ==========\n';
+    csv += 'Name,Phone,Area/Zone,GST/ID,Address\n';
+    data.customers.forEach(r => {
+      csv += `${r.name},${r.phone||''},${r.daily||''},${r.rate||''},${r.address||''}\n`;
+    });
+
+    // 5. Products
+    csv += '\n========== PRODUCTS LIST ==========\n';
+    csv += 'Product,Size,Category,Rate,Stock Qty\n';
+    data.products.forEach(p => {
+      csv += `${p.name},${p.size||''},${p.cat},${p.rate},${p.qty||0}\n`;
+    });
+
+    downloadCSV(csv, `ParagMilk_FullReport_${today()}.csv`);
+  }
+
+  // PWA — Install Prompt
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // Show install banner
+    const banner = document.getElementById('install-banner');
+    if (banner) banner.style.display = 'flex';
+  });
+
+  function installApp() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        const banner = document.getElementById('install-banner');
+        if (banner) banner.style.display = 'none';
+      });
+    }
+  }
+
+  window.addEventListener('appinstalled', () => {
+    const banner = document.getElementById('install-banner');
+    if (banner) banner.style.display = 'none';
+  });
+
+  // Service Worker registration
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE = 'parag-milk-v1';
+      self.addEventListener('install', e => {
+        e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
+        self.skipWaiting();
+      });
+      self.addEventListener('activate', e => {
+        e.waitUntil(caches.keys().then(keys =>
+          Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+        ));
+        self.clients.claim();
+      });
+      self.addEventListener('fetch', e => {
+        e.respondWith(
+          caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('/')))
+        );
+      });
+    `;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl).catch(() => {});
+  }
+
+
+  // Test if storage works
+  try {
+    localStorage.setItem('_test', '1');
+    localStorage.removeItem('_test');
+  } catch(e) {
+    const warn = document.createElement('div');
+    warn.style.cssText = 'background:#C93A2A;color:white;padding:10px 16px;font-size:0.82rem;font-weight:700;text-align:center;';
+    warn.textContent = '⚠️ Data save nahi hoga! Private mode band karo ya Chrome mein kholo.';
+    document.body.insertBefore(warn, document.body.firstChild);
+  }
+
+  // Init — Firebase handles data loading via onAuthStateChanged
+  document.getElementById('sale-date').value = today();
+  document.getElementById('exp-date').value = today();
+  document.getElementById('demand-entry-date').value = today();
+  document.getElementById('todayDate').textContent = formatDate(today());
+</script>
+</body>
+</html>
