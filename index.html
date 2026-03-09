@@ -455,13 +455,8 @@
         <div class="form-group">
           <label>Product</label>
           <select id="sale-product">
-            <option>Cow Milk</option>
-            <option>Buffalo Milk</option>
-            <option>Paneer</option>
-            <option>Ghee</option>
-            <option>Curd</option>
-            <option>Butter</option>
-            <option>Other</option>
+            <option>Milk</option>
+            <option>Milk Products</option>
           </select>
         </div>
         <div class="form-group">
@@ -738,14 +733,8 @@
         <div class="form-group">
           <label>Category</label>
           <select id="new-prod-cat">
-            <option>FCM</option>
-            <option>STD</option>
-            <option>Toned</option>
-            <option>Paneer</option>
-            <option>Ghee</option>
-            <option>Curd</option>
-            <option>Butter</option>
-            <option>Other</option>
+            <option>Milk</option>
+            <option>Milk Products</option>
           </select>
         </div>
       </div>
@@ -1793,7 +1782,7 @@
 
     items.forEach(it => { it.amount = it.rate * (it.kgltr || it.qty); });
     const total = items.reduce((s,i) => s + i.amount, 0);
-    const milkCatsCheck = ['FCM', 'STD', 'Toned'];
+    const milkCatsCheck = ['Milk'];
     const taxableAmount = items.filter(i => !milkCatsCheck.includes(i.cat)).reduce((s,i) => s + i.amount, 0);
     const gst = taxableAmount * 0.05;
     const grandTotal = total + gst;
@@ -1916,7 +1905,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
 
     // Separate taxable and non-taxable items
     // Milk products (FCM, STD, Toned) = 0% GST, others = 5%
-    const milkCats = ['FCM', 'STD', 'Toned'];
+    const milkCats = ['Milk'];
     const taxableItems = items.filter(it => !milkCats.includes(it.cat));
     const nonTaxableItems = items.filter(it => milkCats.includes(it.cat));
     const allItemsSorted = [...nonTaxableItems, ...taxableItems];
@@ -1927,7 +1916,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
 
     let sno = 1;
     const rows = allItemsSorted.map(it => {
-      const isTaxable = it.cat !== 'FCM' && it.cat !== 'STD';
+      const isTaxable = it.cat === 'Milk Products';
       const itemSgst = isTaxable ? (it.amount * 0.025).toFixed(2) : '0.00';
       const itemCgst = isTaxable ? (it.amount * 0.025).toFixed(2) : '0.00';
       const itemTotal = isTaxable ? (it.amount + it.amount*0.05).toFixed(2) : it.amount.toFixed(2);
@@ -2374,27 +2363,27 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
 
   // DEFAULT PRODUCTS
   const DEFAULT_PRODUCTS = [
-    { id: 'fcm500',    name: 'F.C.M.',      size: '500 ML',   cat: 'FCM' },
-    { id: 'fcm1l',     name: 'F.C.M.',      size: '01 LTR',   cat: 'FCM' },
-    { id: 'fcm6l',     name: 'F.C.M.',      size: '06 LTR',   cat: 'FCM' },
-    { id: 'std500',    name: 'STD MILK',    size: '500 ML',   cat: 'STD' },
-    { id: 'std350',    name: 'COW MILK',    size: '350 ML',   cat: 'STD' },
-    { id: 'std1l',     name: 'STD MILK',    size: '01 LTR',   cat: 'STD' },
-    { id: 'ton500',    name: 'TONED',       size: '500 ML',   cat: 'Toned' },
-    { id: 'ton1l',     name: 'TONED',       size: '01 LTR',   cat: 'Toned' },
-    { id: 'ton6l',     name: 'TONED',       size: '06 LTR',   cat: 'Toned' },
-    { id: 'matka5',    name: 'MATKA',       size: '5 KG',     cat: 'Other' },
-    { id: 'matka15',   name: 'DAHI MATKA',  size: '15 KG',    cat: 'Curd' },
-    { id: 'chhach300', name: 'CHHACH',      size: '300 ML',   cat: 'Other' },
-    { id: 'curd200',   name: 'P. CURD',     size: '200 GM',   cat: 'Curd' },
-    { id: 'dahi140',   name: 'DAHI P.PACK', size: '140 GM',   cat: 'Curd' },
-    { id: 'kheer90',   name: 'P. KHEER',    size: '90 GM',    cat: 'Other' },
-    { id: 'paneer1kg', name: 'PANEER LITE', size: '01 KG',    cat: 'Paneer' },
-    { id: 'ghee1l',    name: 'GHEE',        size: '01 LTR',   cat: 'Ghee' },
-    { id: 'butter500', name: 'BUTTER',      size: '500 GM',   cat: 'Butter' },
+    { id: 'fcm500',    name: 'F.C.M.',      size: '500 ML',   cat: 'Milk' },
+    { id: 'fcm1l',     name: 'F.C.M.',      size: '01 LTR',   cat: 'Milk' },
+    { id: 'fcm6l',     name: 'F.C.M.',      size: '06 LTR',   cat: 'Milk' },
+    { id: 'std500',    name: 'STD MILK',    size: '500 ML',   cat: 'Milk' },
+    { id: 'std350',    name: 'COW MILK',    size: '350 ML',   cat: 'Milk' },
+    { id: 'std1l',     name: 'STD MILK',    size: '01 LTR',   cat: 'Milk' },
+    { id: 'ton500',    name: 'TONED',       size: '500 ML',   cat: 'Milk' },
+    { id: 'ton1l',     name: 'TONED',       size: '01 LTR',   cat: 'Milk' },
+    { id: 'ton6l',     name: 'TONED',       size: '06 LTR',   cat: 'Milk' },
+    { id: 'matka5',    name: 'MATKA',       size: '5 KG',     cat: 'Milk' },
+    { id: 'matka15',   name: 'DAHI MATKA',  size: '15 KG',    cat: 'Milk Products' },
+    { id: 'chhach300', name: 'CHHACH',      size: '300 ML',   cat: 'Milk' },
+    { id: 'curd200',   name: 'P. CURD',     size: '200 GM',   cat: 'Milk Products' },
+    { id: 'dahi140',   name: 'DAHI P.PACK', size: '140 GM',   cat: 'Milk Products' },
+    { id: 'kheer90',   name: 'P. KHEER',    size: '90 GM',    cat: 'Milk Products' },
+    { id: 'paneer1kg', name: 'PANEER LITE', size: '01 KG',    cat: 'Milk Products' },
+    { id: 'ghee1l',    name: 'GHEE',        size: '01 LTR',   cat: 'Milk Products' },
+    { id: 'butter500', name: 'BUTTER',      size: '500 GM',   cat: 'Milk Products' },
   ];
 
-  const catColors = { FCM:'badge-amber', STD:'badge-green', Toned:'badge-blue', Paneer:'badge-amber', Ghee:'badge-green', Curd:'badge-blue', Butter:'badge-red', Other:'badge-blue' };
+  const catColors = { 'Milk':'badge-green', 'Milk Products':'badge-amber' };
 
   function renderDefaultProductsGrid() {
     const grid = document.getElementById('default-products-grid');
@@ -2502,7 +2491,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
           <input id="ep-rate" type="number" value="${p.rate||0}" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;"></div>
         <div><label style="font-size:0.75rem;font-weight:700;color:var(--muted);">CATEGORY</label>
           <select id="ep-cat" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;">
-            ${['FCM','STD','Toned','Paneer','Ghee','Curd','Butter','Other'].map(c=>`<option ${c===p.cat?'selected':''}>${c}</option>`).join('')}
+            ${['Milk','Milk Products'].map(c=>`<option ${c===p.cat?'selected':''}>${c}</option>`).join('')}
           </select></div>
       </div>
       <div style="display:flex;gap:10px;">
