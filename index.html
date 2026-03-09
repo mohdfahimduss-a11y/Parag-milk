@@ -1509,14 +1509,21 @@
     const entry = (data.demandEntries||[]).find(e => e.date===date && e.distName===distName);
     if (!entry) { alert('Koi demand nahi mili!'); return; }
 
-    const items = Object.entries(entry.items).map(([pid, qty]) => {
+    const items = Object.entries(entry.items).map(([pid, itemData]) => {
       const prod = allProds.find(p => String(p.id)===String(pid));
       if (!prod) return null;
-      return { name: prod.name, size: prod.size||'', qty, rate: prod.rate||0, amount: (prod.rate||0)*qty };
+      const qty   = typeof itemData === 'object' ? (itemData.qty   || 0) : (itemData || 0);
+      const crates= typeof itemData === 'object' ? (itemData.crates|| 0) : 0;
+      const kgltr = typeof itemData === 'object' ? (itemData.kgltr || 0) : 0;
+      const dist  = data.customers.find(c => c.name === distName);
+      const rate  = (dist && dist.productRates && dist.productRates[pid]) ? dist.productRates[pid] : (prod.rate||0);
+      const amount = rate * qty;
+      return { name: prod.name, size: prod.size||'', cat: prod.cat||'', qty, crates, kgltr, rate, amount };
     }).filter(Boolean);
 
     const total = items.reduce((s,i) => s+i.amount, 0);
     const invoiceNo = 'INV-' + Date.now().toString().slice(-6);
+    const printTime = new Date().toLocaleString('en-IN');
 
     const win = window.open('', '_blank');
     win.document.write(`<!DOCTYPE html>
@@ -1525,64 +1532,113 @@
 <meta charset="UTF-8">
 <title>Invoice - ${distName}</title>
 <style>
-  body { font-family: Arial, sans-serif; padding: 20px; color: #000; max-width: 700px; margin: 0 auto; }
-  .header { text-align: center; border-bottom: 3px solid #3D1F00; padding-bottom: 15px; margin-bottom: 20px; }
-  .company { font-size: 28px; font-weight: 900; color: #3D1F00; }
-  .sub { font-size: 13px; color: #666; margin-top: 4px; }
-  .info-row { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 13px; }
-  .info-box { background: #f9f0e0; border-radius: 8px; padding: 12px 16px; min-width: 200px; }
-  .info-box label { font-weight: 700; color: #3D1F00; display: block; font-size: 11px; margin-bottom: 4px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-  th { background: #3D1F00; color: white; padding: 10px; text-align: left; font-size: 13px; }
-  td { padding: 9px 10px; font-size: 13px; border-bottom: 1px solid #eee; }
-  tr:nth-child(even) td { background: #fef9f0; }
-  .total-row td { font-weight: 900; font-size: 15px; background: #f9f0e0 !important; border-top: 2px solid #3D1F00; }
-  .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #888; border-top: 1px solid #ddd; padding-top: 15px; }
-  .sign { margin-top: 40px; display: flex; justify-content: space-between; font-size: 13px; }
-  @media print { .no-print { display: none; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; padding: 16px; color: #000; font-size: 12px; }
+  .top-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 8px; }
+  .top-header .company { font-size: 20px; font-weight: 900; text-transform: uppercase; }
+  .top-header .tagline { font-size: 11px; color: #444; margin-top: 2px; }
+  .meta { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 11px; border: 1px solid #ccc; padding: 6px 10px; border-radius: 4px; }
+  .meta-left div { margin-bottom: 3px; }
+  .meta-right { text-align: right; }
+  .meta-right div { margin-bottom: 3px; }
+  .party-box { border: 1px solid #000; padding: 6px 10px; margin-bottom: 8px; font-size: 12px; }
+  .party-box .party-name { font-size: 15px; font-weight: 900; text-transform: uppercase; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 11px; }
+  th { background: #222; color: white; padding: 6px 5px; text-align: center; border: 1px solid #000; font-size: 10px; text-transform: uppercase; }
+  td { padding: 5px 5px; border: 1px solid #bbb; text-align: center; vertical-align: middle; }
+  td.left { text-align: left; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+  .total-row td { font-weight: 900; font-size: 13px; background: #ffe !important; border-top: 2px solid #000; }
+  .sign-row { display: flex; justify-content: space-between; margin-top: 30px; font-size: 12px; }
+  .sign-box { text-align: center; width: 200px; }
+  .sign-box .line { border-top: 1px solid #000; margin-bottom: 4px; margin-top: 30px; }
+  .footer { text-align: center; margin-top: 12px; font-size: 10px; color: #666; border-top: 1px solid #ddd; padding-top: 8px; }
+  .print-time { font-size: 9px; color: #999; text-align: right; margin-bottom: 4px; }
+  @media print { .no-print { display: none !important; } body { padding: 8px; } }
 </style>
 </head>
 <body>
-<div class="header">
+<div class="print-time">PRINT DATE: ${printTime}</div>
+<div class="top-header">
   <div class="company">🥛 Parag Milk</div>
-  <div class="sub">Dairy Products | Quality Assured</div>
+  <div class="tagline">Dairy Products | Quality Assured | Saharanpur</div>
 </div>
-<div class="info-row">
-  <div class="info-box">
-    <label>BILL TO:</label>
-    <strong>${distName}</strong>
+
+<div class="meta">
+  <div class="meta-left">
+    <div><strong>Invoice No:</strong> ${invoiceNo}</div>
+    <div><strong>Date:</strong> ${formatDate(date)}</div>
   </div>
-  <div class="info-box" style="text-align:right;">
-    <label>INVOICE NO:</label> ${invoiceNo}<br>
-    <label>DATE:</label> ${formatDate(date)}
+  <div class="meta-right">
+    <div><strong>Slip No:</strong> ___________</div>
+    <div><strong>Vehicle No:</strong> ___________</div>
   </div>
 </div>
+
+<div class="party-box">
+  <div style="font-size:10px;color:#666;margin-bottom:2px;">PARTY NAME / वितरक का नाम</div>
+  <div class="party-name">${distName}</div>
+</div>
+
 <table>
   <thead>
-    <tr><th>#</th><th>Product</th><th>Size</th><th>Qty</th><th>Rate (₹)</th><th>Amount (₹)</th></tr>
+    <tr>
+      <th style="width:24px;">क्र.<br>#</th>
+      <th style="width:120px;text-align:left;">उत्पाद<br>Product</th>
+      <th>मात्रा/इकाई<br>Size/Unit</th>
+      <th>दर/इकाई<br>Rate ₹</th>
+      <th>पैकेट<br>Packets</th>
+      <th>क्रेट<br>Crates</th>
+      <th>KG/LTR</th>
+      <th>आज वापस<br>Aaj Wapas</th>
+      <th>कल वापस<br>Kal Wapas</th>
+      <th>वास्तविक<br>Net Qty</th>
+      <th>राशि<br>Amount ₹</th>
+    </tr>
   </thead>
   <tbody>
     ${items.map((it,i) => `<tr>
       <td>${i+1}</td>
-      <td><strong>${it.name}</strong></td>
+      <td class="left"><strong>${it.name}</strong></td>
       <td>${it.size}</td>
-      <td>${it.qty}</td>
       <td>${it.rate.toFixed(2)}</td>
+      <td>${it.qty || '-'}</td>
+      <td>${it.crates || '-'}</td>
+      <td>${it.kgltr ? it.kgltr.toFixed(2) : '-'}</td>
+      <td></td>
+      <td></td>
+      <td>${it.qty}</td>
       <td><strong>${it.amount.toFixed(2)}</strong></td>
     </tr>`).join('')}
     <tr class="total-row">
-      <td colspan="5" style="text-align:right;">TOTAL AMOUNT:</td>
+      <td colspan="10" style="text-align:right;padding-right:10px;">कुल राशि / TOTAL AMOUNT:</td>
       <td>₹${total.toFixed(2)}</td>
     </tr>
   </tbody>
 </table>
-<div class="sign">
-  <div>Receiver Signature: ______________</div>
-  <div>Authorized Signature: ______________</div>
+
+<div style="font-size:11px;border:1px solid #ddd;padding:6px 10px;border-radius:4px;margin-bottom:10px;">
+  <strong>Amount in Words:</strong> ___________________________________________________
 </div>
-<div class="footer">Parag Milk — Thank you for your business!</div>
+
+<div class="sign-row">
+  <div class="sign-box">
+    <div class="line"></div>
+    <div>Receiver / प्राप्तकर्ता</div>
+  </div>
+  <div class="sign-box">
+    <div class="line"></div>
+    <div>Driver / चालक</div>
+  </div>
+  <div class="sign-box">
+    <div class="line"></div>
+    <div>Authorized / अधिकृत हस्ताक्षर</div>
+  </div>
+</div>
+
+<div class="footer">Parag Milk — धन्यवाद! Thank you for your business!</div>
 <br>
-<div class="no-print" style="text-align:center;">
+<div class="no-print" style="text-align:center;margin-top:16px;">
   <button onclick="window.print()" style="padding:10px 30px;background:#3D1F00;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer;">🖨️ Print / Save PDF</button>
 </div>
 </body>
