@@ -2433,42 +2433,6 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
 
   const catColors = { 'Milk':'badge-green', 'Milk Products':'badge-amber' };
 
-    const grid = document.getElementById('default-products-grid');
-    grid.innerHTML = DEFAULT_PRODUCTS.map(dp => {
-      const saved = data.products.find(p => p.id === dp.id);
-      const rate = saved ? saved.rate : '';
-      const qty = saved ? (saved.qty || '') : '';
-      return `
-        <div style="display:flex;align-items:center;gap:10px;background:var(--cream);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;">
-          <div style="flex:1;">
-            <div style="font-weight:700;font-size:0.9rem;">${dp.name} <span style="color:var(--muted);font-size:0.8rem;">${dp.size}</span></div>
-            <span class="badge ${catColors[dp.cat]}" style="margin-top:4px;">${dp.cat}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
-            <span style="font-weight:700;color:var(--muted);font-size:0.9rem;">₹</span>
-            <input type="number" id="rate-${dp.id}" value="${rate}" placeholder="Rate" min="0"
-              style="width:75px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.85rem;background:white;">
-            <input type="number" id="qty-${dp.id}" value="${qty}" placeholder="Qty" min="0"
-              style="width:65px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.85rem;background:white;">
-            <button class="btn btn-primary btn-sm" onclick="saveDefaultProduct('${dp.id}','${dp.name}','${dp.size}','${dp.cat}')">💾</button>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  function saveDefaultProduct(id, name, size, cat) {
-    const rate = parseFloat(document.getElementById('rate-' + id).value) || 0;
-    const qty  = parseFloat(document.getElementById('qty-'  + id).value) || 0;
-    if (!rate) { alert('Please enter a rate!'); return; }
-    const existing = data.products.find(p => p.id === id);
-    if (existing) { existing.rate = rate; existing.qty = qty; }
-    else { data.products.push({ id, name, size, cat, rate, qty, custom: false }); }
-    saveData();
-    renderProducts();
-    const btn = document.querySelector(`button[onclick*="'${id}'"]`);
-    if (btn) { btn.textContent = '✅'; setTimeout(() => btn.textContent = '💾', 1200); }
-  }
-
   function addCustomProduct() {
     const name = document.getElementById('new-prod-name').value.trim();
     const size = document.getElementById('new-prod-size').value.trim();
