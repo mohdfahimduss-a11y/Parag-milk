@@ -377,7 +377,6 @@
           <button class="btn btn-sm" style="background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;font-weight:700;" onclick="renderDemandSummaryPage(document.getElementById('demand-view-date').value||today())">🔄 Refresh</button>
           <button class="btn btn-sm" style="background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;font-weight:700;" onclick="printMangPatra('vehicle')">🖨️ Mang Patra (Vehicle-wise)</button>
           <button class="btn btn-sm" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;font-weight:700;" onclick="printMangPatra('dist')">🖨️ Mang Patra (Dist-wise)</button>
-          <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:1px solid #F0C0BC;" onclick="clearAllDemandToday()">🗑 Clear Today</button>
         </div>
       </div>
 
@@ -1356,11 +1355,12 @@
   }
 
   function clearAllDemandToday() {
-    if (!confirm('Aaj ki saari demands delete karein?')) return;
-    const t = today();
-    data.demandEntries = (data.demandEntries||[]).filter(e => e.date !== t);
+    const date = document.getElementById('demand-view-date').value || today();
+    const label = formatDate(date);
+    if (!confirm(`${label} ki saari demands delete karein?`)) return;
+    data.demandEntries = (data.demandEntries||[]).filter(e => e.date !== date);
     saveData();
-    renderDemandSummaryPage(t);
+    renderDemandSummaryPage(date);
   }
 
   function renderDemandSummaryPage(date) {
