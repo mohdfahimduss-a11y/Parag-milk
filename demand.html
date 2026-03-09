@@ -269,9 +269,7 @@
     div.className = 'prod-row';
     div.innerHTML = `
       <div style="margin-bottom:6px;">
-        <input type="text" id="${rowId}-search" placeholder="🔍 Search product..."
-          oninput="filterProducts('${rowId}')"
-          style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.83rem;background:white;color:var(--brown);margin-bottom:5px;">
+  
         <select id="${rowId}-sel" onchange="updateRate('${rowId}')"
           style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;background:white;color:var(--brown);">
           <option value="">-- Product --</option>
