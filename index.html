@@ -414,9 +414,16 @@
       <div class="table-header" style="flex-wrap:wrap;gap:8px;">
         <h3>📋 Today's Demands — <span id="demand-day-label" style="color:var(--amber)"></span></h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-primary btn-sm" onclick="exportDemandExcel()">📊 Export to Excel</button>
+          <button class="btn btn-primary btn-sm" onclick="exportDemandExcel()">📊 Export Today</button>
           <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:1px solid #F0C0BC;" onclick="clearAllDemandToday()">🗑 Clear Today</button>
         </div>
+      </div>
+
+      <!-- Monthly Excel Export -->
+      <div style="padding:12px 16px;background:var(--blue-light);border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">📅 Monthly Excel:</span>
+        <input type="month" id="demand-month-export" style="padding:6px 10px;border:1.5px solid #C0D0F0;border-radius:8px;font-size:0.85rem;">
+        <button class="btn btn-sm" style="background:var(--blue);color:white;border:none;" onclick="exportMonthlyDemandExcel()">📥 Download 1–31 Excel</button>
       </div>
 
       <!-- Distributor-wise table -->
@@ -1482,7 +1489,7 @@
                 `<button onclick="completeDemand(${e.id})" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;padding:5px 10px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;">✅ Complete</button>
                  <button class="btn btn-danger btn-sm" onclick="deleteDemandEntry(${e.id})">🗑️ Del</button>`
               }
-              <span style="font-size:0.75rem;color:var(--muted);">${formatDate(e.date)}</span>
+              <span style="font-size:0.75rem;color:var(--muted);"></span>
             </div>
           </div>
           <table>
@@ -2331,6 +2338,148 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     a.click();
     URL.revokeObjectURL(url);
   }
+  function exportMonthlyDemandExcel() {
+    const monthVal = document.getElementById('demand-month-export').value;
+    if (!monthVal) { alert('Pehle month select karo!'); return; }
+
+    const [yr, mn] = monthVal.split('-');
+    const lastDay = new Date(parseInt(yr), parseInt(mn), 0).getDate();
+    const monthLabel = new Date(parseInt(yr), parseInt(mn)-1, 1)
+      .toLocaleString('en-IN', { month: 'long', year: 'numeric' }).toUpperCase();
+
+    const allProds = getAllProducts();
+    if (!allProds.length) { alert('Koi products nahi hain!'); return; }
+
+    // Get all entries for this month
+    const fromDate = `${yr}-${mn}-01`;
+    const toDate   = `${yr}-${mn}-${String(lastDay).padStart(2,'0')}`;
+    const monthEntries = (data.demandEntries||[]).filter(e => e.date >= fromDate && e.date <= toDate);
+    if (!monthEntries.length) { alert(`${monthLabel} mein koi demand nahi mili!`); return; }
+
+    // Use PROD_COLS from existing function
+    const PROD_COLS = [
+      { id:'fcm300',      name:'FCM 300ml',      unit:'Ltr' },
+      { id:'fcm1l',       name:'FCM 1Ltr',        unit:'Ltr' },
+      { id:'fcm6l',       name:'FCM 6Ltr',        unit:'Ltr' },
+      { id:'std',         name:'STD',             unit:'Ltr' },
+      { id:'tond500',     name:'TOND 500ml',      unit:'Ltr' },
+      { id:'tond6l',      name:'Tond 6Ltr',       unit:'Ltr' },
+      { id:'dtm500',      name:'DTM 500ml',       unit:'Ltr' },
+      { id:'dtm1l',       name:'DTM 1Ltr',        unit:'Ltr' },
+      { id:'chhachltr',   name:'Chhachh Ltr',     unit:'Ltr' },
+      { id:'chhach300',   name:'Chhachh 300ml',   unit:'Pack' },
+      { id:'plaincurd200',name:'Plain Curd 200g',  unit:'Kg' },
+      { id:'fm',          name:'F-M',             unit:'Ltr' },
+      { id:'paneerkg',    name:'Paneer Kg',       unit:'Kg' },
+      { id:'paneer500',   name:'Paneer 500g',     unit:'Kg' },
+      { id:'ghee1l',      name:'Ghee 1Ltr',       unit:'Ltr' },
+      { id:'butter500',   name:'Butter 500g',     unit:'Gm' },
+    ];
+
+    // Get unique distributors who have entries this month
+    const distNames = [...new Set(monthEntries.map(e => e.distName))].sort();
+
+    const BOM = '\uFEFF';
+    let csv = BOM;
+
+    // Title
+    csv += `"PARAG MILK — MONTHLY DEMAND REPORT"\n`;
+    csv += `"MONTH: ${monthLabel}"\n`;
+    csv += `"Generated: ${new Date().toLocaleString('en-IN')}"\n\n`;
+
+    // === SECTION 1: DATE-WISE (rows = dates, columns = products per distributor) ===
+    csv += `"DATE-WISE DEMAND SUMMARY"\n`;
+    csv += `"DATE"`;
+    PROD_COLS.forEach(p => { csv += `,"${p.name} (${p.unit})"`; });
+    csv += `,"TOTAL VALUE"\n`;
+
+    const colTotalsMonth = {};
+    PROD_COLS.forEach(p => { colTotalsMonth[p.id] = 0; });
+    let monthGrandTotal = 0;
+
+    for (let d = 1; d <= lastDay; d++) {
+      const dateStr = `${yr}-${mn}-${String(d).padStart(2,'0')}`;
+      const dayEntries = monthEntries.filter(e => e.date === dateStr);
+      let row = `"${d}-${mn}-${yr}"`;
+      let dayTotal = 0;
+
+      PROD_COLS.forEach(p => {
+        let qty = 0;
+        dayEntries.forEach(e => {
+          const itemData = (e.items||{})[p.id];
+          if (itemData) qty += typeof itemData === 'object' ? (itemData.qty||0) : Number(itemData);
+        });
+        const prod = allProds.find(ap => ap.id === p.id);
+        const rate = prod ? (prod.rate||0) : 0;
+        const val = qty * rate;
+        dayTotal += val;
+        monthGrandTotal += val;
+        colTotalsMonth[p.id] = (colTotalsMonth[p.id]||0) + qty;
+        row += `,${qty > 0 ? qty : ''}`;
+      });
+      row += `,${dayTotal > 0 ? dayTotal.toFixed(2) : ''}`;
+      csv += row + '\n';
+    }
+
+    // Month total row
+    let mTotalRow = '"MONTH TOTAL"';
+    PROD_COLS.forEach(p => {
+      const t = colTotalsMonth[p.id] || 0;
+      mTotalRow += `,${t > 0 ? t : ''}`;
+    });
+    mTotalRow += `,"${monthGrandTotal.toFixed(2)}"`;
+    csv += mTotalRow + '\n\n';
+
+    // === SECTION 2: DISTRIBUTOR-WISE SUMMARY ===
+    csv += `"DISTRIBUTOR-WISE MONTHLY SUMMARY"\n`;
+    csv += `"DISTRIBUTOR"`;
+    PROD_COLS.forEach(p => { csv += `,"${p.name}"`; });
+    csv += `,"TOTAL VALUE"\n`;
+
+    const distTotals = {};
+    PROD_COLS.forEach(p => { distTotals[p.id] = 0; });
+    let distGrandTotal = 0;
+
+    distNames.forEach(distName => {
+      const distEntries = monthEntries.filter(e => e.distName === distName);
+      let row = `"${distName}"`;
+      let distTotal = 0;
+      PROD_COLS.forEach(p => {
+        let qty = 0;
+        distEntries.forEach(e => {
+          const itemData = (e.items||{})[p.id];
+          if (itemData) qty += typeof itemData === 'object' ? (itemData.qty||0) : Number(itemData);
+        });
+        const prod = allProds.find(ap => ap.id === p.id);
+        const rate = prod ? (prod.rate||0) : 0;
+        const val = qty * rate;
+        distTotal += val;
+        distGrandTotal += val;
+        distTotals[p.id] = (distTotals[p.id]||0) + qty;
+        row += `,${qty > 0 ? qty : ''}`;
+      });
+      row += `,${distTotal > 0 ? distTotal.toFixed(2) : ''}`;
+      csv += row + '\n';
+    });
+
+    let dTotalRow = '"GRAND TOTAL"';
+    PROD_COLS.forEach(p => {
+      const t = distTotals[p.id] || 0;
+      dTotalRow += `,${t > 0 ? t : ''}`;
+    });
+    dTotalRow += `,"${distGrandTotal.toFixed(2)}"`;
+    csv += dTotalRow + '\n';
+
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Parag_Monthly_Demand_${yr}_${mn}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   function updateDashboard() {
     const t = today();
     const todayIncome = data.sales.filter(r => r.date === t).reduce((s,r) => s + r.amount, 0);
@@ -2699,6 +2848,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
   document.getElementById('sale-date').value = today();
   document.getElementById('exp-date').value = today();
   document.getElementById('demand-entry-date').value = today();
+  document.getElementById('demand-month-export').value = today().slice(0,7);
   document.getElementById('todayDate').textContent = formatDate(today());
   // Default date range — 1st of month to today
   const t = new Date();
