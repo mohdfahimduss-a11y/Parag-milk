@@ -1499,136 +1499,157 @@
     const entry = (data.demandEntries||[]).find(e => e.date===date && e.distName===distName);
     if (!entry) { alert('Koi demand nahi mili!'); return; }
 
-    const items = Object.entries(entry.items).map(([pid, itemData]) => {
+    const dist = data.customers.find(c => c.name === distName);
+    const vehicle = dist ? (dist.vehicle || '___________') : '___________';
+    const slipNo = entry.id ? String(entry.id).slice(-4) : '____';
+
+    const items = Object.entries(entry.items).map(([pid, itemData], idx) => {
       const prod = allProds.find(p => String(p.id)===String(pid));
       if (!prod) return null;
-      const qty   = typeof itemData === 'object' ? (itemData.qty   || 0) : (itemData || 0);
-      const crates= typeof itemData === 'object' ? (itemData.crates|| 0) : 0;
-      const kgltr = typeof itemData === 'object' ? (itemData.kgltr || 0) : 0;
-      const dist  = data.customers.find(c => c.name === distName);
-      const rate  = (dist && dist.productRates && dist.productRates[pid]) ? dist.productRates[pid] : (prod.rate||0);
+      const qty    = typeof itemData === 'object' ? (itemData.qty   || 0) : (itemData || 0);
+      const crates = typeof itemData === 'object' ? (itemData.crates|| 0) : 0;
+      const rate   = (dist && dist.productRates && dist.productRates[pid]) ? dist.productRates[pid] : (prod.rate||0);
       const amount = rate * qty;
-      return { name: prod.name, size: prod.size||'', cat: prod.cat||'', qty, crates, kgltr, rate, amount };
-    }).filter(Boolean);
+      return { sno: idx+1, name: prod.name, size: prod.size||'', qty, crates, unit: prod.cat==='Milk'?'LTR':'KG/PACK', rate, amount };
+    }).filter(Boolean).filter(i => i.qty > 0);
 
-    const total = items.reduce((s,i) => s+i.amount, 0);
-    const invoiceNo = 'INV-' + Date.now().toString().slice(-6);
-    const printTime = new Date().toLocaleString('en-IN');
+    const totalQty    = items.reduce((s,i) => s + i.qty, 0);
+    const totalCrates = items.reduce((s,i) => s + i.crates, 0);
+    const totalAmt    = items.reduce((s,i) => s + i.amount, 0);
+    const printTime   = new Date().toLocaleString('en-IN');
 
     const win = window.open('', '_blank');
     win.document.write(`<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Invoice - ${distName}</title>
+<title>Challan - ${distName}</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; padding: 16px; color: #000; font-size: 12px; }
-  .top-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 8px; }
-  .top-header .company { font-size: 20px; font-weight: 900; text-transform: uppercase; }
-  .top-header .tagline { font-size: 11px; color: #444; margin-top: 2px; }
-  .meta { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 11px; border: 1px solid #ccc; padding: 6px 10px; border-radius: 4px; }
-  .meta-left div { margin-bottom: 3px; }
-  .meta-right { text-align: right; }
-  .meta-right div { margin-bottom: 3px; }
-  .party-box { border: 1px solid #000; padding: 6px 10px; margin-bottom: 8px; font-size: 12px; }
-  .party-box .party-name { font-size: 15px; font-weight: 900; text-transform: uppercase; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 11px; }
-  th { background: #222; color: white; padding: 6px 5px; text-align: center; border: 1px solid #000; font-size: 10px; text-transform: uppercase; }
-  td { padding: 5px 5px; border: 1px solid #bbb; text-align: center; vertical-align: middle; }
-  td.left { text-align: left; }
-  tr:nth-child(even) td { background: #f9f9f9; }
-  .total-row td { font-weight: 900; font-size: 13px; background: #ffe !important; border-top: 2px solid #000; }
-  .sign-row { display: flex; justify-content: space-between; margin-top: 30px; font-size: 12px; }
-  .sign-box { text-align: center; width: 200px; }
-  .sign-box .line { border-top: 1px solid #000; margin-bottom: 4px; margin-top: 30px; }
-  .footer { text-align: center; margin-top: 12px; font-size: 10px; color: #666; border-top: 1px solid #ddd; padding-top: 8px; }
-  .print-time { font-size: 9px; color: #999; text-align: right; margin-bottom: 4px; }
-  @media print { .no-print { display: none !important; } body { padding: 8px; } }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family: Arial, sans-serif; padding:14px; color:#000; font-size:12px; max-width:750px; margin:auto; }
+  .top { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:8px; }
+  .company-name { font-size:22px; font-weight:900; text-transform:uppercase; letter-spacing:1px; }
+  .company-sub { font-size:10px; color:#555; margin-top:3px; }
+  .gstin { font-size:10px; font-weight:700; margin-top:4px; }
+  .top-right { text-align:right; font-size:11px; }
+  .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px; font-size:11px; }
+  .info-box { border:1px solid #999; padding:5px 8px; }
+  .info-box label { font-size:9px; text-transform:uppercase; color:#666; display:block; margin-bottom:2px; }
+  .info-box .val { font-size:13px; font-weight:900; text-transform:uppercase; }
+  .challan-title { text-align:center; font-size:13px; font-weight:900; text-transform:uppercase; letter-spacing:2px; border:2px solid #000; padding:5px; margin-bottom:8px; background:#f5f5f5; }
+  table { width:100%; border-collapse:collapse; font-size:11px; margin-bottom:8px; }
+  th { background:#333; color:#fff; padding:5px 4px; text-align:center; border:1px solid #000; font-size:10px; }
+  td { padding:5px 4px; border:1px solid #ccc; text-align:center; vertical-align:middle; }
+  td.left { text-align:left; padding-left:6px; }
+  tr:nth-child(even) td { background:#fafafa; }
+  .total-row td { font-weight:900; background:#fffde7 !important; border-top:2px solid #000; font-size:12px; }
+  .bottom { display:flex; justify-content:space-between; margin-top:8px; font-size:11px; }
+  .deposit-box { border:1px solid #000; padding:6px 12px; min-width:200px; }
+  .sign-area { display:flex; gap:40px; margin-top:30px; }
+  .sign-box { text-align:center; }
+  .sign-line { border-top:1px solid #000; width:130px; margin-top:25px; }
+  .print-info { font-size:9px; color:#999; text-align:right; margin-bottom:4px; }
+  @media print { .no-print{display:none!important} body{padding:6px} }
 </style>
 </head>
 <body>
-<div class="print-time">PRINT DATE: ${printTime}</div>
-<div class="top-header">
-  <div class="company">🥛 Parag Milk</div>
-  <div class="tagline">Dairy Products | Quality Assured | Saharanpur</div>
+
+<div class="print-info">PRINT DATE: ${printTime} &nbsp;|&nbsp; SLIP NO: ${slipNo}</div>
+
+<div class="top">
+  <div>
+    <div class="company-name">🥛 Parag Milk</div>
+    <div class="company-sub">Dairy Products | Quality Assured</div>
+    <div class="gstin">GSTIN: 09AAAAM5648K1B7</div>
+  </div>
+  <div class="top-right">
+    <div><strong>दिनांक / Date:</strong> ${formatDate(date)}</div>
+    <div><strong>वाहन / Vehicle:</strong> ${vehicle}</div>
+    <div style="margin-top:6px;font-size:10px;">क्रम सं / Sl No: <strong>${slipNo}</strong></div>
+  </div>
 </div>
 
-<div class="meta">
-  <div class="meta-left">
-    <div><strong>Invoice No:</strong> ${invoiceNo}</div>
-    <div><strong>Date:</strong> ${formatDate(date)}</div>
-  </div>
-  <div class="meta-right">
-    <div><strong>Slip No:</strong> ___________</div>
-    <div><strong>Vehicle No:</strong> ___________</div>
-  </div>
-</div>
+<div class="challan-title">डिलीवरी चालान / DELIVERY CHALLAN</div>
 
-<div class="party-box">
-  <div style="font-size:10px;color:#666;margin-bottom:2px;">PARTY NAME / वितरक का नाम</div>
-  <div class="party-name">${distName}</div>
+<div class="info-grid">
+  <div class="info-box">
+    <label>पार्टी का नाम / Party Name</label>
+    <div class="val">${distName}</div>
+  </div>
+  <div class="info-box">
+    <label>पता / Address</label>
+    <div class="val" style="font-size:11px;">${dist ? (dist.area||dist.address||'') : ''}</div>
+  </div>
 </div>
 
 <table>
   <thead>
     <tr>
-      <th style="width:24px;">क्र.<br>#</th>
-      <th style="width:120px;text-align:left;">उत्पाद<br>Product</th>
+      <th style="width:28px;">क्र.<br>S.N.</th>
+      <th style="text-align:left;width:140px;">उत्पाद का नाम<br>Product Name</th>
       <th>मात्रा/इकाई<br>Size/Unit</th>
+      <th>फार्मूला/मात्रा<br>Qty/Unit</th>
       <th>दर/इकाई<br>Rate ₹</th>
-      <th>पैकेट<br>Packets</th>
-      <th>क्रेट<br>Crates</th>
-      <th>KG/LTR</th>
-      <th>वास्तविक<br>Net Qty</th>
+      <th>पैकेट<br>Pkt</th>
+      <th>क्रेट<br>Crate</th>
       <th>राशि<br>Amount ₹</th>
     </tr>
   </thead>
   <tbody>
-    ${items.map((it,i) => `<tr>
+    ${items.map((it,i) => `
+    <tr>
       <td>${i+1}</td>
       <td class="left"><strong>${it.name}</strong></td>
       <td>${it.size}</td>
+      <td>${it.unit}</td>
       <td>${it.rate.toFixed(2)}</td>
-      <td>${it.qty || '-'}</td>
-      <td>${it.crates || '-'}</td>
-      <td>${it.kgltr ? it.kgltr.toFixed(2) : '-'}</td>
       <td>${it.qty}</td>
+      <td>${it.crates || 0}</td>
       <td><strong>${it.amount.toFixed(2)}</strong></td>
     </tr>`).join('')}
     <tr class="total-row">
-      <td colspan="8" style="text-align:right;padding-right:10px;">कुल राशि / TOTAL AMOUNT:</td>
-      <td>₹${total.toFixed(2)}</td>
+      <td colspan="5" style="text-align:right;padding-right:8px;">कुल / TOTAL</td>
+      <td>${totalQty}</td>
+      <td>${totalCrates}</td>
+      <td><strong>₹${totalAmt.toFixed(2)}</strong></td>
     </tr>
   </tbody>
 </table>
 
-<div style="font-size:11px;border:1px solid #ddd;padding:6px 10px;border-radius:4px;margin-bottom:10px;">
-  <strong>Amount in Words:</strong> ___________________________________________________
-</div>
-
-<div class="sign-row">
-  <div class="sign-box">
-    <div class="line"></div>
-    <div>Receiver / प्राप्तकर्ता</div>
+<div class="bottom">
+  <div class="deposit-box">
+    <div style="margin-bottom:6px;"><strong>जमा राशि / Deposit: ₹</strong> ${entry.deposit || '0.00'}</div>
+    <div><strong>बकाया / Balance: ₹</strong> ${entry.deposit ? (totalAmt - (entry.deposit||0)).toFixed(2) : totalAmt.toFixed(2)}</div>
   </div>
-  <div class="sign-box">
-    <div class="line"></div>
-    <div>Driver / चालक</div>
-  </div>
-  <div class="sign-box">
-    <div class="line"></div>
-    <div>Authorized / अधिकृत हस्ताक्षर</div>
+  <div style="font-size:11px;text-align:right;">
+    <div>कुल पैकेट / Total Packets: <strong>${totalQty}</strong></div>
+    <div style="margin-top:4px;">कुल क्रेट / Total Crates: <strong>${totalCrates}</strong></div>
   </div>
 </div>
 
-<div class="footer">Parag Milk — धन्यवाद! Thank you for your business!</div>
-<br>
-<div class="no-print" style="text-align:center;margin-top:16px;">
-  <button onclick="window.print()" style="padding:10px 30px;background:#3D1F00;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer;">🖨️ Print / Save PDF</button>
+<div class="sign-area">
+  <div class="sign-box">
+    <div class="sign-line"></div>
+    <div>विक्रय परिवेक्षक<br>Sales Supervisor</div>
+  </div>
+  <div class="sign-box">
+    <div class="sign-line"></div>
+    <div>लेखा सहायक<br>Accounts</div>
+  </div>
+  <div class="sign-box">
+    <div class="sign-line"></div>
+    <div>चालक / Driver</div>
+  </div>
+  <div class="sign-box">
+    <div class="sign-line"></div>
+    <div>प्राप्तकर्ता<br>Receiver</div>
+  </div>
 </div>
-</body>
-</html>`);
+
+<div class="no-print" style="text-align:center;margin-top:20px;">
+  <button onclick="window.print()" style="padding:10px 30px;background:#3D1F00;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;">🖨️ Print / Save PDF</button>
+</div>
+</body></html>`);
     win.document.close();
   }
 
@@ -2148,92 +2169,85 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
   }
 
   function exportDemandExcel() {
-    const date = document.getElementById('demand-entry-date') ? 
+    const date = document.getElementById('demand-entry-date') ?
                  document.getElementById('demand-entry-date').value || today() : today();
-    
-    // All 27 products in fixed order (columns)
+
+    // Fixed product columns matching DEFAULT_PRODUCTS IDs
     const PROD_COLS = [
-      { id:'fcm300',      name:'FCM 300ml',      unit:'Ltr' },
-      { id:'fcm1l',       name:'FCM 1Ltr',        unit:'Ltr' },
-      { id:'fcm6l',       name:'FCM 6Ltr',        unit:'Ltr' },
-      { id:'std',         name:'STD',             unit:'Ltr' },
-      { id:'tond500',     name:'TOND 500ml',      unit:'Ltr' },
-      { id:'tond6l',      name:'Tond 6Ltr',       unit:'Ltr' },
-      { id:'dtm500',      name:'DTM 500ml',       unit:'Ltr' },
-      { id:'dtm1l',       name:'DTM 1Ltr',        unit:'Ltr' },
-      { id:'tdite',       name:'T-Dite',          unit:'Pack' },
-      { id:'cowmilk',     name:'Cow Milk',        unit:'Pack' },
-      { id:'dahi5kg',     name:'Dahi 5Kg',        unit:'5Kg' },
-      { id:'dahi15kg',    name:'Dahi 15Kg',       unit:'15Kg' },
-      { id:'chhachltr',   name:'Chhachh Ltr',     unit:'Ltr' },
-      { id:'chhach300',   name:'Chhachh 300ml',   unit:'Pack' },
-      { id:'plaincurd200',name:'Plain Curd 200g',  unit:'Kg' },
-      { id:'plaincurd100',name:'Plain Curd 100g',  unit:'Kg' },
-      { id:'fm',          name:'F-M',             unit:'Ltr' },
-      { id:'nm',          name:'N/M',             unit:'Ltr' },
-      { id:'milkcake',    name:'Milk Cake',       unit:'Kg' },
-      { id:'paneerkg',    name:'Paneer Kg',       unit:'Kg' },
-      { id:'paneer500',   name:'Paneer 500g',     unit:'Kg' },
-      { id:'paneerlitr',  name:'Paneer Litr',     unit:'Kg' },
-      { id:'paneerkhawa', name:'Paneer Khawa',    unit:'Pack' },
-      { id:'chawla',      name:'Chawla Khower',   unit:'Kg' },
-      { id:'ricekheer',   name:'Rice Kheer',      unit:'Kg' },
-      { id:'pada',        name:'Pada',            unit:'Kg' },
-      { id:'kalakand',    name:'Kala Kand',       unit:'Kg' },
+      { id:'fcm500',    name:'FCM',         size:'500 ML',  unit:'Ltr' },
+      { id:'fcm1l',     name:'FCM',         size:'1 LTR',   unit:'Ltr' },
+      { id:'fcm6l',     name:'FCM',         size:'6 LTR',   unit:'Ltr' },
+      { id:'std500',    name:'STD',         size:'500 ML',  unit:'Ltr' },
+      { id:'std1l',     name:'STD',         size:'1 LTR',   unit:'Ltr' },
+      { id:'std350',    name:'COW MILK',    size:'350 ML',  unit:'Ltr' },
+      { id:'ton500',    name:'TOND',        size:'500 ML',  unit:'Ltr' },
+      { id:'ton1l',     name:'TOND',        size:'1 LTR',   unit:'Ltr' },
+      { id:'ton6l',     name:'TOND',        size:'6 LTR',   unit:'Ltr' },
+      { id:'matka5',    name:'DAHI MATKA',  size:'5 KG',    unit:'Kg' },
+      { id:'matka15',   name:'DAHI MATKA',  size:'15 KG',   unit:'Kg' },
+      { id:'chhach300', name:'CHHACH',      size:'300 ML',  unit:'Pack' },
+      { id:'curd200',   name:'P. CURD',     size:'200 GM',  unit:'Pack' },
+      { id:'dahi140',   name:'DAHI P.PACK', size:'140 GM',  unit:'Pack' },
+      { id:'kheer90',   name:'P. KHEER',    size:'90 GM',   unit:'Pack' },
+      { id:'paneer1kg', name:'PANEER LITE', size:'1 KG',    unit:'Kg' },
+      { id:'ghee1l',    name:'GHEE',        size:'1 LTR',   unit:'Ltr' },
+      { id:'butter500', name:'BUTTER',      size:'500 GM',  unit:'Kg' },
     ];
 
     const entries = (data.demandEntries||[]).filter(e => e.date === date);
     if (!entries.length) { alert('Is date ki koi demand nahi hai!'); return; }
 
+    const allProds = getAllProducts();
     const BOM = '\uFEFF';
     let csv = BOM;
 
     // Title
-    csv += `"PARAG MILK — DEMAND REPORT","${formatDate(date)}"\n`;
-    csv += `"FEB-2026"\n\n`;
+    csv += `"PARAG MILK — DEMAND CHART","Date: ${formatDate(date)}"\n\n`;
 
-    // Header row 1: unit names
-    csv += '"ITEM NAME:"';
-    PROD_COLS.forEach(p => { csv += `,"${p.unit}"`; });
-    csv += '\n';
-
-    // Header row 2: product names
+    // Header row 1: size
     csv += '"PARTY NAME"';
-    PROD_COLS.forEach(p => { csv += `,"${p.name}"`; });
-    csv += ',"TOTAL VALUE"\n';
+    PROD_COLS.forEach(p => { csv += `,"${p.size}"`; });
+    csv += ',"TOTAL"\n';
 
-    // Data rows - one per distributor
+    // Header row 2: product name
+    csv += '""';
+    PROD_COLS.forEach(p => { csv += `,"${p.name}"`; });
+    csv += ',"CRATE"\n';
+
+    // Header row 3: unit
+    csv += '""';
+    PROD_COLS.forEach(p => { csv += `,"${p.unit}"`; });
+    csv += '""\n';
+
+    // Data rows
     const colTotals = {};
     PROD_COLS.forEach(p => { colTotals[p.id] = 0; });
-    let grandTotal = 0;
+    let grandCrates = 0;
 
     entries.forEach(e => {
       let row = `"${e.distName}"`;
-      let rowTotal = 0;
-      const allProds = getAllProducts();
-      
+      let rowCrates = 0;
       PROD_COLS.forEach(p => {
         const itemData = (e.items||{})[p.id];
-        const qty = itemData ? (typeof itemData === 'object' ? (itemData.qty||0) : Number(itemData)) : 0;
-        const prod = allProds.find(ap => ap.id === p.id);
-        const rate = prod ? (prod.rate||0) : 0;
-        const val = qty * rate;
-        rowTotal += val;
-        grandTotal += val;
+        const qty    = itemData ? (typeof itemData === 'object' ? (itemData.qty||0)    : Number(itemData)) : 0;
+        const crates = itemData ? (typeof itemData === 'object' ? (itemData.crates||0) : 0) : 0;
         colTotals[p.id] = (colTotals[p.id]||0) + qty;
-        row += `,${qty || ''}`;
+        rowCrates += crates;
+        row += `,${qty > 0 ? qty : ''}`;
       });
-      row += `,${rowTotal > 0 ? rowTotal.toFixed(2) : ''}`;
+      grandCrates += rowCrates;
+      row += `,${rowCrates > 0 ? rowCrates : ''}`;
       csv += row + '\n';
     });
 
-    // TOTAL WEIGHT row
-    let totalRow = '"TOTAL WEIGHT"';
+    // TOTAL row
+    csv += '""\n';
+    let totalRow = '"TOTAL"';
     PROD_COLS.forEach(p => {
       const t = colTotals[p.id] || 0;
       totalRow += `,${t > 0 ? t : ''}`;
     });
-    totalRow += `,"${grandTotal.toFixed(2)}"`;
+    totalRow += `,${grandCrates > 0 ? grandCrates : ''}`;
     csv += totalRow + '\n';
 
     // Download
