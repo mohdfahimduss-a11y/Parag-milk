@@ -385,8 +385,8 @@
                 <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Product</th>
                 <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Size</th>
                 <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Rate ₹</th>
-                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Packets</th>
                 <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:#E8F5EE;color:var(--green);">KG/LTR</th>
+                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Packets</th>
                 <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Crates</th>
                 <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:#FFF3E0;color:var(--amber);">Amount ₹</th>
                 <th style="padding:9px 12px;border-bottom:1.5px solid var(--border);"></th>
@@ -1197,13 +1197,13 @@
       </td>
       <td id="${rowId}-size" style="padding:8px 12px;font-size:0.85rem;color:var(--muted);">-</td>
       <td id="${rowId}-rate" style="padding:8px 12px;font-family:var(--mono);font-size:0.85rem;" data-ratenum="0">-</td>
-      <td style="padding:8px 10px;">
-        <input type="number" id="${rowId}-qty" placeholder="0" min="0" oninput="calcKgLtr('${rowId}')"
-          style="width:75px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;">
-      </td>
       <td style="padding:8px 10px;background:#F0FFF4;">
         <input type="number" id="${rowId}-kgltr" placeholder="0" min="0" step="0.01"
           style="width:75px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:#F0FFF4;">
+      </td>
+      <td style="padding:8px 10px;">
+        <input type="number" id="${rowId}-qty" placeholder="0" min="0" oninput="calcKgLtr('${rowId}')"
+          style="width:75px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;">
       </td>
       <td style="padding:8px 10px;">
         <input type="number" id="${rowId}-crates" placeholder="0" min="0"
