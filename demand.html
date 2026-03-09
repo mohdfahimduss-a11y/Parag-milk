@@ -150,21 +150,18 @@
       <input type="date" id="d-date">
       <label>Vehicle Number</label>
       <input type="text" id="d-vehicle" placeholder="Vehicle Number" style="text-transform:uppercase;">
+      <!-- Add Demand Button -->
+      <button onclick="addDemandRow()" style="width:100%;padding:13px;background:#C97A2A;color:white;border:none;border-radius:10px;font-size:0.95rem;font-weight:800;cursor:pointer;margin-bottom:10px;">➕ Add Demand</button>
       <!-- View Previous Demand Button -->
-      <button onclick="viewMyDemand()" style="width:100%;padding:11px;background:#1A5FAB;color:white;border:none;border-radius:10px;font-size:0.88rem;font-weight:700;cursor:pointer;margin-top:4px;">👁️ Apni Purani Demand Dekho</button>
+      <button onclick="viewMyDemand()" style="width:100%;padding:11px;background:#1A5FAB;color:white;border:none;border-radius:10px;font-size:0.88rem;font-weight:700;cursor:pointer;">👁️ Apni Purani Demand Dekho</button>
     </div>
 
     <div class="card" id="products-card">
-      <h3>🥛 Products — Quantity Daalo</h3>
-      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">Sirf jo chahiye uska quantity daalo, baaki 0 rehne do</p>
       
       <!-- Deposit Payment -->
       <label>💰 Deposit Amount (₹)</label>
       <input type="number" id="d-deposit" placeholder="0.00" min="0" step="0.01">
 
-      <!-- Add Row Button -->
-      <button onclick="addDemandRow()" style="width:100%;padding:13px;background:#C97A2A;color:white;border:none;border-radius:10px;font-size:0.95rem;font-weight:800;cursor:pointer;margin-bottom:14px;">➕ Product Row Add Karo</button>
-      
       <!-- Extra rows -->
       <div id="extra-rows"></div>
 
@@ -496,17 +493,19 @@
           }).join('');
 
           const isToday = e.date === today();
-          const depositBadge = e.deposit > 0 ? `💰 Deposit: ₹${e.deposit}` : '';
           return `<div style="border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
               <div>
                 <strong style="color:var(--brown);">${e.date}</strong>
                 ${isToday ? '<span style="background:#2A7A4A;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:6px;">Aaj</span>' : ''}
-                ${depositBadge ? `<span style="background:#E8F5EE;color:#2A7A4A;font-size:0.75rem;padding:3px 10px;border-radius:10px;margin-left:6px;font-weight:700;">${depositBadge}</span>` : ''}
               </div>
               ${isToday ? `<button onclick="editDemand('${e.distName}','${e.date}')" style="background:var(--orange);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;cursor:pointer;">✏️ Edit</button>` : ''}
             </div>
             ${items}
+            ${e.deposit > 0 ? `<div style="margin-top:10px;padding:8px 12px;background:#E8F5EE;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:0.82rem;font-weight:700;color:#2A7A4A;">💰 Deposit Amount</span>
+              <span style="font-size:0.85rem;font-weight:800;color:#2A7A4A;">₹${e.deposit} &nbsp;|&nbsp; 📅 ${e.date}</span>
+            </div>` : ''}
           </div>`;
         }).join('');
       }
