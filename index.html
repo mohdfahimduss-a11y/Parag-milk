@@ -324,9 +324,26 @@
     <div class="form-card" style="background:linear-gradient(135deg,var(--brown),#6B3A10);border:none;">
       <h3 style="color:white;margin-bottom:6px;">📊 Export All Data to Excel</h3>
       <p style="color:#C8A882;font-size:0.8rem;margin-bottom:14px;">Saara data ek Excel file mein download karo</p>
+      
+      <!-- Date Range Report -->
+      <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:12px;margin-bottom:12px;">
+        <p style="color:white;font-size:0.82rem;font-weight:600;margin-bottom:8px;">📅 Date Range Report</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <div>
+            <label style="color:#C8A882;font-size:0.72rem;">From</label>
+            <input type="date" id="report-from" style="padding:6px 8px;border-radius:8px;border:none;font-size:0.82rem;display:block;">
+          </div>
+          <div>
+            <label style="color:#C8A882;font-size:0.72rem;">To</label>
+            <input type="date" id="report-to" style="padding:6px 8px;border-radius:8px;border:none;font-size:0.82rem;display:block;">
+          </div>
+          <button class="btn" style="background:var(--amber);color:white;border:none;margin-top:16px;" onclick="exportDateRangeReport()">📥 Download Report</button>
+        </div>
+      </div>
+
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn" style="background:var(--amber);color:white;border:none;" onclick="exportAllExcel()">📥 Export All — Full Report</button>
-        <button class="btn btn-sm" style="background:#2A7A4A;color:white;border:none;" onclick="exportMonthlyReport()">📅 Monthly Distributor Report</button>
+        <button class="btn btn-sm" style="background:#2A7A4A;color:white;border:none;" onclick="exportMonthlyReport()">📅 Monthly Report</button>
         <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);" onclick="exportDemandExcel()">📦 Demand Only</button>
         <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);" onclick="exportSalesExcel()">💰 Sales Only</button>
         <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);" onclick="exportExpensesExcel()">📋 Expenses Only</button>
@@ -1436,6 +1453,94 @@
     win.document.close();
   }
 
+  function exportDateRangeReport() {
+    const fromDate = document.getElementById('report-from').value;
+    const toDate = document.getElementById('report-to').value;
+    if (!fromDate || !toDate) { alert('From aur To date dono select karo!'); return; }
+    if (fromDate > toDate) { alert('From date, To date se pehle honi chahiye!'); return; }
+
+    const allProds = getAllProducts();
+    const allEntries = data.demandEntries || [];
+    const entries = allEntries.filter(e => e.date >= fromDate && e.date <= toDate);
+    if (!entries.length) { alert(`${fromDate} se ${toDate} ke beech koi demand nahi!`); return; }
+
+    const customers = data.customers || [];
+    let csv = `\uFEFF`;
+    csv += `PARAG MILK — DEMAND REPORT\n`;
+    csv += `From: ${fromDate}  To: ${toDate}\n`;
+    csv += `Generated: ${new Date().toLocaleString('en-IN')}\n\n`;
+
+    // Date-wise distributor demand
+    csv += `DATE-WISE DISTRIBUTOR DEMAND\n`;
+    csv += `Date,Distributor,Code,Vehicle,Product,Size,Category,Qty,Rate,Value\n`;
+    entries.sort((a,b) => (a.date||'').localeCompare(b.date||'')).forEach(e => {
+      const dist = customers.find(c => c.name === e.distName);
+      const code = dist ? (dist.code||'') : '';
+      const vehicle = e.vehicle || (dist ? (dist.vehicle||'') : '');
+      Object.entries(e.items||{}).forEach(([pid, qtyVal]) => {
+        const prod = allProds.find(p => String(p.id) === String(pid));
+        if (!prod) return;
+        const qty = typeof qtyVal === 'object' ? (qtyVal.qty||0) : qtyVal;
+        const rate = (dist && dist.productRates && dist.productRates[pid]) ? dist.productRates[pid] : (prod.rate||0);
+        csv += `${e.date},${e.distName},${code},${vehicle},${prod.name},${prod.size||''},${prod.cat||''},${qty},${rate},${qty*rate}\n`;
+      });
+    });
+
+    // Distributor-wise total
+    csv += `\nDISTRIBUTOR-WISE TOTAL\n`;
+    csv += `Distributor,Code,Total Orders,Total Value\n`;
+    const distTotals = {};
+    entries.forEach(e => {
+      if (!distTotals[e.distName]) distTotals[e.distName] = { orders:0, value:0, code:'' };
+      distTotals[e.distName].orders++;
+      const dist = customers.find(c => c.name === e.distName);
+      distTotals[e.distName].code = dist ? (dist.code||'') : '';
+      Object.entries(e.items||{}).forEach(([pid, qtyVal]) => {
+        const prod = allProds.find(p => String(p.id) === String(pid));
+        if (!prod) return;
+        const qty = typeof qtyVal === 'object' ? (qtyVal.qty||0) : qtyVal;
+        const rate = (dist && dist.productRates && dist.productRates[pid]) ? dist.productRates[pid] : (prod.rate||0);
+        distTotals[e.distName].value += qty * rate;
+      });
+    });
+    let grandTotal = 0;
+    Object.entries(distTotals).forEach(([name, d]) => {
+      csv += `${name},${d.code},${d.orders},${d.value}\n`;
+      grandTotal += d.value;
+    });
+    csv += `GRAND TOTAL,,,${grandTotal}\n`;
+
+    // Product-wise total
+    csv += `\nPRODUCT-WISE TOTAL\n`;
+    csv += `Product,Size,Category,Total Qty,Total Value\n`;
+    const prodTotals = {};
+    entries.forEach(e => {
+      const dist = customers.find(c => c.name === e.distName);
+      Object.entries(e.items||{}).forEach(([pid, qtyVal]) => {
+        if (!prodTotals[pid]) prodTotals[pid] = { qty:0, value:0 };
+        const prod = allProds.find(p => String(p.id) === String(pid));
+        if (!prod) return;
+        const qty = typeof qtyVal === 'object' ? (qtyVal.qty||0) : qtyVal;
+        const rate = (dist && dist.productRates && dist.productRates[pid]) ? dist.productRates[pid] : (prod.rate||0);
+        prodTotals[pid].qty += qty;
+        prodTotals[pid].value += qty * rate;
+      });
+    });
+    Object.entries(prodTotals).forEach(([pid, d]) => {
+      const prod = allProds.find(p => String(p.id) === String(pid));
+      if (!prod) return;
+      csv += `${prod.name},${prod.size||''},${prod.cat||''},${d.qty},${d.value}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ParagMilk_Report_${fromDate}_to_${toDate}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   function exportMonthlyReport() {
     const allProds = getAllProducts();
     const allEntries = data.demandEntries || [];
@@ -1945,6 +2050,11 @@
   document.getElementById('exp-date').value = today();
   document.getElementById('demand-entry-date').value = today();
   document.getElementById('todayDate').textContent = formatDate(today());
+  // Default date range — 1st of month to today
+  const t = new Date();
+  const firstDay = new Date(t.getFullYear(), t.getMonth(), 1).toISOString().split('T')[0];
+  document.getElementById('report-from').value = firstDay;
+  document.getElementById('report-to').value = today();
 </script>
 </body>
 </html>
