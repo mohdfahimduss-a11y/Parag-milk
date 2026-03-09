@@ -320,8 +320,8 @@
     </div>
 
     <!-- Step 1: Select/Add Distributor -->
-    <div class="form-card">
-      <h3>🏪 Step 1 — Enter Distributor Demand</h3>
+    <div class="form-card" id="demand-form-card">
+      <h3>🏪 Step 1 — Enter Distributor Demand <span id="demand-edit-badge" style="display:none;background:#FF6F00;color:white;font-size:0.72rem;padding:3px 10px;border-radius:20px;margin-left:8px;">✏️ Edit Mode</span></h3>
       <div class="form-grid">
         <div class="form-group">
           <label>Date</label>
@@ -383,20 +383,6 @@
 
       <!-- Distributor-wise table -->
       <div id="demand-dist-tables"></div>
-
-      <!-- Total Summary -->
-      <div id="demand-total-section" style="display:none;">
-        <div style="padding:12px 16px;background:var(--brown);color:white;">
-          <strong style="font-size:0.9rem;">📊 TOTAL PRODUCTION REQUIRED</strong>
-        </div>
-        <table>
-          <thead><tr><th>Product</th><th>Size</th><th>Category</th><th style="background:#E8F5EE;color:var(--green);">TOTAL QTY</th><th>Rate</th><th>Total Value</th></tr></thead>
-          <tbody id="demand-total-table"></tbody>
-        </table>
-        <div style="padding:12px 16px;text-align:right;">
-          <strong id="demand-grand-total" style="font-size:1rem;color:var(--green);"></strong>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -1290,7 +1276,9 @@
     const distName = document.getElementById('demand-dist-name').value;
     if (!distName) { alert('Pehle distributor select karein!'); return; }
 
-    // Read from dynamic rows
+    const formCard = document.getElementById('demand-form-card');
+    const editingId = formCard.dataset.editingId ? Number(formCard.dataset.editingId) : null;
+
     const rows = document.querySelectorAll('#demand-entry-grid tr');
     const items = {};
     rows.forEach(row => {
@@ -1308,27 +1296,25 @@
 
     if (!Object.keys(items).length) { alert('Kam se kam ek product select karke quantity daalo!'); return; }
     if (!data.demandEntries) data.demandEntries = [];
-    const idx = data.demandEntries.findIndex(e => e.date === date && e.distName === distName);
-    const entryId = Date.now();
-    if (idx >= 0) {
-      if (!confirm(`${distName} ki demand already hai is date ke liye. Update karein?`)) return;
-      // Remove old sales entries for this demand
-      const oldEntry = data.demandEntries[idx];
-      if (oldEntry.addedToSales) {
-        data.sales = (data.sales||[]).filter(s => s.note !== `Demand #${oldEntry.id}`);
+
+    if (editingId) {
+      const idx = data.demandEntries.findIndex(e => e.id === editingId);
+      if (idx >= 0) {
+        data.demandEntries[idx] = { ...data.demandEntries[idx], date, distName, items, savedAt: Date.now() };
       }
-      data.demandEntries[idx] = { ...oldEntry, date, distName, items, savedAt: Date.now(), addedToSales: true };
-      autoAddToSales(data.demandEntries[idx]);
+      saveData(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
+      alert(`✅ ${distName} ki demand update ho gayi!`);
     } else {
-      const newEntry = { id: entryId, date, distName, items, savedAt: Date.now(), addedToSales: true };
-      data.demandEntries.push(newEntry);
-      autoAddToSales(newEntry);
+      const idx = data.demandEntries.findIndex(e => e.date === date && e.distName === distName);
+      if (idx >= 0) {
+        if (!confirm(`${distName} ki demand already hai is date ke liye. Update karein?`)) return;
+        data.demandEntries[idx] = { ...data.demandEntries[idx], date, distName, items, savedAt: Date.now() };
+      } else {
+        data.demandEntries.push({ id: Date.now(), date, distName, items, savedAt: Date.now() });
+      }
+      saveData(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
+      alert(`✅ ${distName} ki demand save ho gayi!`);
     }
-    saveData();
-    updateDistList();
-    renderDemandSummaryPage(date);
-    clearDemandForm();
-    alert(`✅ ${distName} ki demand save ho gayi aur Sales mein add ho gayi!`);
   }
 
   function autoAddToSales(entry) {
@@ -1359,6 +1345,11 @@
 
   function clearDemandForm() {
     document.getElementById('demand-dist-name').value = '';
+    document.getElementById('demand-vehicle-display').textContent = '';
+    const formCard = document.getElementById('demand-form-card');
+    formCard.dataset.editingId = '';
+    formCard.style.border = '';
+    document.getElementById('demand-edit-badge').style.display = 'none';
     renderDemandEntryGrid();
   }
 
@@ -1376,13 +1367,11 @@
     const allProds = getAllProducts();
     const entries = (data.demandEntries||[]).filter(e => e.date === date);
     const container = document.getElementById('demand-dist-tables');
-    const totalSection = document.getElementById('demand-total-section');
     document.getElementById('demand-day-label').textContent = formatDate(date);
     document.getElementById('demand-count-label').textContent = entries.length ? `${entries.length} demand` : '';
 
     if (!entries.length) {
       container.innerHTML = '<div class="empty" style="padding:24px;">Koi demand nahi aai aaj. Upar form fill karo!</div>';
-      totalSection.style.display = 'none';
       return;
     }
 
@@ -1419,6 +1408,10 @@
 
     const summaryHtml = `
       <div style="overflow-x:auto;margin-bottom:18px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <strong style="font-size:0.88rem;color:var(--brown);">📋 Summary — ${formatDate(date)}</strong>
+          <button onclick="exportSummaryExcel('${date}')" style="background:#1D6F42;color:white;border:none;padding:6px 14px;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;">📥 Excel Download</button>
+        </div>
         <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
           <thead>
             <tr style="background:#1F3864;color:white;">
@@ -1470,7 +1463,8 @@
                 `<span style="background:#E8F5E9;color:#2A7A4A;padding:4px 10px;border-radius:8px;font-size:0.75rem;font-weight:700;">✅ Completed</span>
                  <button class="btn btn-danger btn-sm" onclick="deleteDemandEntry(${e.id})">🗑️ Del</button>` 
                 : 
-                `<button onclick="completeDemand(${e.id})" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;padding:5px 10px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;">✅ Complete</button>
+                `<button onclick="editDemandEntry(${e.id})" style="background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;padding:5px 10px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;">✏️ Edit</button>
+                 <button onclick="completeDemand(${e.id})" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;padding:5px 10px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;">✅ Complete</button>
                  <button class="btn btn-danger btn-sm" onclick="deleteDemandEntry(${e.id})">🗑️ Del</button>`
               }
             </div>
@@ -1483,39 +1477,78 @@
     }).join('');
 
     container.innerHTML = summaryHtml + detailHtml;
+  }
 
-    // Total summary
-    const totals = {};
-    entries.forEach(e => {
-      Object.entries(e.items).forEach(([pid, itemData]) => {
-        const qty = typeof itemData === 'object' ? (itemData.qty || 0) : itemData;
-        const kgltr = typeof itemData === 'object' ? (itemData.kgltr || 0) : 0;
-        if (!totals[pid]) totals[pid] = { qty: 0, kgltr: 0 };
-        totals[pid].qty += qty;
-        totals[pid].kgltr += kgltr;
-      });
+  function editDemandEntry(id) {
+    const entry = (data.demandEntries||[]).find(e => e.id === id);
+    if (!entry) return;
+
+    // Set date and distributor
+    document.getElementById('demand-entry-date').value = entry.date;
+    document.getElementById('demand-dist-name').value = entry.distName;
+    onDistSelect(document.getElementById('demand-dist-name'));
+
+    // Show edit badge, store editing id
+    document.getElementById('demand-edit-badge').style.display = 'inline';
+    document.getElementById('demand-form-card').dataset.editingId = id;
+    document.getElementById('demand-form-card').style.border = '2px solid #FF6F00';
+
+    // Load items into rows
+    const grid = document.getElementById('demand-entry-grid');
+    grid.innerHTML = '';
+    demandRowCount = 0;
+
+    const allProds = getAllProducts();
+    Object.entries(entry.items||{}).forEach(([pid, itemData]) => {
+      const qty    = typeof itemData === 'object' ? (itemData.qty||0)    : Number(itemData);
+      const kgltr  = typeof itemData === 'object' ? (itemData.kgltr||0)  : 0;
+      const crates = typeof itemData === 'object' ? (itemData.crates||0) : 0;
+      if (!qty) return;
+
+      demandRowCount++;
+      const rowId = 'drow-' + demandRowCount;
+      const options = allProds.map(p => `<option value="${p.id}" data-size="${p.size||''}" data-rate="${p.rate||0}" data-cat="${p.cat}" ${p.id==pid?'selected':''}>${p.name} ${p.size||''}</option>`).join('');
+      const prod = allProds.find(p => String(p.id)===String(pid));
+      const dist = (data.customers||[]).find(c => c.name === entry.distName);
+      let rate = prod ? (prod.rate||0) : 0;
+      if (dist && dist.productRates && dist.productRates[pid]) rate = parseFloat(dist.productRates[pid])||0;
+
+      const tr = document.createElement('tr');
+      tr.id = rowId;
+      tr.style.borderBottom = '1px solid #F5EDE0';
+      tr.innerHTML = `
+        <td style="padding:8px 12px;color:var(--muted);font-size:0.85rem;">${demandRowCount}</td>
+        <td style="padding:8px 10px;">
+          <select onchange="onDemandProductSelect(this, '${rowId}')"
+            style="width:100%;min-width:140px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font);font-size:0.85rem;background:white;cursor:pointer;">
+            <option value="">-- Select Product --</option>
+            ${options}
+          </select>
+        </td>
+        <td id="${rowId}-size" style="padding:8px 12px;font-size:0.85rem;color:var(--muted);">${prod ? prod.size||'-' : '-'}</td>
+        <td id="${rowId}-rate" style="padding:8px 12px;font-family:var(--mono);font-size:0.85rem;" data-ratenum="${rate}">${rate ? '₹'+rate : '-'}</td>
+        <td style="padding:8px 10px;background:#F0FFF4;">
+          <input type="number" id="${rowId}-kgltr" value="${kgltr||''}" min="0" step="0.01" oninput="calcKgLtr('${rowId}')"
+            style="width:75px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
+        </td>
+        <td style="padding:8px 10px;background:#EEF2FF;">
+          <input type="number" id="${rowId}-qty" value="${qty||''}" min="0" readonly
+            style="width:75px;padding:7px 8px;border:1.5px solid #9FA8DA;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:#EEF2FF;color:#3949AB;cursor:not-allowed;">
+        </td>
+        <td style="padding:8px 10px;">
+          <input type="number" id="${rowId}-crates" value="${crates||''}" min="0"
+            style="width:65px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;">
+        </td>
+        <td id="${rowId}-amount" style="padding:8px 12px;font-family:var(--mono);font-size:0.88rem;font-weight:700;color:var(--amber);background:#FFF3E0;">-</td>
+        <td style="padding:8px 10px;">
+          <button class="btn btn-danger btn-sm" onclick="removeDemandRow('${rowId}')">✕</button>
+        </td>`;
+      grid.appendChild(tr);
+      calcKgLtr(rowId);
     });
 
-    let grandTotal = 0;
-    const totalRows = Object.entries(totals).map(([pid, t]) => {
-      const prod = allProds.find(p => String(p.id) === String(pid));
-      if (!prod) return '';
-      const val = (prod.rate||0) * t.qty;
-      grandTotal += val;
-      return `<tr>
-        <td><strong>${prod.name}</strong></td>
-        <td>${prod.size||'-'}</td>
-        <td><span class="badge ${catColors[prod.cat]||'badge-blue'}">${prod.cat}</span></td>
-        <td><strong style="color:var(--green);font-size:1rem;">${t.qty}</strong></td>
-        <td>${t.kgltr ? t.kgltr.toFixed(2) + ' KG/LTR' : '-'}</td>
-        <td>₹${prod.rate||0}</td>
-        <td><strong style="color:var(--green)">₹${val}</strong></td>
-      </tr>`;
-    }).join('');
-
-    document.getElementById('demand-total-table').innerHTML = totalRows;
-    document.getElementById('demand-grand-total').textContent = `Grand Total: ₹${grandTotal}`;
-    totalSection.style.display = 'block';
+    // Scroll to form
+    document.getElementById('demand-form-card').scrollIntoView({ behavior:'smooth', block:'start' });
   }
 
   function deleteDemandEntry(id) {
@@ -2412,6 +2445,128 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     a.download = `ParagMilk_Monthly_${month}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function exportSummaryExcel(date) {
+    date = date || today();
+    if (typeof XLSX === 'undefined') { alert('Excel library load nahi hui!'); return; }
+
+    const entries = (data.demandEntries||[]).filter(e => e.date === date);
+    if (!entries.length) { alert('Koi demand nahi is date ki!'); return; }
+
+    // Fixed product columns — same order as image
+    const PROD_COLS = [
+      { id:'fcm500',    name:'FCM',        size:'500 ML', unit:'Ltr' },
+      { id:'fcm1l',     name:'FCM',        size:'1 LTR',  unit:'Ltr' },
+      { id:'fcm6l',     name:'FCM',        size:'6 LTR',  unit:'Ltr' },
+      { id:'std500',    name:'STD',        size:'500 ML', unit:'Ltr' },
+      { id:'std1l',     name:'STD',        size:'1 LTR',  unit:'Ltr' },
+      { id:'std350',    name:'COW MILK',   size:'350 ML', unit:'Ltr' },
+      { id:'ton500',    name:'TOND',       size:'500 ML', unit:'Ltr' },
+      { id:'ton1l',     name:'TOND',       size:'1 LTR',  unit:'Ltr' },
+      { id:'ton6l',     name:'TOND',       size:'6 LTR',  unit:'Ltr' },
+      { id:'matka5',    name:'DAHI MATKA', size:'5 KG',   unit:'Kg'  },
+      { id:'matka15',   name:'DAHI MATKA', size:'15 KG',  unit:'Kg'  },
+      { id:'chhach300', name:'CHHACH',     size:'300 ML', unit:'Pack'},
+      { id:'curd200',   name:'P. CURD',    size:'200 GM', unit:'Pack'},
+      { id:'dahi140',   name:'DAHI PACK',  size:'140 GM', unit:'Pack'},
+      { id:'kheer90',   name:'P. KHEER',   size:'90 GM',  unit:'Pack'},
+      { id:'paneer1kg', name:'PANEER',     size:'1 KG',   unit:'Kg'  },
+      { id:'ghee1l',    name:'GHEE',       size:'1 LTR',  unit:'Ltr' },
+      { id:'butter500', name:'BUTTER',     size:'500 GM', unit:'Kg'  },
+    ];
+
+    const wb = XLSX.utils.book_new();
+    const wsData = [];
+
+    // Row 0: Title
+    wsData.push([`PARAG MILK — DEMAND SUMMARY`, `Date: ${formatDate(date)}`]);
+    wsData.push([]); // blank
+
+    // Row 2: Size header
+    wsData.push(['PARTY NAME', ...PROD_COLS.map(p => p.size), 'TOTAL CRATE']);
+    // Row 3: Product name header
+    wsData.push(['', ...PROD_COLS.map(p => p.name), '']);
+    // Row 4: Unit header
+    wsData.push(['', ...PROD_COLS.map(p => p.unit), '']);
+
+    // Data rows
+    const colTotals = {};
+    PROD_COLS.forEach(p => { colTotals[p.id] = 0; });
+    let grandCrates = 0;
+
+    entries.forEach(e => {
+      const dist = (data.customers||[]).find(c => c.name === e.distName);
+      const label = e.distName + (dist && dist.vehicle ? ` (${dist.vehicle})` : '');
+      const row = [label];
+      let rowCrates = 0;
+      PROD_COLS.forEach(p => {
+        const itemData = (e.items||{})[p.id];
+        const qty    = itemData ? (typeof itemData==='object' ? (itemData.qty||0)    : Number(itemData)) : 0;
+        const crates = itemData ? (typeof itemData==='object' ? (itemData.crates||0) : 0) : 0;
+        colTotals[p.id] += qty;
+        rowCrates += crates;
+        row.push(qty > 0 ? qty : '');
+      });
+      grandCrates += rowCrates;
+      row.push(rowCrates > 0 ? rowCrates : '');
+      wsData.push(row);
+    });
+
+    // Blank + TOTAL row
+    wsData.push([]);
+    wsData.push(['TOTAL', ...PROD_COLS.map(p => colTotals[p.id] > 0 ? colTotals[p.id] : ''), grandCrates > 0 ? grandCrates : '']);
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const totalCols = PROD_COLS.length + 2; // party + products + total crate
+
+    ws['!cols'] = [{ wch:28 }, ...PROD_COLS.map(() => ({ wch:7 })), { wch:10 }];
+
+    // Styling
+    const darkBlue  = { patternType:'solid', fgColor:{ rgb:'1F3864' } };
+    const lightBlue = { patternType:'solid', fgColor:{ rgb:'D9E1F2' } };
+    const whiteFont = { bold:true, color:{ rgb:'FFFFFF' }, sz:8 };
+    const boldFont  = { bold:true, sz:9 };
+    const border    = { style:'thin', color:{ rgb:'AAAAAA' } };
+    const allBorder = { top:border, bottom:border, left:border, right:border };
+    const ctr       = { horizontal:'center', vertical:'center', wrapText:true };
+    const left      = { horizontal:'left', vertical:'center' };
+
+    const C = (r, c) => XLSX.utils.encode_cell({ r, c });
+
+    // Style 3 header rows (rows 2,3,4)
+    [2, 3, 4].forEach(r => {
+      for (let c = 0; c < totalCols; c++) {
+        const addr = C(r, c);
+        if (!ws[addr]) ws[addr] = { v:'', t:'s' };
+        ws[addr].s = { fill:darkBlue, font:whiteFont, alignment:c===0?left:ctr, border:allBorder };
+      }
+    });
+
+    // Style data rows (start at row 5)
+    const dataStart = 5;
+    for (let r = dataStart; r < dataStart + entries.length; r++) {
+      const bg = (r - dataStart) % 2 === 0 ? 'FFFFFF' : 'EBF1DE';
+      for (let c = 0; c < totalCols; c++) {
+        const addr = C(r, c);
+        if (!ws[addr]) ws[addr] = { v:'', t:'s' };
+        ws[addr].s = { fill:{ patternType:'solid', fgColor:{ rgb:bg } }, font:{ sz:9, bold:c===0 }, alignment:c===0?left:ctr, border:allBorder };
+      }
+    }
+
+    // Style TOTAL row (last)
+    const totalRowIdx = wsData.length - 1;
+    for (let c = 0; c < totalCols; c++) {
+      const addr = C(totalRowIdx, c);
+      if (!ws[addr]) ws[addr] = { v:'', t:'s' };
+      ws[addr].s = { fill:lightBlue, font:boldFont, alignment:c===0?left:ctr, border:allBorder };
+    }
+
+    ws['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:5} }];
+    ws['!freeze'] = { xSplit:1, ySplit:5 };
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Demand Summary');
+    XLSX.writeFile(wb, `Parag_Summary_${date}.xlsx`);
   }
 
   function exportDemandExcel() {
