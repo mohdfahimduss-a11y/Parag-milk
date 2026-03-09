@@ -372,6 +372,8 @@
       <div class="table-header" style="flex-wrap:wrap;gap:8px;">
         <h3>📋 Today's Demands — <span id="demand-day-label" style="color:var(--amber)"></span> <span id="demand-count-label" style="background:var(--brown);color:white;font-size:0.72rem;padding:2px 8px;border-radius:20px;margin-left:6px;"></span></h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-sm" style="background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;font-weight:700;" onclick="printMangPatra('vehicle')">🖨️ Mang Patra (Vehicle-wise)</button>
+          <button class="btn btn-sm" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;font-weight:700;" onclick="printMangPatra('dist')">🖨️ Mang Patra (Dist-wise)</button>
           <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:1px solid #F0C0BC;" onclick="clearAllDemandToday()">🗑 Clear Today</button>
         </div>
       </div>
@@ -1494,6 +1496,174 @@
   }
 
   // INVOICE GENERATOR
+  function printMangPatra(mode) {
+    const date = document.getElementById('demand-entry-date').value || today();
+    const entries = (data.demandEntries||[]).filter(e => e.date === date);
+    if (!entries.length) { alert('Koi demand nahi hai is date ke liye!'); return; }
+
+    const allProds = getAllProducts();
+
+    // Fixed product columns (same as Excel export)
+    const COLS = [
+      { id:'fcm500',    name:'FCM',        size:'500ml', unit:'Ltr' },
+      { id:'fcm1l',     name:'FCM',        size:'1 Ltr', unit:'Ltr' },
+      { id:'fcm6l',     name:'FCM',        size:'6 Ltr', unit:'Ltr' },
+      { id:'std500',    name:'STD',        size:'500ml', unit:'Ltr' },
+      { id:'std1l',     name:'STD',        size:'1 Ltr', unit:'Ltr' },
+      { id:'std350',    name:'COW MILK',   size:'350ml', unit:'Ltr' },
+      { id:'ton500',    name:'TOND',       size:'500ml', unit:'Ltr' },
+      { id:'ton1l',     name:'TOND',       size:'1 Ltr', unit:'Ltr' },
+      { id:'ton6l',     name:'TOND',       size:'6 Ltr', unit:'Ltr' },
+      { id:'matka5',    name:'DAHI',       size:'5 Kg',  unit:'Kg' },
+      { id:'matka15',   name:'DAHI',       size:'15 Kg', unit:'Kg' },
+      { id:'chhach300', name:'CHHACH',     size:'300ml', unit:'Pack' },
+      { id:'curd200',   name:'P.CURD',     size:'200gm', unit:'Pack' },
+      { id:'dahi140',   name:'DAHI PACK',  size:'140gm', unit:'Pack' },
+      { id:'kheer90',   name:'P.KHEER',    size:'90gm',  unit:'Pack' },
+      { id:'paneer1kg', name:'PANEER',     size:'1 Kg',  unit:'Kg' },
+      { id:'ghee1l',    name:'GHEE',       size:'1 Ltr', unit:'Ltr' },
+      { id:'butter500', name:'BUTTER',     size:'500gm', unit:'Kg' },
+    ];
+
+    // Group entries: vehicle-wise or dist-wise
+    let groups = [];
+    if (mode === 'vehicle') {
+      const vehicleMap = {};
+      entries.forEach(e => {
+        const dist = data.customers.find(c => c.name === e.distName);
+        const veh = dist ? (dist.vehicle || 'NO VEHICLE') : 'NO VEHICLE';
+        if (!vehicleMap[veh]) vehicleMap[veh] = [];
+        vehicleMap[veh].push(e);
+      });
+      groups = Object.entries(vehicleMap).map(([veh, ents]) => ({ label: veh, entries: ents }));
+    } else {
+      groups = entries.map(e => {
+        const dist = data.customers.find(c => c.name === e.distName);
+        const veh = dist ? (dist.vehicle || '') : '';
+        return { label: e.distName, entries: [e], vehicle: veh };
+      });
+    }
+
+    // Build HTML for each group = one mang patra slip
+    const slipHTML = groups.map(group => {
+      const rows = group.entries.map(e => {
+        const dist = data.customers.find(c => c.name === e.distName);
+        const code = dist ? (dist.code || '') : '';
+        const veh  = dist ? (dist.vehicle || '') : '';
+        let rowCells = COLS.map(col => {
+          const itemData = (e.items||{})[col.id];
+          const qty = itemData ? (typeof itemData === 'object' ? (itemData.qty||0) : Number(itemData)) : 0;
+          return `<td>${qty > 0 ? qty : ''}</td>`;
+        }).join('');
+        // total crates for this entry
+        const totalCrates = Object.values(e.items||{}).reduce((s, d) => s + (typeof d==='object' ? (d.crates||0) : 0), 0);
+        return `<tr>
+          <td style="text-align:left;padding-left:4px;white-space:nowrap;font-size:9px;"><strong>${e.distName}</strong></td>
+          <td style="font-size:9px;">${code}</td>
+          ${rowCells}
+          <td><strong>${totalCrates > 0 ? totalCrates : ''}</strong></td>
+        </tr>`;
+      }).join('');
+
+      // Column totals for this slip
+      const colTotals = COLS.map(col => {
+        const t = group.entries.reduce((s, e) => {
+          const d = (e.items||{})[col.id];
+          const q = d ? (typeof d==='object' ? (d.qty||0) : Number(d)) : 0;
+          return s + q;
+        }, 0);
+        return `<td><strong>${t > 0 ? t : ''}</strong></td>`;
+      }).join('');
+      const totalAllCrates = group.entries.reduce((s, e) =>
+        s + Object.values(e.items||{}).reduce((ss, d) => ss + (typeof d==='object' ? (d.crates||0) : 0), 0), 0);
+
+      const slipTitle = mode === 'vehicle'
+        ? `गाड़ी नं: <strong>${group.label}</strong>`
+        : `वितरक: <strong>${group.label}</strong> ${group.vehicle ? '| गाड़ी: ' + group.vehicle : ''}`;
+
+      return `
+      <div class="slip">
+        <div class="slip-header">
+          <div style="flex:1;">
+            <div class="org-name">मुरादाबाद दुग्ध उत्पादक सहकारी संघ लि०, दलपतपुर, मुरादाबाद</div>
+            <div style="font-size:9px;margin-top:2px;">नागरीय आपूर्ति हेतु निम्न विवरण अनुसार तरल दुग्ध पदार्थ / दुग्ध पदार्थ उपलब्ध करायें।</div>
+          </div>
+          <div style="text-align:right;font-size:10px;min-width:160px;">
+            <div>दिनांक: <strong>${formatDate(date)}</strong></div>
+            <div style="margin-top:3px;">${slipTitle}</div>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th rowspan="2" style="min-width:90px;text-align:left;">वितरक का नाम</th>
+              <th rowspan="2">कोड</th>
+              ${COLS.map(c => `<th>${c.name}</th>`).join('')}
+              <th rowspan="2">कुल<br>क्रेट</th>
+            </tr>
+            <tr>
+              ${COLS.map(c => `<th style="font-size:8px;font-weight:normal;">${c.size}<br><span style="color:#ccc">${c.unit}</span></th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+          <tfoot>
+            <tr style="background:#f0f0f0;">
+              <td colspan="2" style="text-align:right;font-weight:900;font-size:10px;">कुल TOTAL →</td>
+              ${colTotals}
+              <td><strong>${totalAllCrates > 0 ? totalAllCrates : ''}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="sign-row">
+          <div class="sign-box">हस्ताक्षर / Sign<div class="sign-line"></div><div style="font-size:8px;">विक्रय परिवेक्षक</div></div>
+          <div class="sign-box">हस्ताक्षर / Sign<div class="sign-line"></div><div style="font-size:8px;">लेखा सहायक</div></div>
+          <div class="sign-box">हस्ताक्षर / Sign<div class="sign-line"></div><div style="font-size:8px;">चालक / Driver</div></div>
+          <div class="sign-box">हस्ताक्षर / Sign<div class="sign-line"></div><div style="font-size:8px;">हो निगमन कर्ता</div></div>
+        </div>
+      </div>`;
+    }).join('<div class="page-break"></div>');
+
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Mang Patra - ${formatDate(date)}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family: Arial, sans-serif; font-size:10px; color:#000; background:#fff; }
+  .slip { padding:10px 12px; max-width:100%; page-break-after: always; }
+  .slip-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; border-bottom:2px solid #000; padding-bottom:6px; }
+  .org-name { font-size:13px; font-weight:900; }
+  table { width:100%; border-collapse:collapse; font-size:9px; margin-bottom:8px; }
+  th { background:#333; color:#fff; border:1px solid #000; padding:3px 2px; text-align:center; font-size:8px; line-height:1.2; }
+  td { border:1px solid #999; padding:3px 2px; text-align:center; height:18px; min-width:22px; }
+  tfoot td { border:1px solid #000; }
+  .sign-row { display:flex; justify-content:space-around; margin-top:10px; }
+  .sign-box { text-align:center; font-size:9px; }
+  .sign-line { border-top:1px solid #000; width:100px; margin:18px auto 3px; }
+  .page-break { page-break-after: always; }
+  .no-print { background:#1a1a2e; padding:12px; text-align:center; }
+  @media print {
+    .no-print { display:none !important; }
+    .slip { padding:6px 8px; }
+    body { font-size:9px; }
+  }
+  @page { size: A4 landscape; margin: 8mm; }
+</style>
+</head>
+<body>
+<div class="no-print" style="padding:10px;text-align:center;background:#222;color:white;">
+  <button onclick="window.print()" style="padding:10px 30px;background:#C97A2A;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;font-weight:700;">🖨️ Print / Save PDF</button>
+  <span style="margin-left:20px;font-size:12px;color:#aaa;">Total Slips: ${groups.length}</span>
+</div>
+${slipHTML}
+</body></html>`);
+    win.document.close();
+  }
+
   function generateInvoice(distName, date) {
     const allProds = getAllProducts();
     const entry = (data.demandEntries||[]).find(e => e.date===date && e.distName===distName);
