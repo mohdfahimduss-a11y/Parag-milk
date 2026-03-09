@@ -329,9 +329,10 @@
         </div>
         <div class="form-group">
           <label>Distributor Name</label>
-          <select id="demand-dist-name">
+          <select id="demand-dist-name" onchange="onDistSelect(this)">
             <option value="">-- Select Distributor --</option>
           </select>
+          <span id="demand-vehicle-display" style="display:block;margin-top:5px;font-size:0.82rem;font-weight:700;color:#1565C0;"></span>
         </div>
       </div>
       <div style="margin-top:12px;">
@@ -1266,14 +1267,21 @@
     const sel = document.getElementById('demand-dist-name');
     if (!sel) return;
     const current = sel.value;
-    // Get distributors from customers data
     const names = data.customers.map(c => c.name);
-    // Also include any from demandEntries that may not be in list
     (data.demandEntries||[]).forEach(e => { if (!names.includes(e.distName)) names.push(e.distName); });
     sel.innerHTML = '<option value="">-- Select Distributor --</option>' +
       names.map(n => `<option value="${n}" ${n===current?'selected':''}>${n}</option>`).join('');
     if (!names.length) {
       sel.innerHTML = '<option value="">-- Pehle Distributor add karein --</option>';
+    }
+  }
+
+  function onDistSelect(sel) {
+    const distName = sel.value;
+    const dist = (data.customers||[]).find(c => c.name === distName);
+    const vehicleEl = document.getElementById('demand-vehicle-display');
+    if (vehicleEl) {
+      vehicleEl.textContent = dist && dist.vehicle ? '🚛 ' + dist.vehicle : '';
     }
   }
 
@@ -1378,8 +1386,60 @@
       return;
     }
 
-    // Distributor-wise tables
-    container.innerHTML = entries.map((e, idx) => {
+    // Collect which products are actually used
+    const usedPids = [];
+    entries.forEach(e => Object.keys(e.items||{}).forEach(pid => { if (!usedPids.includes(pid)) usedPids.push(pid); }));
+    const usedProds = usedPids.map(pid => allProds.find(p => String(p.id)===String(pid))).filter(Boolean);
+
+    // ── SUMMARY TABLE (all distributors at a glance) ──
+    const summaryRows = entries.map((e, idx) => {
+      const dist = (data.customers||[]).find(c => c.name === e.distName);
+      const vehicle = dist && dist.vehicle ? `<br><span style="font-size:0.72rem;color:#1565C0;">🚛 ${dist.vehicle}</span>` : '';
+      const cells = usedProds.map(prod => {
+        const itemData = (e.items||{})[prod.id];
+        const qty = itemData ? (typeof itemData==='object' ? (itemData.qty||0) : Number(itemData)) : 0;
+        return `<td style="text-align:center;padding:5px 8px;border:1px solid #ddd;font-family:var(--mono);font-size:0.85rem;">${qty > 0 ? `<strong>${qty}</strong>` : '<span style="color:#ccc;">-</span>'}</td>`;
+      }).join('');
+      const statusDot = e.completed ? '🟢' : '🟡';
+      return `<tr style="${(idx%2===1)?'background:#F9F9F9':''}">
+        <td style="padding:5px 10px;border:1px solid #ddd;font-size:0.82rem;font-weight:700;white-space:nowrap;">${statusDot} ${e.distName}${vehicle}</td>
+        ${cells}
+      </tr>`;
+    }).join('');
+
+    // Total row for summary
+    const summaryTotalCells = usedProds.map(prod => {
+      let t = 0;
+      entries.forEach(e => {
+        const itemData = (e.items||{})[prod.id];
+        t += itemData ? (typeof itemData==='object' ? (itemData.qty||0) : Number(itemData)) : 0;
+      });
+      return `<td style="text-align:center;padding:5px 8px;border:1px solid #ddd;font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--green);">${t > 0 ? t : '-'}</td>`;
+    }).join('');
+
+    const summaryHtml = `
+      <div style="overflow-x:auto;margin-bottom:18px;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+          <thead>
+            <tr style="background:#1F3864;color:white;">
+              <th style="padding:7px 12px;border:1px solid #ddd;text-align:left;font-size:0.78rem;min-width:130px;">DISTRIBUTOR</th>
+              ${usedProds.map(p => `<th style="padding:5px 6px;border:1px solid #ddd;text-align:center;font-size:0.72rem;min-width:54px;">${p.name}<br><span style="font-weight:400;opacity:0.85;">${p.size||''}</span></th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${summaryRows}
+            <tr style="background:#D9E1F2;">
+              <td style="padding:6px 10px;border:1px solid #ddd;font-weight:700;font-size:0.82rem;">📊 TOTAL</td>
+              ${summaryTotalCells}
+            </tr>
+          </tbody>
+        </table>
+      </div>`;
+
+    // Distributor-wise detail cards
+    const detailHtml = entries.map((e, idx) => {
+      const dist = (data.customers||[]).find(c => c.name === e.distName);
+      const vehicle = dist && dist.vehicle ? `<span style="margin-left:10px;font-size:0.78rem;color:#1565C0;font-weight:700;">🚛 ${dist.vehicle}</span>` : '';
       const distItems = Object.entries(e.items).map(([pid, itemData]) => {
         const prod = allProds.find(p => String(p.id) === String(pid));
         if (!prod) return '';
@@ -1403,7 +1463,7 @@
           <div style="padding:10px 16px;background:var(--cream);display:flex;justify-content:space-between;align-items:center;">
             <strong style="color:var(--brown);">
               <span style="background:var(--brown);color:white;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:0.72rem;margin-right:6px;">${idx+1}</span>
-              🏪 ${e.distName}
+              🏪 ${e.distName}${vehicle}
             </strong>
             <div style="display:flex;gap:8px;align-items:center;">
               ${e.completed ? 
@@ -1421,6 +1481,8 @@
           </table>
         </div>`;
     }).join('');
+
+    container.innerHTML = summaryHtml + detailHtml;
 
     // Total summary
     const totals = {};
