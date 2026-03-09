@@ -1775,49 +1775,103 @@
   }
 
   function exportDemandExcel() {
-    const date = today();
-    const allProds = getAllProducts();
+    const date = document.getElementById('demand-entry-date') ? 
+                 document.getElementById('demand-entry-date').value || today() : today();
+    
+    // All 27 products in fixed order (columns)
+    const PROD_COLS = [
+      { id:'fcm300',      name:'FCM 300ml',      unit:'Ltr' },
+      { id:'fcm1l',       name:'FCM 1Ltr',        unit:'Ltr' },
+      { id:'fcm6l',       name:'FCM 6Ltr',        unit:'Ltr' },
+      { id:'std',         name:'STD',             unit:'Ltr' },
+      { id:'tond500',     name:'TOND 500ml',      unit:'Ltr' },
+      { id:'tond6l',      name:'Tond 6Ltr',       unit:'Ltr' },
+      { id:'dtm500',      name:'DTM 500ml',       unit:'Ltr' },
+      { id:'dtm1l',       name:'DTM 1Ltr',        unit:'Ltr' },
+      { id:'tdite',       name:'T-Dite',          unit:'Pack' },
+      { id:'cowmilk',     name:'Cow Milk',        unit:'Pack' },
+      { id:'dahi5kg',     name:'Dahi 5Kg',        unit:'5Kg' },
+      { id:'dahi15kg',    name:'Dahi 15Kg',       unit:'15Kg' },
+      { id:'chhachltr',   name:'Chhachh Ltr',     unit:'Ltr' },
+      { id:'chhach300',   name:'Chhachh 300ml',   unit:'Pack' },
+      { id:'plaincurd200',name:'Plain Curd 200g',  unit:'Kg' },
+      { id:'plaincurd100',name:'Plain Curd 100g',  unit:'Kg' },
+      { id:'fm',          name:'F-M',             unit:'Ltr' },
+      { id:'nm',          name:'N/M',             unit:'Ltr' },
+      { id:'milkcake',    name:'Milk Cake',       unit:'Kg' },
+      { id:'paneerkg',    name:'Paneer Kg',       unit:'Kg' },
+      { id:'paneer500',   name:'Paneer 500g',     unit:'Kg' },
+      { id:'paneerlitr',  name:'Paneer Litr',     unit:'Kg' },
+      { id:'paneerkhawa', name:'Paneer Khawa',    unit:'Pack' },
+      { id:'chawla',      name:'Chawla Khower',   unit:'Kg' },
+      { id:'ricekheer',   name:'Rice Kheer',      unit:'Kg' },
+      { id:'pada',        name:'Pada',            unit:'Kg' },
+      { id:'kalakand',    name:'Kala Kand',       unit:'Kg' },
+    ];
+
     const entries = (data.demandEntries||[]).filter(e => e.date === date);
-    if (!entries.length) { alert('Koi demand nahi hai export karne ke liye!'); return; }
+    if (!entries.length) { alert('Is date ki koi demand nahi hai!'); return; }
 
-    // Build CSV content
-    let csv = `DAIRY DEMAND REPORT — ${formatDate(date)}\n\n`;
-    csv += `DISTRIBUTOR-WISE DEMAND\n`;
-    csv += `Distributor,Product,Size,Category,Quantity,Rate,Value\n`;
+    const BOM = '\uFEFF';
+    let csv = BOM;
+
+    // Title
+    csv += `"PARAG MILK — DEMAND REPORT","${formatDate(date)}"\n`;
+    csv += `"FEB-2026"\n\n`;
+
+    // Header row 1: unit names
+    csv += '"ITEM NAME:"';
+    PROD_COLS.forEach(p => { csv += `,"${p.unit}"`; });
+    csv += '\n';
+
+    // Header row 2: product names
+    csv += '"PARTY NAME"';
+    PROD_COLS.forEach(p => { csv += `,"${p.name}"`; });
+    csv += ',"TOTAL VALUE"\n';
+
+    // Data rows - one per distributor
+    const colTotals = {};
+    PROD_COLS.forEach(p => { colTotals[p.id] = 0; });
+    let grandTotal = 0;
+
     entries.forEach(e => {
-      Object.entries(e.items).forEach(([pid, qty]) => {
-        const prod = allProds.find(p => String(p.id) === String(pid));
-        if (!prod) return;
-        csv += `${e.distName},${prod.name},${prod.size||''},${prod.cat},${qty},${prod.rate||0},${(prod.rate||0)*qty}\n`;
+      let row = `"${e.distName}"`;
+      let rowTotal = 0;
+      const allProds = getAllProducts();
+      
+      PROD_COLS.forEach(p => {
+        const itemData = (e.items||{})[p.id];
+        const qty = itemData ? (typeof itemData === 'object' ? (itemData.qty||0) : Number(itemData)) : 0;
+        const prod = allProds.find(ap => ap.id === p.id);
+        const rate = prod ? (prod.rate||0) : 0;
+        const val = qty * rate;
+        rowTotal += val;
+        grandTotal += val;
+        colTotals[p.id] = (colTotals[p.id]||0) + qty;
+        row += `,${qty || ''}`;
       });
+      row += `,${rowTotal > 0 ? rowTotal.toFixed(2) : ''}`;
+      csv += row + '\n';
     });
 
-    // Totals
-    const totals = {};
-    entries.forEach(e => Object.entries(e.items).forEach(([pid,qty]) => { totals[pid]=(totals[pid]||0)+qty; }));
-    csv += `\nTOTAL PRODUCTION REQUIRED\n`;
-    csv += `Product,Size,Category,Total Quantity,Rate,Total Value\n`;
-    let grand = 0;
-    Object.entries(totals).forEach(([pid, qty]) => {
-      const prod = allProds.find(p => String(p.id) === String(pid));
-      if (!prod) return;
-      const val = (prod.rate||0)*qty;
-      grand += val;
-      csv += `${prod.name},${prod.size||''},${prod.cat},${qty},${prod.rate||0},${val}\n`;
+    // TOTAL WEIGHT row
+    let totalRow = '"TOTAL WEIGHT"';
+    PROD_COLS.forEach(p => {
+      const t = colTotals[p.id] || 0;
+      totalRow += `,${t > 0 ? t : ''}`;
     });
-    csv += `,,,,GRAND TOTAL,${grand}\n`;
+    totalRow += `,"${grandTotal.toFixed(2)}"`;
+    csv += totalRow + '\n';
 
     // Download
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Demand_${date}.csv`;
+    a.download = `Parag_Demand_${date}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
-
-  // Dashboard
   function updateDashboard() {
     const t = today();
     const todayIncome = data.sales.filter(r => r.date === t).reduce((s,r) => s + r.amount, 0);
