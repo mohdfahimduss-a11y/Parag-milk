@@ -158,14 +158,38 @@
       <h3>🥛 Products — Quantity Daalo</h3>
       <p style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">Sirf jo chahiye uska quantity daalo, baaki 0 rehne do</p>
       
-      <!-- Add Row Button - TOP -->
+      <!-- Payment Option -->
+      <label>💳 Payment Status</label>
+      <select id="d-payment">
+        <option value="Pending">⏳ Pending</option>
+        <option value="Paid">✅ Paid</option>
+        <option value="Partial">🔶 Partial</option>
+      </select>
+
+      <label>💰 Payment Mode</label>
+      <select id="d-payment-mode">
+        <option value="">-- Select Mode --</option>
+        <option value="Cash">💵 Cash</option>
+        <option value="Online">📱 Online</option>
+        <option value="Cheque">🏦 Cheque</option>
+      </select>
+
+      <!-- Add Row Button -->
       <button onclick="addDemandRow()" style="width:100%;padding:13px;background:#C97A2A;color:white;border:none;border-radius:10px;font-size:0.95rem;font-weight:800;cursor:pointer;margin-bottom:14px;">➕ Product Row Add Karo</button>
       
-      <!-- Extra rows at top -->
+      <!-- Extra rows -->
       <div id="extra-rows"></div>
 
-      
       <button class="btn-submit" onclick="submitDemand()">✅ Demand Submit Karo</button>
+    </div>
+
+    <!-- Monthly Report Card -->
+    <div class="card">
+      <h3>📊 Monthly Excel Report</h3>
+      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:12px;">Pure mahine ki apni demand Excel mein download karo</p>
+      <label>Month Select Karo</label>
+      <input type="month" id="report-month" style="margin-bottom:12px;">
+      <button onclick="downloadMonthlyReport()" style="width:100%;padding:13px;background:#1A5FAB;color:white;border:none;border-radius:10px;font-size:0.95rem;font-weight:800;cursor:pointer;">📥 Download 1–31 Excel</button>
     </div>
   </div>
 
@@ -360,6 +384,8 @@
   function submitDemand() {
     const date = document.getElementById('d-date').value;
     const vehicle = document.getElementById('d-vehicle').value.trim().toUpperCase();
+    const payment = document.getElementById('d-payment').value;
+    const paymentMode = document.getElementById('d-payment-mode').value;
     const distName = currentDist ? currentDist.name : '';
 
     if (!distName) { alert('Pehle login karo!'); return; }
@@ -398,6 +424,8 @@
       date,
       distName,
       vehicle: vehicle || '',
+      payment: payment || 'Pending',
+      paymentMode: paymentMode || '',
       items,
       submittedAt: new Date().toISOString(),
       source: 'distributor'
@@ -478,11 +506,16 @@
           }).join('');
 
           const isToday = e.date === today();
+          const payBadge = e.payment === 'Paid' ? '✅ Paid' : e.payment === 'Partial' ? '🔶 Partial' : '⏳ Pending';
+          const payColor = e.payment === 'Paid' ? '#2A7A4A' : e.payment === 'Partial' ? '#C97A2A' : '#C0392B';
+          const modeIcon = e.paymentMode === 'Cash' ? '💵' : e.paymentMode === 'Online' ? '📱' : e.paymentMode === 'Cheque' ? '🏦' : '';
           return `<div style="border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
               <div>
                 <strong style="color:var(--brown);">${e.date}</strong>
                 ${isToday ? '<span style="background:#2A7A4A;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:6px;">Aaj</span>' : ''}
+                <span style="background:${payColor};color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:6px;">${payBadge}</span>
+                ${e.paymentMode ? `<span style="background:#EEF2FF;color:#2A4A7A;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:4px;">${modeIcon} ${e.paymentMode}</span>` : ''}
               </div>
               ${isToday ? `<button onclick="editDemand('${e.distName}','${e.date}')" style="background:var(--orange);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;cursor:pointer;">✏️ Edit</button>` : ''}
             </div>
@@ -498,6 +531,91 @@
 
   function closeViewDemand() {
     document.getElementById('view-demand-screen').style.display = 'none';
+  }
+
+  function downloadMonthlyReport() {
+    if (!currentDist) { alert('Pehle login karo!'); return; }
+    const monthVal = document.getElementById('report-month').value;
+    if (!monthVal) { alert('Month select karo!'); return; }
+
+    const [yr, mn] = monthVal.split('-');
+    const lastDay = new Date(parseInt(yr), parseInt(mn), 0).getDate();
+    const fromDate = `${yr}-${mn}-01`;
+    const toDate   = `${yr}-${mn}-${String(lastDay).padStart(2,'0')}`;
+    const monthLabel = new Date(parseInt(yr), parseInt(mn)-1, 1)
+      .toLocaleString('en-IN', { month:'long', year:'numeric' }).toUpperCase();
+
+    // Reload fresh data
+    dbRef.once('value').then(snap => {
+      const freshData = snap.val() || {};
+      const allProdsLocal = (freshData.products || []).filter(p => p.active !== false);
+      const distEntries = (freshData.demandEntries || []).filter(e =>
+        e.distName === currentDist.name && e.date >= fromDate && e.date <= toDate
+      );
+
+      if (!distEntries.length) {
+        alert(`${monthLabel} mein koi demand nahi mili!`);
+        return;
+      }
+
+      // Build product list used this month
+      const usedPids = new Set();
+      distEntries.forEach(e => Object.keys(e.items || {}).forEach(pid => usedPids.add(pid)));
+      const monthProds = [...usedPids].map(pid => allProdsLocal.find(p => String(p.id) === String(pid))).filter(Boolean);
+
+      const BOM = '\uFEFF';
+      let csv = BOM;
+      csv += `"PARAG MILK — MONTHLY DEMAND REPORT"\n`;
+      csv += `"Distributor: ${currentDist.name}"\n`;
+      csv += `"Month: ${monthLabel}"\n\n`;
+
+      // Header
+      csv += `"Date","Payment"`;
+      monthProds.forEach(p => { csv += `,"${p.name} ${p.size||''}"`.trim(); });
+      csv += `,"Total Value"\n`;
+
+      let grandTotal = 0;
+      const colTotals = {};
+      monthProds.forEach(p => { colTotals[p.id] = 0; });
+
+      for (let d = 1; d <= lastDay; d++) {
+        const dateStr = `${yr}-${mn}-${String(d).padStart(2,'0')}`;
+        const entry = distEntries.find(e => e.date === dateStr);
+        let row = `"${d}-${mn}-${yr}"`;
+        row += `,"${entry ? (entry.payment||'Pending') : ''}"`;
+        let dayTotal = 0;
+        monthProds.forEach(p => {
+          if (entry) {
+            const itemData = (entry.items||{})[p.id];
+            const qty = itemData ? (typeof itemData === 'object' ? (itemData.qty||0) : Number(itemData)) : 0;
+            const rate = (currentDist.productRates && currentDist.productRates[p.id]) ? currentDist.productRates[p.id] : (p.rate||0);
+            const val = qty * rate;
+            dayTotal += val;
+            grandTotal += val;
+            colTotals[p.id] = (colTotals[p.id]||0) + qty;
+            row += `,${qty > 0 ? qty : ''}`;
+          } else {
+            row += `,`;
+          }
+        });
+        row += `,${dayTotal > 0 ? dayTotal.toFixed(2) : ''}`;
+        csv += row + '\n';
+      }
+
+      // Total row
+      let totalRow = '"TOTAL","—"';
+      monthProds.forEach(p => { totalRow += `,${colTotals[p.id] > 0 ? colTotals[p.id] : ''}`; });
+      totalRow += `,"${grandTotal.toFixed(2)}"`;
+      csv += totalRow + '\n';
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentDist.name}_Demand_${yr}_${mn}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }).catch(() => { alert('Data load nahi hua! Internet check karo.'); });
   }
 
   function editDemand(distName, date) {
