@@ -545,6 +545,41 @@
       </table>
     </div>
 
+    <!-- Edit Distributor Panel -->
+    <div class="form-card" id="edit-dist-panel" style="display:none;">
+      <h3>✏️ Edit Distributor</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Distributor Code</label>
+          <input type="text" id="edit-dist-code" placeholder="e.g. 001, D177">
+        </div>
+        <div class="form-group">
+          <label>Distributor Name</label>
+          <input type="text" id="edit-dist-name" placeholder="Full name">
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" id="edit-dist-phone" placeholder="Mobile number">
+        </div>
+        <div class="form-group">
+          <label>Area / Zone</label>
+          <input type="text" id="edit-dist-area" placeholder="e.g. Moradabad">
+        </div>
+        <div class="form-group">
+          <label>Vehicle Number</label>
+          <input type="text" id="edit-dist-vehicle" placeholder="e.g. UP32 AB 1234" style="text-transform:uppercase;">
+        </div>
+        <div class="form-group full">
+          <label>Address</label>
+          <input type="text" id="edit-dist-address" placeholder="Address">
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:10px;">
+        <button class="btn btn-primary" onclick="saveEditDist()">💾 Save</button>
+        <button class="btn" onclick="closeEditDist()" style="background:var(--cream);">Cancel</button>
+      </div>
+    </div>
+
     <!-- Product-wise Rate Panel -->
     <div class="form-card" id="dist-rate-panel" style="display:none;">
       <h3 id="dist-rate-title">📋 Product Rates</h3>
@@ -961,7 +996,10 @@
         <td>${r.phone || '-'}</td>
         <td>${r.vehicle || '-'}</td>
         <td>${r.daily || '-'}</td>
-        <td><button class="btn btn-primary btn-sm" onclick="openDistRates(${r.id})">💰 Set Rates</button></td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="openDistRates(${r.id})">💰 Rates</button>
+          <button class="btn btn-sm" style="background:var(--amber);color:white;" onclick="openEditDist(${r.id})">✏️ Edit</button>
+        </td>
         <td><button class="btn btn-danger btn-sm" onclick="delRecord('customers',${r.id})">✕</button></td>
       </tr>`).join('');
   }
@@ -973,6 +1011,48 @@
   }
 
   let currentDistId = null;
+
+
+  let currentEditDistId = null;
+
+  function openEditDist(distId) {
+    const dist = data.customers.find(c => c.id === distId);
+    if (!dist) return;
+    currentEditDistId = distId;
+    document.getElementById('edit-dist-code').value = dist.code || '';
+    document.getElementById('edit-dist-name').value = dist.name || '';
+    document.getElementById('edit-dist-phone').value = dist.phone || '';
+    document.getElementById('edit-dist-area').value = dist.daily || '';
+    document.getElementById('edit-dist-vehicle').value = dist.vehicle || '';
+    document.getElementById('edit-dist-address').value = dist.address || '';
+    const panel = document.getElementById('edit-dist-panel');
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function saveEditDist() {
+    if (!currentEditDistId) return;
+    const dist = data.customers.find(c => c.id === currentEditDistId);
+    if (!dist) return;
+    dist.code    = document.getElementById('edit-dist-code').value.trim();
+    dist.name    = document.getElementById('edit-dist-name').value.trim();
+    dist.phone   = document.getElementById('edit-dist-phone').value.trim();
+    dist.daily   = document.getElementById('edit-dist-area').value.trim();
+    dist.vehicle = document.getElementById('edit-dist-vehicle').value.trim().toUpperCase();
+    dist.address = document.getElementById('edit-dist-address').value.trim();
+    if (!dist.name) { alert('Naam zaroori hai!'); return; }
+    saveData();
+    renderCustomers();
+    updateCustomerList();
+    updateDistList();
+    closeEditDist();
+    alert('✅ Distributor update ho gaya!');
+  }
+
+  function closeEditDist() {
+    document.getElementById('edit-dist-panel').style.display = 'none';
+    currentEditDistId = null;
+  }
 
   function openDistRates(distId) {
     const dist = data.customers.find(c => c.id === distId);
