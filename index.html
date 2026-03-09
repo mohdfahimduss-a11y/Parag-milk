@@ -1118,7 +1118,12 @@
     currentEditDistId = null;
   }
 
+  const RATES_PASSWORD = '1234'; // Change this password as needed
+
   function openDistRates(distId) {
+    const entered = prompt('🔒 Rates dekhne ke liye password daalo:');
+    if (entered === null) return;
+    if (entered !== RATES_PASSWORD) { alert('❌ Galat password!'); return; }
     const dist = data.customers.find(c => c.id === distId);
     if (!dist) return;
     currentDistId = distId;
@@ -1149,6 +1154,9 @@
   }
 
   function saveDistRates() {
+    const entered = prompt('🔒 Rates save karne ke liye password daalo:');
+    if (entered === null) return;
+    if (entered !== RATES_PASSWORD) { alert('❌ Galat password! Rates save nahi hue.'); return; }
     const dist = data.customers.find(c => c.id === currentDistId);
     if (!dist) return;
     const allProds = getAllProducts();
@@ -1785,7 +1793,9 @@
 
     items.forEach(it => { it.amount = it.rate * (it.kgltr || it.qty); });
     const total = items.reduce((s,i) => s + i.amount, 0);
-    const gst = total * 0.05;
+    const milkCatsCheck = ['FCM', 'STD', 'Toned'];
+    const taxableAmount = items.filter(i => !milkCatsCheck.includes(i.cat)).reduce((s,i) => s + i.amount, 0);
+    const gst = taxableAmount * 0.05;
     const grandTotal = total + gst;
 
     const invoiceNo = 'TAX-' + Date.now().toString().slice(-6);
@@ -1904,9 +1914,11 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     const sgst = gst / 2;
     const cgst = gst / 2;
 
-    // Separate taxable (has tax) and non-taxable items
-    const taxableItems = items.filter(it => it.cat !== 'FCM' && it.cat !== 'STD');
-    const nonTaxableItems = items.filter(it => it.cat === 'FCM' || it.cat === 'STD');
+    // Separate taxable and non-taxable items
+    // Milk products (FCM, STD, Toned) = 0% GST, others = 5%
+    const milkCats = ['FCM', 'STD', 'Toned'];
+    const taxableItems = items.filter(it => !milkCats.includes(it.cat));
+    const nonTaxableItems = items.filter(it => milkCats.includes(it.cat));
     const allItemsSorted = [...nonTaxableItems, ...taxableItems];
 
     const taxableTotal = taxableItems.reduce((s,i) => s+i.amount, 0);
