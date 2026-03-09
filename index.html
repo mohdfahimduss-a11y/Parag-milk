@@ -370,8 +370,11 @@
     <!-- Step 2: All Demands for Today -->
     <div class="table-card">
       <div class="table-header" style="flex-wrap:wrap;gap:8px;">
-        <h3>📋 Today's Demands — <span id="demand-day-label" style="color:var(--amber)"></span> <span id="demand-count-label" style="background:var(--brown);color:white;font-size:0.72rem;padding:2px 8px;border-radius:20px;margin-left:6px;"></span></h3>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <h3>📋 Demands — <span id="demand-day-label" style="color:var(--amber)"></span> <span id="demand-count-label" style="background:var(--brown);color:white;font-size:0.72rem;padding:2px 8px;border-radius:20px;margin-left:6px;"></span></h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <input type="date" id="demand-view-date" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;"
+            onchange="renderDemandSummaryPage(this.value)">
+          <button class="btn btn-sm" style="background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;font-weight:700;" onclick="renderDemandSummaryPage(document.getElementById('demand-view-date').value||today())">🔄 Refresh</button>
           <button class="btn btn-sm" style="background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;font-weight:700;" onclick="printMangPatra('vehicle')">🖨️ Mang Patra (Vehicle-wise)</button>
           <button class="btn btn-sm" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;font-weight:700;" onclick="printMangPatra('dist')">🖨️ Mang Patra (Dist-wise)</button>
           <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:1px solid #F0C0BC;" onclick="clearAllDemandToday()">🗑 Clear Today</button>
@@ -907,7 +910,12 @@
     document.getElementById(tab).classList.add('active');
     event.target.classList.add('active');
     if (tab === 'dashboard') updateDashboard();
-    if (tab === 'demand') { renderDemandEntryGrid(); renderDemandSummaryPage(today()); updateDistList(); }
+    if (tab === 'demand') { 
+      renderDemandEntryGrid(); 
+      document.getElementById('demand-view-date').value = today();
+      renderDemandSummaryPage(today()); 
+      updateDistList(); 
+    }
     if (tab === 'reports') {
       renderTaxInvoiceHistory();
       document.getElementById('demand-month-export').value = today().slice(0,7);
@@ -1503,7 +1511,7 @@
 
   // INVOICE GENERATOR
   function printMangPatra(mode) {
-    const date = document.getElementById('demand-entry-date').value || today();
+    const date = document.getElementById('demand-view-date').value || today();
     const entries = (data.demandEntries||[]).filter(e => e.date === date);
     if (!entries.length) { alert('Koi demand nahi hai is date ke liye!'); return; }
 
@@ -2345,8 +2353,8 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
   }
 
   function exportDemandExcel() {
-    const date = document.getElementById('demand-entry-date') ?
-                 document.getElementById('demand-entry-date').value || today() : today();
+    const date = document.getElementById('demand-view-date') ?
+                 document.getElementById('demand-view-date').value || today() : today();
 
     const PROD_COLS = [
       { id:'fcm500',    name:'FCM',         size:'500 ML',  unit:'Ltr' },
