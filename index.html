@@ -761,77 +761,73 @@
     distributors: []
   };
 
-  const DEFAULT_PRODUCTS = [
-    { id: 'fcm500',    name: 'F.C.M.',      size: '500 ML',   cat: 'FCM' },
-    { id: 'fcm1l',     name: 'F.C.M.',      size: '01 LTR',   cat: 'FCM' },
-    { id: 'fcm6l',     name: 'F.C.M.',      size: '06 LTR',   cat: 'FCM' },
-    { id: 'std500',    name: 'STD MILK',    size: '500 ML',   cat: 'STD' },
-    { id: 'std350',    name: 'COW MILK',    size: '350 ML',   cat: 'STD' },
-    { id: 'std1l',     name: 'STD MILK',    size: '01 LTR',   cat: 'STD' },
-    { id: 'ton500',    name: 'TONED',       size: '500 ML',   cat: 'Toned' },
-    { id: 'ton1l',     name: 'TONED',       size: '01 LTR',   cat: 'Toned' },
-    { id: 'ton6l',     name: 'TONED',       size: '06 LTR',   cat: 'Toned' },
-    { id: 'matka5',    name: 'MATKA',       size: '5 KG',     cat: 'Other' },
-    { id: 'matka15',   name: 'DAHI MATKA',  size: '15 KG',    cat: 'Curd' },
-    { id: 'chhach300', name: 'CHHACH',      size: '300 ML',   cat: 'Other' },
-    { id: 'curd200',   name: 'P. CURD',     size: '200 GM',   cat: 'Curd' },
-    { id: 'dahi140',   name: 'DAHI P.PACK', size: '140 GM',   cat: 'Curd' },
-    { id: 'kheer90',   name: 'P. KHEER',    size: '90 GM',    cat: 'Other' },
-    { id: 'paneer1kg', name: 'PANEER LITE', size: '01 KG',    cat: 'Paneer' },
-    { id: 'ghee1l',    name: 'GHEE',        size: '01 LTR',   cat: 'Ghee' },
-    { id: 'butter500', name: 'BUTTER',      size: '500 GM',   cat: 'Butter' },
+  const DEFAULT_CUSTOMERS = [
+    { id: 1000, code: "001", name: "12 GR, SARSAWA", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1001, code: "002", name: "30 WING, SARSAWA", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1002, code: "003", name: "A.K.S. GLOBAL", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1003, code: "004", name: "AMAR SINGH", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1004, code: "005", name: "ASHRAF ALI", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1005, code: "006", name: "B.K. TRADERS", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1006, code: "007", name: "BAHADUR TRADER(JAIL RMP)", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1007, code: "008", name: "BAHADUR TRADERS", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1008, code: "009", name: "BAHADUR TRADERS(JAIL BIJNOR)", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1009, code: "010", name: "BUSINESS PROMOTION", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1010, code: "011", name: "C.R.P.F. RAMPUR(DEEPAK KUMAR)", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1011, code: "012", name: "D.U.S.S. MILK BAR DALPATPUR", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1012, code: "013", name: "DEEPAK KUMAR", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1013, code: "014", name: "DUSS MATHURA", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1014, code: "015", name: "JAIL BIJNORE", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1015, code: "016", name: "KANHA JI DAIRY", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1016, code: "017", name: "KRISHAN PAL SINGH", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1017, code: "018", name: "KRISHNA FOODS DELHI", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1018, code: "019", name: "M.F. TRADERS", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1019, code: "020", name: "M.S. TRADING", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1020, code: "021", name: "MAA DURGA TRADERS(HONEY AG.)", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1021, code: "022", name: "MINI SECURITY", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1022, code: "023", name: "MOHD AZEEM KARULA", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1023, code: "024", name: "MOHD AZEEM(RUDRAPUR)", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1024, code: "025", name: "MONIKA SONI HARIDWAR", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1025, code: "026", name: "MUSKAN DAIRY", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1026, code: "027", name: "NAVODIYA VID. BIJNORE", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1027, code: "028", name: "NAVODIYA VIDHALYA AMROHA", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1028, code: "029", name: "NAVODIYA VIDHALYA BADAUN", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1029, code: "030", name: "NAVODYA VIDHALYA SAMBHAL", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1030, code: "031", name: "NEERAJ KUMAR", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1031, code: "032", name: "NVODYA VIDHYALYA THAKURDWARA", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1032, code: "033", name: "OM SAI TRADERS", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1033, code: "034", name: "POLICE ACADEMY", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1034, code: "035", name: "R.K. CONTRACTOR(M.BAR MUNDA)", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1035, code: "036", name: "RAJ BIOTECH ENT.", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1036, code: "037", name: "RTS, SAHARANPUR", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1037, code: "038", name: "SHRI BALA JI TR. KASHIPUR", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1038, code: "039", name: "SHRI SAI TRADERS", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1039, code: "040", name: "SP CAMP, SARSAWA", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1040, code: "041", name: "T.M.U. MORADABAD", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1041, code: "042", name: "TATA MOTORS", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1042, code: "043", name: "TULARAM", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1043, code: "044", name: "U.K. ENTERPRISES", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1044, code: "045", name: "VEERENDRA KUMAR", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1045, code: "046", name: "VEERENDRA(PRACHAR WAHAN)", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1046, code: "047", name: "VIMLA DEVI", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1047, code: "048", name: "ZILA JAIL RAMPUR(DEEPAK KUMAR)", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
+    { id: 1048, code: "049", name: "ZILA JAIL(SH. SAI TRD.)", phone: "", daily: "", vehicle: "", address: "", productRates: {} }
   ];
 
-  const catColors = { FCM:'badge-amber', STD:'badge-green', Toned:'badge-blue', Paneer:'badge-amber', Ghee:'badge-green', Curd:'badge-blue', Butter:'badge-red', Other:'badge-blue' };
-
-  function renderDefaultProductsGrid() {
-    const grid = document.getElementById('default-products-grid');
-    grid.innerHTML = DEFAULT_PRODUCTS.map(dp => {
-      const saved = data.products.find(p => p.id === dp.id);
-      const rate = saved ? saved.rate : '';
-      const qty = saved ? (saved.qty || '') : '';
-      return `
-        <div style="display:flex;align-items:center;gap:10px;background:var(--cream);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;">
-          <div style="flex:1;">
-            <div style="font-weight:700;font-size:0.9rem;">${dp.name} <span style="color:var(--muted);font-size:0.8rem;">${dp.size}</span></div>
-            <span class="badge ${catColors[dp.cat]}" style="margin-top:4px;">${dp.cat}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
-            <span style="font-weight:700;color:var(--muted);font-size:0.9rem;">₹</span>
-            <input type="number" id="rate-${dp.id}" value="${rate}" placeholder="Rate" min="0"
-              style="width:75px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.85rem;background:white;">
-            <input type="number" id="qty-${dp.id}" value="${qty}" placeholder="Qty" min="0"
-              style="width:65px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.85rem;background:white;">
-            <button class="btn btn-primary btn-sm" onclick="saveDefaultProduct('${dp.id}','${dp.name}','${dp.size}','${dp.cat}')">💾</button>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  function saveDefaultProduct(id, name, size, cat) {
-    const rate = parseFloat(document.getElementById('rate-' + id).value) || 0;
-    const qty  = parseFloat(document.getElementById('qty-'  + id).value) || 0;
-    if (!rate) { alert('Please enter a rate!'); return; }
-    const existing = data.products.find(p => p.id === id);
-    if (existing) { existing.rate = rate; existing.qty = qty; }
-    else { data.products.push({ id, name, size, cat, rate, qty, custom: false }); }
-    saveData();
-    renderProducts();
-    const btn = document.querySelector(`button[onclick*="'${id}'"]`);
-    if (btn) { btn.textContent = '✅'; setTimeout(() => btn.textContent = '💾', 1200); }
-  }
-
-
-    function loadDataFromFirebase() {
+  function loadDataFromFirebase() {
     dbRef.once('value').then(snap => {
       const val = snap.val();
       if (val) data = { ...data, ...val };
+      if (!data.customers || data.customers.length === 0) {
+        data.customers = DEFAULT_CUSTOMERS;
+        saveData();
+      }
       renderSales();
       renderCustomers();
       renderExpenses();
       renderProducts();
       renderDefaultProductsGrid();
       updateCustomerList();
+      updateDistList();
       updateDashboard();
     });
     // Live sync
@@ -1084,7 +1080,7 @@
     });
     const customs = data.products.filter(p => p.custom);
     // Filter out inactive products
-    return [...defaults.filter(p => p.active !== false), ...customs.filter(p => p.active !== false)];
+    return [...defaults.filter(p => p.rate > 0 && p.active !== false), ...customs.filter(p => p.active !== false)];
   }
 
   let demandRowCount = 0;
@@ -1098,12 +1094,11 @@
 
   function addDemandRow() {
     const grid = document.getElementById('demand-entry-grid');
-    if (!grid) return;
-    let allProds = getAllProducts();
+    const allProds = getAllProducts();
     if (!allProds.length) {
-      allProds = DEFAULT_PRODUCTS.map(dp => ({ ...dp, rate: 0 }));
+      alert('Pehle Products tab mein products add karein!');
+      return;
     }
-    if (!allProds.length) return;
     demandRowCount++;
     const rowId = 'drow-' + demandRowCount;
     const options = allProds.map(p => `<option value="${p.id}" data-size="${p.size||''}" data-rate="${p.rate||0}" data-cat="${p.cat}">${p.name} ${p.size||''}</option>`).join('');
@@ -1774,6 +1769,65 @@
   }
 
   // DEFAULT PRODUCTS
+  const DEFAULT_PRODUCTS = [
+    { id: 'fcm500',    name: 'F.C.M.',      size: '500 ML',   cat: 'FCM' },
+    { id: 'fcm1l',     name: 'F.C.M.',      size: '01 LTR',   cat: 'FCM' },
+    { id: 'fcm6l',     name: 'F.C.M.',      size: '06 LTR',   cat: 'FCM' },
+    { id: 'std500',    name: 'STD MILK',    size: '500 ML',   cat: 'STD' },
+    { id: 'std350',    name: 'COW MILK',    size: '350 ML',   cat: 'STD' },
+    { id: 'std1l',     name: 'STD MILK',    size: '01 LTR',   cat: 'STD' },
+    { id: 'ton500',    name: 'TONED',       size: '500 ML',   cat: 'Toned' },
+    { id: 'ton1l',     name: 'TONED',       size: '01 LTR',   cat: 'Toned' },
+    { id: 'ton6l',     name: 'TONED',       size: '06 LTR',   cat: 'Toned' },
+    { id: 'matka5',    name: 'MATKA',       size: '5 KG',     cat: 'Other' },
+    { id: 'matka15',   name: 'DAHI MATKA',  size: '15 KG',    cat: 'Curd' },
+    { id: 'chhach300', name: 'CHHACH',      size: '300 ML',   cat: 'Other' },
+    { id: 'curd200',   name: 'P. CURD',     size: '200 GM',   cat: 'Curd' },
+    { id: 'dahi140',   name: 'DAHI P.PACK', size: '140 GM',   cat: 'Curd' },
+    { id: 'kheer90',   name: 'P. KHEER',    size: '90 GM',    cat: 'Other' },
+    { id: 'paneer1kg', name: 'PANEER LITE', size: '01 KG',    cat: 'Paneer' },
+    { id: 'ghee1l',    name: 'GHEE',        size: '01 LTR',   cat: 'Ghee' },
+    { id: 'butter500', name: 'BUTTER',      size: '500 GM',   cat: 'Butter' },
+  ];
+
+  const catColors = { FCM:'badge-amber', STD:'badge-green', Toned:'badge-blue', Paneer:'badge-amber', Ghee:'badge-green', Curd:'badge-blue', Butter:'badge-red', Other:'badge-blue' };
+
+  function renderDefaultProductsGrid() {
+    const grid = document.getElementById('default-products-grid');
+    grid.innerHTML = DEFAULT_PRODUCTS.map(dp => {
+      const saved = data.products.find(p => p.id === dp.id);
+      const rate = saved ? saved.rate : '';
+      const qty = saved ? (saved.qty || '') : '';
+      return `
+        <div style="display:flex;align-items:center;gap:10px;background:var(--cream);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;">
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:0.9rem;">${dp.name} <span style="color:var(--muted);font-size:0.8rem;">${dp.size}</span></div>
+            <span class="badge ${catColors[dp.cat]}" style="margin-top:4px;">${dp.cat}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+            <span style="font-weight:700;color:var(--muted);font-size:0.9rem;">₹</span>
+            <input type="number" id="rate-${dp.id}" value="${rate}" placeholder="Rate" min="0"
+              style="width:75px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.85rem;background:white;">
+            <input type="number" id="qty-${dp.id}" value="${qty}" placeholder="Qty" min="0"
+              style="width:65px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.85rem;background:white;">
+            <button class="btn btn-primary btn-sm" onclick="saveDefaultProduct('${dp.id}','${dp.name}','${dp.size}','${dp.cat}')">💾</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function saveDefaultProduct(id, name, size, cat) {
+    const rate = parseFloat(document.getElementById('rate-' + id).value) || 0;
+    const qty  = parseFloat(document.getElementById('qty-'  + id).value) || 0;
+    if (!rate) { alert('Please enter a rate!'); return; }
+    const existing = data.products.find(p => p.id === id);
+    if (existing) { existing.rate = rate; existing.qty = qty; }
+    else { data.products.push({ id, name, size, cat, rate, qty, custom: false }); }
+    saveData();
+    renderProducts();
+    const btn = document.querySelector(`button[onclick*="'${id}'"]`);
+    if (btn) { btn.textContent = '✅'; setTimeout(() => btn.textContent = '💾', 1200); }
+  }
 
   function addCustomProduct() {
     const name = document.getElementById('new-prod-name').value.trim();
