@@ -266,6 +266,19 @@
   // Load data on start
   dbRef.once('value').then(snap => {
     appData = snap.val() || {};
+
+    // 30 din purani demand auto delete
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const cutoffDate = thirtyDaysAgo.toISOString().split('T')[0];
+    if (appData.demandEntries && appData.demandEntries.length) {
+      const before = appData.demandEntries.length;
+      appData.demandEntries = appData.demandEntries.filter(e => e.date >= cutoffDate);
+      if (appData.demandEntries.length < before) {
+        dbRef.set(appData); // Save cleaned data
+      }
+    }
+
     allProds = (appData.products || []).filter(p => p.active !== false && p.rate > 0);
     document.getElementById('loading').style.display = 'none';
     document.getElementById('login-step').style.display = 'block';
