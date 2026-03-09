@@ -268,8 +268,8 @@
   <button onclick="showTab('demand')">📦 Demand</button>
   <button onclick="showTab('sales')">💰 Sales</button>
   <button onclick="showTab('customers')">🏪 Distributors</button>
-  <button onclick="showTab('expenses')">📋 Expenses</button>
   <button onclick="showTab('products')">🧀 Products</button>
+  <button onclick="showTab('reports')">📈 Reports</button>
   <button onclick="logoutUser()" style="background:var(--red-light);color:var(--red);">🚪 Logout</button>
 </div>
 
@@ -284,32 +284,19 @@
         <p id="todayDate">Loading...</p>
       </div>
     </div>
-    <div class="cards">
-      <div class="card green">
-        <div class="card-icon">💰</div>
-        <div class="card-label">Today's Income</div>
-        <div class="card-value green" id="dash-income">₹0</div>
-        <div class="card-sub">Total sales today</div>
-      </div>
-      <div class="card red">
-        <div class="card-icon">📋</div>
-        <div class="card-label">Today's Expenses</div>
-        <div class="card-value red" id="dash-expense">₹0</div>
-        <div class="card-sub">Total spent today</div>
-      </div>
-      <div class="card blue">
-        <div class="card-icon">📈</div>
-        <div class="card-label">Net Profit</div>
-        <div class="card-value blue" id="dash-profit">₹0</div>
-        <div class="card-sub">Income - Expenses</div>
-      </div>
-    </div>
 
     <div class="cards">
       <div class="card green">
-        <div class="card-label">Total Distributors</div>
-        <div class="card-value green" id="dash-customers">0</div>
-        <div class="card-sub">Active distributors</div>
+        <div class="card-icon">💰</div>
+        <div class="card-label">Today's Sales</div>
+        <div class="card-value green" id="dash-income">₹0</div>
+        <div class="card-sub">Total sales today</div>
+      </div>
+      <div class="card blue">
+        <div class="card-icon">🏪</div>
+        <div class="card-label">Distributors</div>
+        <div class="card-value blue" id="dash-customers">0</div>
+        <div class="card-sub">Total distributors</div>
       </div>
     </div>
 
@@ -317,37 +304,8 @@
       <div class="table-header"><h3>📅 Recent Records</h3></div>
       <table>
         <thead><tr><th>Date</th><th>Type</th><th>Details</th><th>Amount</th></tr></thead>
-        <tbody id="recent-table"><tr><td colspan="4" class="empty">No records yet. Start adding data!</td></tr></tbody>
+        <tbody id="recent-table"><tr><td colspan="4" class="empty">No records yet.</td></tr></tbody>
       </table>
-    </div>
-
-    <div class="form-card" style="background:linear-gradient(135deg,var(--brown),#6B3A10);border:none;">
-      <h3 style="color:white;margin-bottom:6px;">📊 Export All Data to Excel</h3>
-      <p style="color:#C8A882;font-size:0.8rem;margin-bottom:14px;">Saara data ek Excel file mein download karo</p>
-      
-      <!-- Date Range Report -->
-      <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:12px;margin-bottom:12px;">
-        <p style="color:white;font-size:0.82rem;font-weight:600;margin-bottom:8px;">📅 Date Range Report</p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <div>
-            <label style="color:#C8A882;font-size:0.72rem;">From</label>
-            <input type="date" id="report-from" style="padding:6px 8px;border-radius:8px;border:none;font-size:0.82rem;display:block;">
-          </div>
-          <div>
-            <label style="color:#C8A882;font-size:0.72rem;">To</label>
-            <input type="date" id="report-to" style="padding:6px 8px;border-radius:8px;border:none;font-size:0.82rem;display:block;">
-          </div>
-          <button class="btn" style="background:var(--amber);color:white;border:none;margin-top:16px;" onclick="exportDateRangeReport()">📥 Download Report</button>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn" style="background:var(--amber);color:white;border:none;" onclick="exportAllExcel()">📥 Export All — Full Report</button>
-        <button class="btn btn-sm" style="background:#2A7A4A;color:white;border:none;" onclick="exportMonthlyReport()">📅 Monthly Report</button>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);" onclick="exportDemandExcel()">📦 Demand Only</button>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);" onclick="exportSalesExcel()">💰 Sales Only</button>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);" onclick="exportExpensesExcel()">📋 Expenses Only</button>
-      </div>
     </div>
   </div>
 
@@ -414,16 +372,8 @@
       <div class="table-header" style="flex-wrap:wrap;gap:8px;">
         <h3>📋 Today's Demands — <span id="demand-day-label" style="color:var(--amber)"></span></h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-primary btn-sm" onclick="exportDemandExcel()">📊 Export Today</button>
           <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:1px solid #F0C0BC;" onclick="clearAllDemandToday()">🗑 Clear Today</button>
         </div>
-      </div>
-
-      <!-- Monthly Excel Export -->
-      <div style="padding:12px 16px;background:var(--blue-light);border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">📅 Monthly Excel:</span>
-        <input type="month" id="demand-month-export" style="padding:6px 10px;border:1.5px solid #C0D0F0;border-radius:8px;font-size:0.85rem;">
-        <button class="btn btn-sm" style="background:var(--blue);color:white;border:none;" onclick="exportMonthlyDemandExcel()">📥 Download 1–31 Excel</button>
       </div>
 
       <!-- Distributor-wise table -->
@@ -627,6 +577,47 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- REPORTS -->
+  <div class="section" id="reports">
+    <div class="today-bar">
+      <div class="emoji">📈</div>
+      <div><h2>Reports & Export</h2></div>
+    </div>
+
+    <!-- Excel Downloads -->
+    <div class="form-card">
+      <h3>📥 Excel Download</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-primary" style="flex:1;" onclick="exportAllExcel()">📥 Full Report</button>
+          <button class="btn btn-primary" style="flex:1;" onclick="exportSalesExcel()">💰 Sales Report</button>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-primary" style="flex:1;" onclick="exportDemandExcel()">📦 Today's Demand</button>
+          <button class="btn btn-primary" style="flex:1;" onclick="exportMonthlyReport()">📅 Monthly Sales</button>
+        </div>
+        <!-- Monthly Demand -->
+        <div style="background:var(--cream);border-radius:10px;padding:12px;border:1.5px solid var(--border);">
+          <label style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:8px;">📦 Monthly Demand Excel (1–31)</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="month" id="demand-month-export" style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;">
+            <button class="btn btn-primary btn-sm" onclick="exportMonthlyDemandExcel()">📥 Download</button>
+          </div>
+        </div>
+        <!-- Date Range -->
+        <div style="background:var(--cream);border-radius:10px;padding:12px;border:1.5px solid var(--border);">
+          <label style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:8px;">📅 Date Range Report</label>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input type="date" id="report-from" style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;">
+            <input type="date" id="report-to" style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;">
+            <button class="btn btn-primary btn-sm" onclick="exportDateRangeReport()">📥 Download</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Tax Invoice History -->
     <div class="table-card">
       <div class="table-header" style="flex-wrap:wrap;gap:8px;">
@@ -636,68 +627,14 @@
       <table>
         <thead>
           <tr>
-            <th>Invoice No</th>
-            <th>Distributor</th>
-            <th>Period</th>
-            <th>Entries</th>
-            <th>Amount</th>
-            <th>GST 5%</th>
-            <th>Grand Total</th>
-            <th>Print</th>
-            <th>Del</th>
+            <th>Invoice No</th><th>Distributor</th><th>Period</th>
+            <th>Entries</th><th>Amount</th><th>GST 5%</th>
+            <th>Grand Total</th><th>Print</th><th>Del</th>
           </tr>
         </thead>
         <tbody id="tax-invoice-history-table">
           <tr><td colspan="9" class="empty">Koi Tax Invoice nahi bani abhi tak.</td></tr>
         </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- EXPENSES -->
-  <div class="section" id="expenses">
-    <div class="form-card">
-      <h3>📋 Add Expense</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Date</label>
-          <input type="date" id="exp-date">
-        </div>
-        <div class="form-group">
-          <label>Category</label>
-          <select id="exp-category">
-            <option>Animal Feed</option>
-            <option>Medicine/Vet</option>
-            <option>Labour</option>
-            <option>Equipment</option>
-            <option>Transport</option>
-            <option>Electricity</option>
-            <option>Other</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Amount (₹)</label>
-          <input type="number" id="exp-amount" placeholder="0" min="0">
-        </div>
-        <div class="form-group">
-          <label>Paid To</label>
-          <input type="text" id="exp-paid" placeholder="Vendor/Person name">
-        </div>
-        <div class="form-group full">
-          <label>Description</label>
-          <textarea id="exp-desc" placeholder="Details about expense..."></textarea>
-        </div>
-      </div>
-      <div style="margin-top:14px;">
-        <button class="btn btn-primary" onclick="addExpense()">+ Add Expense</button>
-      </div>
-    </div>
-
-    <div class="table-card">
-      <div class="table-header"><h3>💸 Expense History</h3></div>
-      <table>
-        <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Del</th></tr></thead>
-        <tbody id="exp-table"><tr><td colspan="5" class="empty">No expenses recorded yet.</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -976,6 +913,14 @@
     event.target.classList.add('active');
     if (tab === 'dashboard') updateDashboard();
     if (tab === 'demand') { renderDemandEntryGrid(); renderDemandSummaryPage(today()); updateDistList(); }
+    if (tab === 'reports') {
+      renderTaxInvoiceHistory();
+      document.getElementById('demand-month-export').value = today().slice(0,7);
+      const t = new Date();
+      const firstDay = new Date(t.getFullYear(), t.getMonth(), 1).toISOString().split('T')[0];
+      document.getElementById('report-from').value = firstDay;
+      document.getElementById('report-to').value = today();
+    }
   }
 
   // SALES
@@ -2483,28 +2428,20 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
   function updateDashboard() {
     const t = today();
     const todayIncome = data.sales.filter(r => r.date === t).reduce((s,r) => s + r.amount, 0);
-    const todayExp = data.expenses.filter(r => r.date === t).reduce((s,r) => s + r.amount, 0);
-
     document.getElementById('dash-income').textContent = '₹' + todayIncome;
-    document.getElementById('dash-expense').textContent = '₹' + todayExp;
-    const profit = todayIncome - todayExp;
-    const profEl = document.getElementById('dash-profit');
-    profEl.textContent = '₹' + profit;
-    profEl.style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
     document.getElementById('dash-customers').textContent = data.customers.length;
 
-    // Recent records
-    const all = [
-      ...data.sales.map(r => ({date:r.date, type:'Sale', detail: r.customer||r.product, amount:'₹'+r.amount, color:'green'})),
-      ...data.expenses.map(r => ({date:r.date, type:'Expense', detail: r.category, amount:'₹'+r.amount, color:'red'}))
-    ].sort((a,b) => b.date?.localeCompare(a.date)).slice(0,8);
+    // Recent records — sales only
+    const all = data.sales
+      .map(r => ({date:r.date, type:'Sale', detail: r.customer||r.product, amount:'₹'+r.amount}))
+      .sort((a,b) => b.date?.localeCompare(a.date)).slice(0,8);
 
     const rt = document.getElementById('recent-table');
     if (!all.length) { rt.innerHTML = '<tr><td colspan="4" class="empty">No records yet.</td></tr>'; return; }
     rt.innerHTML = all.map(r => `
       <tr>
         <td>${formatDate(r.date)}</td>
-        <td><span class="badge badge-${r.color}">${r.type}</span></td>
+        <td><span class="badge badge-green">${r.type}</span></td>
         <td>${r.detail}</td>
         <td><strong>${r.amount}</strong></td>
       </tr>`).join('');
