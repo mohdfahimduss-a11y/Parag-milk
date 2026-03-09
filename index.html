@@ -541,9 +541,42 @@
     <div class="table-card">
       <div class="table-header"><h3>🏪 Distributor List</h3></div>
       <table>
-        <thead><tr><th>Code</th><th>Name</th><th>Phone</th><th>Vehicle</th><th>Area</th><th>Rates</th><th>Del</th></tr></thead>
-        <tbody id="cust-table"><tr><td colspan="7" class="empty">No distributors added yet.</td></tr></tbody>
+        <thead><tr><th>Code</th><th>Name</th><th>Phone</th><th>Vehicle</th><th>Area</th><th>Rates</th><th>Tax Invoice</th><th>Del</th></tr></thead>
+        <tbody id="cust-table"><tr><td colspan="8" class="empty">No distributors added yet.</td></tr></tbody>
       </table>
+    </div>
+
+    <!-- Tax Invoice Month Selector Modal -->
+    <div id="tax-invoice-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9000;align-items:center;justify-content:center;">
+      <div style="background:white;border-radius:16px;padding:24px;width:90%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+        <h3 style="color:var(--brown);margin-bottom:6px;">🧾 Tax Invoice</h3>
+        <p id="tax-inv-dist-label" style="font-size:0.85rem;color:var(--muted);margin-bottom:16px;"></p>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <!-- Quick Month Select -->
+          <div>
+            <label style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;">Month Select Karo (Quick)</label>
+            <input type="month" id="tax-inv-month" oninput="autoFillDateRange()" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:0.95rem;margin-top:4px;">
+          </div>
+          <!-- OR custom date range -->
+          <div style="background:var(--cream);border-radius:10px;padding:12px;">
+            <label style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:8px;">Ya Custom Date Range</label>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <div style="flex:1;">
+                <label style="font-size:0.7rem;color:var(--muted);font-weight:600;">From</label>
+                <input type="date" id="tax-inv-from" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;margin-top:2px;">
+              </div>
+              <div style="flex:1;">
+                <label style="font-size:0.7rem;color:var(--muted);font-weight:600;">To</label>
+                <input type="date" id="tax-inv-to" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;margin-top:2px;">
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:4px;">
+            <button onclick="generateTaxInvoice()" style="flex:1;padding:12px;background:var(--brown);color:white;border:none;border-radius:10px;font-weight:800;font-size:0.9rem;cursor:pointer;">🧾 Generate & Save to Sales</button>
+            <button onclick="closeTaxModal()" style="padding:12px 16px;background:var(--cream);border:1.5px solid var(--border);border-radius:10px;font-weight:700;cursor:pointer;">Cancel</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Edit Distributor Panel -->
@@ -989,7 +1022,7 @@
 
   function renderCustomers() {
     const tb = document.getElementById('cust-table');
-    if (!data.customers.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">No distributors added yet.</td></tr>'; return; }
+    if (!data.customers.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No distributors added yet.</td></tr>'; return; }
     tb.innerHTML = data.customers.map(r => `
       <tr>
         <td><span class="badge badge-amber">${r.code || '-'}</span></td>
@@ -1000,6 +1033,9 @@
         <td>
           <button class="btn btn-primary btn-sm" onclick="openDistRates(${r.id})">💰 Rates</button>
           <button class="btn btn-sm" style="background:var(--amber);color:white;" onclick="openEditDist(${r.id})">✏️ Edit</button>
+        </td>
+        <td>
+          <button class="btn btn-sm" style="background:#2A4A7A;color:white;" onclick="openTaxModal('${r.name.replace(/'/g,"\\'")}')">🧾 Tax Invoice</button>
         </td>
         <td><button class="btn btn-danger btn-sm" onclick="delRecord('customers',${r.id})">✕</button></td>
       </tr>`).join('');
@@ -1606,8 +1642,6 @@
       <th>पैकेट<br>Packets</th>
       <th>क्रेट<br>Crates</th>
       <th>KG/LTR</th>
-      <th>आज वापस<br>Aaj Wapas</th>
-      <th>कल वापस<br>Kal Wapas</th>
       <th>वास्तविक<br>Net Qty</th>
       <th>राशि<br>Amount ₹</th>
     </tr>
@@ -1621,13 +1655,11 @@
       <td>${it.qty || '-'}</td>
       <td>${it.crates || '-'}</td>
       <td>${it.kgltr ? it.kgltr.toFixed(2) : '-'}</td>
-      <td></td>
-      <td></td>
       <td>${it.qty}</td>
       <td><strong>${it.amount.toFixed(2)}</strong></td>
     </tr>`).join('')}
     <tr class="total-row">
-      <td colspan="10" style="text-align:right;padding-right:10px;">कुल राशि / TOTAL AMOUNT:</td>
+      <td colspan="8" style="text-align:right;padding-right:10px;">कुल राशि / TOTAL AMOUNT:</td>
       <td>₹${total.toFixed(2)}</td>
     </tr>
   </tbody>
@@ -1660,6 +1692,219 @@
 </body>
 </html>`);
     win.document.close();
+  }
+
+  // TAX INVOICE FUNCTIONS
+  let taxInvDistName = '';
+
+  function openTaxModal(distName) {
+    taxInvDistName = distName;
+    document.getElementById('tax-inv-dist-label').textContent = '📦 Distributor: ' + distName;
+    const now = new Date();
+    const ym = now.toISOString().slice(0,7);
+    document.getElementById('tax-inv-month').value = ym;
+    autoFillDateRange();
+    const modal = document.getElementById('tax-invoice-modal');
+    modal.style.display = 'flex';
+  }
+
+  function autoFillDateRange() {
+    const month = document.getElementById('tax-inv-month').value;
+    if (!month) return;
+    const [yr, mn] = month.split('-');
+    const lastDay = new Date(parseInt(yr), parseInt(mn), 0).getDate();
+    document.getElementById('tax-inv-from').value = `${yr}-${mn}-01`;
+    document.getElementById('tax-inv-to').value   = `${yr}-${mn}-${String(lastDay).padStart(2,'0')}`;
+  }
+
+  function closeTaxModal() {
+    document.getElementById('tax-invoice-modal').style.display = 'none';
+    taxInvDistName = '';
+  }
+
+  function generateTaxInvoice() {
+    const fromDate = document.getElementById('tax-inv-from').value;
+    const toDate   = document.getElementById('tax-inv-to').value;
+    if (!fromDate || !toDate) { alert('From aur To date dono select karo!'); return; }
+    if (fromDate > toDate)    { alert('From date, To date se pehle honi chahiye!'); return; }
+    if (!taxInvDistName)      { alert('Distributor select nahi hua!'); return; }
+
+    const allProds = getAllProducts();
+
+    // Get all demands for this distributor in date range
+    const entries = (data.demandEntries || []).filter(e => e.distName === taxInvDistName && e.date >= fromDate && e.date <= toDate);
+    if (!entries.length) { alert(`${taxInvDistName} ki ${fromDate} se ${toDate} ke beech koi demand nahi mili!`); return; }
+
+    // Aggregate all products across all entries
+    const productMap = {};
+    const dist = data.customers.find(c => c.name === taxInvDistName);
+    entries.forEach(entry => {
+      Object.entries(entry.items).forEach(([pid, itemData]) => {
+        const prod = allProds.find(p => String(p.id) === String(pid));
+        if (!prod) return;
+        const qty   = typeof itemData === 'object' ? (itemData.qty   || 0) : (itemData || 0);
+        const crates= typeof itemData === 'object' ? (itemData.crates|| 0) : 0;
+        const kgltr = typeof itemData === 'object' ? (itemData.kgltr || 0) : 0;
+        const rate  = (dist && dist.productRates && dist.productRates[pid]) ? parseFloat(dist.productRates[pid]) : (prod.rate || 0);
+        if (!productMap[pid]) productMap[pid] = { name: prod.name, size: prod.size||'', cat: prod.cat||'', rate, qty:0, crates:0, kgltr:0 };
+        productMap[pid].qty    += qty;
+        productMap[pid].crates += crates;
+        productMap[pid].kgltr  += kgltr;
+      });
+    });
+
+    const items = Object.values(productMap).filter(i => i.qty > 0);
+    if (!items.length) { alert('Koi items nahi mili!'); return; }
+
+    items.forEach(it => { it.amount = it.rate * (it.kgltr || it.qty); });
+    const total = items.reduce((s,i) => s + i.amount, 0);
+    const gst = total * 0.05;
+    const grandTotal = total + gst;
+
+    const invoiceNo = 'TAX-' + Date.now().toString().slice(-6);
+    const periodLabel = `${fromDate} to ${toDate}`;
+    const printTime = new Date().toLocaleString('en-IN');
+
+    // AUTO ADD TO SALES
+    if (!data.sales) data.sales = [];
+    const alreadyExists = data.sales.find(s => s.taxInvoiceNo === invoiceNo);
+    if (!alreadyExists) {
+      items.forEach(it => {
+        data.sales.push({
+          id: Date.now() + Math.random(),
+          date: toDate,
+          customer: taxInvDistName,
+          product: it.name + (it.size ? ' ' + it.size : ''),
+          qty: it.kgltr || it.qty,
+          rate: it.rate,
+          amount: it.amount,
+          payment: 'Pending',
+          notes: `Tax Invoice ${invoiceNo} — ${periodLabel}`,
+          taxInvoiceNo: invoiceNo
+        });
+      });
+      saveData();
+      renderSales();
+      updateDashboard();
+    }
+
+    // PRINT TAX INVOICE
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tax Invoice - ${taxInvDistName}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; padding: 16px; color: #000; font-size: 12px; }
+  .top-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 8px; }
+  .top-header .company { font-size: 20px; font-weight: 900; text-transform: uppercase; }
+  .top-header .tagline { font-size: 11px; color: #444; margin-top: 2px; }
+  .top-header .inv-title { font-size: 14px; font-weight: 800; color: #2A4A7A; margin-top: 4px; letter-spacing: 1px; }
+  .meta { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 11px; border: 1px solid #ccc; padding: 6px 10px; border-radius: 4px; }
+  .party-box { border: 1px solid #000; padding: 6px 10px; margin-bottom: 8px; }
+  .party-box .party-name { font-size: 15px; font-weight: 900; text-transform: uppercase; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 11px; }
+  th { background: #2A4A7A; color: white; padding: 6px 5px; text-align: center; border: 1px solid #000; font-size: 10px; text-transform: uppercase; }
+  td { padding: 5px 5px; border: 1px solid #bbb; text-align: center; vertical-align: middle; }
+  td.left { text-align: left; }
+  tr:nth-child(even) td { background: #f5f8ff; }
+  .subtotal-row td { font-weight: 700; background: #eef2ff !important; border-top: 1px solid #aaa; }
+  .gst-row td { background: #fff8e0 !important; }
+  .total-row td { font-weight: 900; font-size: 13px; background: #2A4A7A !important; color: white !important; border-top: 2px solid #000; }
+  .sign-row { display: flex; justify-content: space-between; margin-top: 30px; font-size: 12px; }
+  .sign-box { text-align: center; width: 180px; }
+  .sign-box .line { border-top: 1px solid #000; margin-bottom: 4px; margin-top: 30px; }
+  .footer { text-align: center; margin-top: 12px; font-size: 10px; color: #666; border-top: 1px solid #ddd; padding-top: 8px; }
+  .print-time { font-size: 9px; color: #999; text-align: right; margin-bottom: 4px; }
+  @media print { .no-print { display: none !important; } body { padding: 8px; } }
+</style>
+</head>
+<body>
+<div class="print-time">PRINT DATE: ${printTime}</div>
+<div class="top-header">
+  <div class="company">🥛 Parag Milk</div>
+  <div class="tagline">Dairy Products | Quality Assured | Saharanpur</div>
+  <div class="inv-title">TAX INVOICE — ${periodLabel}</div>
+</div>
+
+<div class="meta">
+  <div>
+    <div><strong>Invoice No:</strong> ${invoiceNo}</div>
+    <div><strong>Period:</strong> ${fromDate} to ${toDate}</div>
+    <div><strong>Total Entries:</strong> ${entries.length} days</div>
+  </div>
+  <div style="text-align:right;">
+    <div><strong>Date:</strong> ${printTime.split(',')[0]}</div>
+    <div><strong>GSTIN:</strong> ___________________</div>
+  </div>
+</div>
+
+<div class="party-box">
+  <div style="font-size:10px;color:#666;margin-bottom:2px;">BILL TO / वितरक का नाम</div>
+  <div class="party-name">${taxInvDistName}</div>
+  <div style="font-size:11px;color:#444;margin-top:4px;">GSTIN: ___________________ &nbsp;&nbsp; Phone: ${dist ? (dist.phone||'—') : '—'}</div>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:24px;">#</th>
+      <th style="text-align:left;">Product</th>
+      <th>Size</th>
+      <th>Rate ₹</th>
+      <th>KG/LTR</th>
+      <th>Packets</th>
+      <th>Crates</th>
+      <th>Amount ₹</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${items.map((it,i) => `<tr>
+      <td>${i+1}</td>
+      <td class="left"><strong>${it.name}</strong></td>
+      <td>${it.size}</td>
+      <td>${it.rate.toFixed(2)}</td>
+      <td>${it.kgltr ? it.kgltr.toFixed(2) : '-'}</td>
+      <td>${it.qty || '-'}</td>
+      <td>${it.crates || '-'}</td>
+      <td><strong>${it.amount.toFixed(2)}</strong></td>
+    </tr>`).join('')}
+    <tr class="subtotal-row">
+      <td colspan="7" style="text-align:right;">Sub Total:</td>
+      <td>₹${total.toFixed(2)}</td>
+    </tr>
+    <tr class="gst-row">
+      <td colspan="7" style="text-align:right;">GST @ 5%:</td>
+      <td>₹${gst.toFixed(2)}</td>
+    </tr>
+    <tr class="total-row">
+      <td colspan="7" style="text-align:right;">GRAND TOTAL:</td>
+      <td>₹${grandTotal.toFixed(2)}</td>
+    </tr>
+  </tbody>
+</table>
+
+<div style="font-size:11px;border:1px solid #ddd;padding:6px 10px;border-radius:4px;margin-bottom:10px;">
+  <strong>Amount in Words:</strong> ___________________________________________________
+</div>
+
+<div class="sign-row">
+  <div class="sign-box"><div class="line"></div><div>Receiver / प्राप्तकर्ता</div></div>
+  <div class="sign-box"><div class="line"></div><div>Authorized / अधिकृत हस्ताक्षर</div></div>
+</div>
+
+<div class="footer">Parag Milk — धन्यवाद! Thank you for your business!</div>
+<br>
+<div class="no-print" style="text-align:center;margin-top:16px;">
+  <button onclick="window.print()" style="padding:10px 30px;background:#2A4A7A;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer;">🖨️ Print / Save PDF</button>
+</div>
+</body>
+</html>`);
+    win.document.close();
+    closeTaxModal();
+    alert('✅ Tax Invoice generate ho gayi aur Sales mein add ho gayi!');
   }
 
   function exportDateRangeReport() {
