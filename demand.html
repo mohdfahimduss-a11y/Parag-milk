@@ -158,21 +158,9 @@
       <h3>🥛 Products — Quantity Daalo</h3>
       <p style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">Sirf jo chahiye uska quantity daalo, baaki 0 rehne do</p>
       
-      <!-- Payment Option -->
-      <label>💳 Payment Status</label>
-      <select id="d-payment">
-        <option value="Pending">⏳ Pending</option>
-        <option value="Paid">✅ Paid</option>
-        <option value="Partial">🔶 Partial</option>
-      </select>
-
-      <label>💰 Payment Mode</label>
-      <select id="d-payment-mode">
-        <option value="">-- Select Mode --</option>
-        <option value="Cash">💵 Cash</option>
-        <option value="Online">📱 Online</option>
-        <option value="Cheque">🏦 Cheque</option>
-      </select>
+      <!-- Deposit Payment -->
+      <label>💰 Deposit Amount (₹)</label>
+      <input type="number" id="d-deposit" placeholder="0.00" min="0" step="0.01">
 
       <!-- Add Row Button -->
       <button onclick="addDemandRow()" style="width:100%;padding:13px;background:#C97A2A;color:white;border:none;border-radius:10px;font-size:0.95rem;font-weight:800;cursor:pointer;margin-bottom:14px;">➕ Product Row Add Karo</button>
@@ -384,8 +372,9 @@
   function submitDemand() {
     const date = document.getElementById('d-date').value;
     const vehicle = document.getElementById('d-vehicle').value.trim().toUpperCase();
-    const payment = document.getElementById('d-payment').value;
-    const paymentMode = document.getElementById('d-payment-mode').value;
+    const payment = document.getElementById('d-payment') ? document.getElementById('d-payment').value : 'Pending';
+    const paymentMode = document.getElementById('d-payment-mode') ? document.getElementById('d-payment-mode').value : '';
+    const deposit = parseFloat(document.getElementById('d-deposit').value) || 0;
     const distName = currentDist ? currentDist.name : '';
 
     if (!distName) { alert('Pehle login karo!'); return; }
@@ -426,6 +415,7 @@
       vehicle: vehicle || '',
       payment: payment || 'Pending',
       paymentMode: paymentMode || '',
+      deposit: deposit || 0,
       items,
       submittedAt: new Date().toISOString(),
       source: 'distributor'
@@ -506,16 +496,13 @@
           }).join('');
 
           const isToday = e.date === today();
-          const payBadge = e.payment === 'Paid' ? '✅ Paid' : e.payment === 'Partial' ? '🔶 Partial' : '⏳ Pending';
-          const payColor = e.payment === 'Paid' ? '#2A7A4A' : e.payment === 'Partial' ? '#C97A2A' : '#C0392B';
-          const modeIcon = e.paymentMode === 'Cash' ? '💵' : e.paymentMode === 'Online' ? '📱' : e.paymentMode === 'Cheque' ? '🏦' : '';
+          const depositBadge = e.deposit > 0 ? `💰 Deposit: ₹${e.deposit}` : '';
           return `<div style="border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
               <div>
                 <strong style="color:var(--brown);">${e.date}</strong>
                 ${isToday ? '<span style="background:#2A7A4A;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:6px;">Aaj</span>' : ''}
-                <span style="background:${payColor};color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:6px;">${payBadge}</span>
-                ${e.paymentMode ? `<span style="background:#EEF2FF;color:#2A4A7A;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:4px;">${modeIcon} ${e.paymentMode}</span>` : ''}
+                ${depositBadge ? `<span style="background:#E8F5EE;color:#2A7A4A;font-size:0.75rem;padding:3px 10px;border-radius:10px;margin-left:6px;font-weight:700;">${depositBadge}</span>` : ''}
               </div>
               ${isToday ? `<button onclick="editDemand('${e.distName}','${e.date}')" style="background:var(--orange);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;cursor:pointer;">✏️ Edit</button>` : ''}
             </div>
