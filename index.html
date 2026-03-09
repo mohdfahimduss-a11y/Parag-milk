@@ -370,7 +370,7 @@
     <!-- Step 2: All Demands for Today -->
     <div class="table-card">
       <div class="table-header" style="flex-wrap:wrap;gap:8px;">
-        <h3>📋 Today's Demands — <span id="demand-day-label" style="color:var(--amber)"></span></h3>
+        <h3>📋 Today's Demands — <span id="demand-day-label" style="color:var(--amber)"></span> <span id="demand-count-label" style="background:var(--brown);color:white;font-size:0.72rem;padding:2px 8px;border-radius:20px;margin-left:6px;"></span></h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:1px solid #F0C0BC;" onclick="clearAllDemandToday()">🗑 Clear Today</button>
         </div>
@@ -913,6 +913,7 @@
     event.target.classList.add('active');
     if (tab === 'dashboard') updateDashboard();
     if (tab === 'demand') { renderDemandEntryGrid(); renderDemandSummaryPage(today()); updateDistList(); }
+    if (tab === 'products') { renderProducts(); renderDefaultProductsGrid(); }
     if (tab === 'reports') {
       renderTaxInvoiceHistory();
       document.getElementById('demand-month-export').value = today().slice(0,7);
@@ -1388,6 +1389,7 @@
     const container = document.getElementById('demand-dist-tables');
     const totalSection = document.getElementById('demand-total-section');
     document.getElementById('demand-day-label').textContent = formatDate(date);
+    document.getElementById('demand-count-label').textContent = entries.length ? `${entries.length} demand` : '';
 
     if (!entries.length) {
       container.innerHTML = '<div class="empty" style="padding:24px;">Koi demand nahi aai aaj. Upar form fill karo!</div>';
@@ -1396,11 +1398,10 @@
     }
 
     // Distributor-wise tables
-    container.innerHTML = entries.map(e => {
+    container.innerHTML = entries.map((e, idx) => {
       const distItems = Object.entries(e.items).map(([pid, itemData]) => {
         const prod = allProds.find(p => String(p.id) === String(pid));
         if (!prod) return '';
-        // Support both old format (number) and new format (object)
         const qty = typeof itemData === 'object' ? (itemData.qty || 0) : itemData;
         const crates = typeof itemData === 'object' ? (itemData.crates || 0) : 0;
         const kgltr = typeof itemData === 'object' ? (itemData.kgltr || 0) : 0;
@@ -1419,7 +1420,10 @@
       return `
         <div style="border-bottom:2px solid var(--border);${e.completed ? 'border-left:4px solid #2A7A4A;background:#F1FFF5;' : ''}">
           <div style="padding:10px 16px;background:var(--cream);display:flex;justify-content:space-between;align-items:center;">
-            <strong style="color:var(--brown);">🏪 ${e.distName}</strong>
+            <strong style="color:var(--brown);">
+              <span style="background:var(--brown);color:white;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:0.72rem;margin-right:6px;">${idx+1}</span>
+              🏪 ${e.distName}
+            </strong>
             <div style="display:flex;gap:8px;align-items:center;">
               <button class="btn btn-primary btn-sm" onclick="generateInvoice('${e.distName}','${e.date}')">🧾 Invoice</button>
               ${e.addedToSales ?
