@@ -378,7 +378,7 @@
             <tfoot>
               <tr>
                 <td colspan="6" style="padding:10px 12px;">
-                  <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);border:1px solid #B0D8C0;" onclick="addDemandRow()">+ Add Product Row</button>
+                  <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);border:1px solid #B0D8C0;" onclick="addDemandRow()">+ Row Add Karo</button>
                 </td>
               </tr>
             </tfoot>
@@ -422,44 +422,22 @@
 
   <!-- SALES -->
   <div class="section" id="sales">
+
+    <!-- Daily Sales Entry Form -->
     <div class="form-card">
-      <h3>💰 Add Sale Record</h3>
-      <div class="form-grid">
+      <h3>💰 Daily Sales Entry</h3>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
         <div class="form-group">
           <label>Date</label>
           <input type="date" id="sale-date">
         </div>
         <div class="form-group">
-          <label>Distributor Name</label>
-          <input type="text" id="sale-customer" placeholder="Distributor name" list="customer-list">
+          <label>Distributor / Party</label>
+          <input type="text" id="sale-customer" placeholder="Party ka naam" list="customer-list">
           <datalist id="customer-list"></datalist>
         </div>
         <div class="form-group">
-          <label>Product</label>
-          <select id="sale-product">
-            <option>Cow Milk</option>
-            <option>Buffalo Milk</option>
-            <option>Paneer</option>
-            <option>Ghee</option>
-            <option>Curd</option>
-            <option>Butter</option>
-            <option>Other</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Quantity (L/Kg)</label>
-          <input type="number" id="sale-qty" placeholder="0.0" step="0.1" min="0">
-        </div>
-        <div class="form-group">
-          <label>Rate (₹ per L/Kg)</label>
-          <input type="number" id="sale-rate" placeholder="0" min="0">
-        </div>
-        <div class="form-group">
-          <label>Total Amount (₹)</label>
-          <input type="number" id="sale-amount" placeholder="Auto-calculated" min="0">
-        </div>
-        <div class="form-group">
-          <label>Payment</label>
+          <label>Payment Status</label>
           <select id="sale-payment">
             <option>Paid</option>
             <option>Pending</option>
@@ -468,20 +446,99 @@
         </div>
         <div class="form-group">
           <label>Notes</label>
-          <input type="text" id="sale-notes" placeholder="Optional notes">
+          <input type="text" id="sale-notes" placeholder="Optional">
         </div>
       </div>
+
+      <!-- Product Quantity Table - Horizontal Scroll -->
       <div style="margin-top:14px;">
-        <button class="btn btn-primary" onclick="addSale()">+ Add Sale</button>
+        <h4 style="font-size:0.85rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">📦 Products — Qty bharo jo deliver hui</h4>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:10px;">
+          <table style="border-collapse:collapse;white-space:nowrap;">
+            <thead>
+              <tr style="background:var(--brown);color:var(--cream);">
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">FCM<br>300ml</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">FCM<br>1Ltr</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">FCM<br>6Ltr</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">STD</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">TOND<br>500ml</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Tond<br>6Ltr</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">DTM<br>500ml</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">DTM<br>1Ltr</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">T-Dite</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Cow<br>Milk</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Dahi<br>5Kg</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Dahi<br>15Kg</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Chhachh<br>Ltr</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Chhachh<br>300ml</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Plain Curd<br>200g</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Plain Curd<br>100g</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">F-M</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">N/M</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Milk<br>Cake</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Paneer<br>Kg</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Paneer<br>500g</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Paneer<br>Litr</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Paneer<br>Khawa</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Chawla<br>Khower</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Rice<br>Kheer</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Pada</th>
+                <th style="padding:8px 10px;font-size:0.72rem;text-align:center;">Kala<br>Kand</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background:var(--milk);">
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-fcm300" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-fcm1l" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-fcm6l" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-std" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-tond500" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-tond6l" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-dtm500" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-dtm1l" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-tdite" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-cowmilk" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-dahi5kg" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-dahi15kg" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-chhachltr" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-chhach300" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-plaincurd200" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-plaincurd100" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-fm" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-nm" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-milkcake" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-paneerkg" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-paneer500" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-paneerlitr" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-paneerkhawa" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-chawla" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-ricekheer" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-pada" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+                <td style="padding:6px 4px;text-align:center;"><input type="number" id="sq-kalakand" min="0" placeholder="0" style="width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:0.9rem;font-weight:700;"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="addSale()" style="font-size:1rem;padding:12px 28px;">✅ Save Sale</button>
+        <button class="btn" onclick="clearSaleForm()" style="background:var(--border);color:var(--brown);padding:12px 20px;">🔄 Clear</button>
+        <span id="sale-total-preview" style="font-weight:800;font-size:1rem;color:var(--green);"></span>
       </div>
     </div>
 
+    <!-- Sales History Table -->
     <div class="table-card">
-      <div class="table-header"><h3>💵 Sales History</h3></div>
-      <table>
-        <thead><tr><th>Date</th><th>Distributor</th><th>Product</th><th>Qty</th><th>Amount</th><th>Status</th><th>Del</th></tr></thead>
-        <tbody id="sales-table"><tr><td colspan="7" class="empty">No sales records yet.</td></tr></tbody>
-      </table>
+      <div class="table-header">
+        <h3>💵 Sales History</h3>
+        <button class="btn btn-sm" style="background:var(--green);color:white;" onclick="exportSalesExcel()">⬇ Export</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="min-width:700px;">
+          <thead><tr><th>Date</th><th>Party</th><th>Products</th><th>Amount</th><th>Status</th><th>Del</th></tr></thead>
+          <tbody id="sales-table"><tr><td colspan="6" class="empty">Abhi koi sales record nahi hai.</td></tr></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -744,7 +801,77 @@
     distributors: []
   };
 
-  function loadDataFromFirebase() {
+  const DEFAULT_PRODUCTS = [
+    { id: 'fcm300',       name: 'FCM',           size: '300 ML',   cat: 'FCM' },
+    { id: 'fcm1l',        name: 'FCM',           size: '1 LTR',    cat: 'FCM' },
+    { id: 'fcm6l',        name: 'FCM',           size: '6 LTR',    cat: 'FCM' },
+    { id: 'std',          name: 'STD',           size: 'Ltr',      cat: 'STD' },
+    { id: 'tond500',      name: 'TOND',          size: '500 ML',   cat: 'Toned' },
+    { id: 'tond6l',       name: 'TOND',          size: '6 LTR',    cat: 'Toned' },
+    { id: 'dtm500',       name: 'DTM',           size: '500 ML',   cat: 'Toned' },
+    { id: 'dtm1l',        name: 'DTM',           size: '1 LTR',    cat: 'Toned' },
+    { id: 'tdite',        name: 'T-Dite',        size: 'Pack',     cat: 'Toned' },
+    { id: 'cowmilk',      name: 'Cow Milk',      size: 'Pack',     cat: 'STD' },
+    { id: 'dahi5kg',      name: 'Dahi Matka',    size: '5 KG',     cat: 'Curd' },
+    { id: 'dahi15kg',     name: 'Dahi Matka',    size: '15 KG',    cat: 'Curd' },
+    { id: 'chhachltr',    name: 'Chhachh',       size: 'Ltr',      cat: 'Other' },
+    { id: 'chhach300',    name: 'Chhachh',       size: '300 ML',   cat: 'Other' },
+    { id: 'plaincurd200', name: 'Plain Curd',    size: '200 GM',   cat: 'Curd' },
+    { id: 'plaincurd100', name: 'Plain Curd',    size: '100 GM',   cat: 'Curd' },
+    { id: 'fm',           name: 'F-M',           size: 'Ltr',      cat: 'FCM' },
+    { id: 'nm',           name: 'N/M',           size: 'Ltr',      cat: 'FCM' },
+    { id: 'milkcake',     name: 'Milk Cake',     size: 'Kg',       cat: 'Other' },
+    { id: 'paneerkg',     name: 'Paneer',        size: 'Kg',       cat: 'Paneer' },
+    { id: 'paneer500',    name: 'Paneer',        size: '500 GM',   cat: 'Paneer' },
+    { id: 'paneerlitr',   name: 'Paneer',        size: 'Ltr',      cat: 'Paneer' },
+    { id: 'paneerkhawa',  name: 'Paneer Khawa',  size: 'Kg',       cat: 'Paneer' },
+    { id: 'chawla',       name: 'Chawla Khower', size: 'Kg',       cat: 'Other' },
+    { id: 'ricekheer',    name: 'Rice Kheer',    size: 'Kg',       cat: 'Other' },
+    { id: 'pada',         name: 'Pada',          size: 'Kg',       cat: 'Other' },
+    { id: 'kalakand',     name: 'Kala Kand',     size: 'Kg',       cat: 'Other' },
+  ];
+
+  const catColors = { FCM:'badge-amber', STD:'badge-green', Toned:'badge-blue', Paneer:'badge-amber', Ghee:'badge-green', Curd:'badge-blue', Butter:'badge-red', Other:'badge-blue' };
+
+  function renderDefaultProductsGrid() {
+    const grid = document.getElementById('default-products-grid');
+    grid.innerHTML = DEFAULT_PRODUCTS.map(dp => {
+      const saved = data.products.find(p => p.id === dp.id);
+      const rate = saved ? saved.rate : '';
+      const qty = saved ? (saved.qty || '') : '';
+      return `
+        <div style="display:flex;align-items:center;gap:10px;background:var(--cream);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;">
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:0.9rem;">${dp.name} <span style="color:var(--muted);font-size:0.8rem;">${dp.size}</span></div>
+            <span class="badge ${catColors[dp.cat]}" style="margin-top:4px;">${dp.cat}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+            <span style="font-weight:700;color:var(--muted);font-size:0.9rem;">₹</span>
+            <input type="number" id="rate-${dp.id}" value="${rate}" placeholder="Rate" min="0"
+              style="width:75px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.85rem;background:white;">
+            <input type="number" id="qty-${dp.id}" value="${qty}" placeholder="Qty" min="0"
+              style="width:65px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.85rem;background:white;">
+            <button class="btn btn-primary btn-sm" onclick="saveDefaultProduct('${dp.id}','${dp.name}','${dp.size}','${dp.cat}')">💾</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function saveDefaultProduct(id, name, size, cat) {
+    const rate = parseFloat(document.getElementById('rate-' + id).value) || 0;
+    const qty  = parseFloat(document.getElementById('qty-'  + id).value) || 0;
+    if (!rate) { alert('Please enter a rate!'); return; }
+    const existing = data.products.find(p => p.id === id);
+    if (existing) { existing.rate = rate; existing.qty = qty; }
+    else { data.products.push({ id, name, size, cat, rate, qty, custom: false }); }
+    saveData();
+    renderProducts();
+    const btn = document.querySelector(`button[onclick*="'${id}'"]`);
+    if (btn) { btn.textContent = '✅'; setTimeout(() => btn.textContent = '💾', 1200); }
+  }
+
+
+    function loadDataFromFirebase() {
     dbRef.once('value').then(snap => {
       const val = snap.val();
       if (val) data = { ...data, ...val };
@@ -754,12 +881,30 @@
       renderProducts();
       renderDefaultProductsGrid();
       updateCustomerList();
+      updateDistList();
+      renderDemandSummaryPage(today());
       updateDashboard();
+      // Show products grid on load
+      setTimeout(() => { renderDefaultProductsGrid(); renderProducts(); }, 300);
     });
     // Live sync
     dbRef.on('value', snap => {
       const val = snap.val();
-      if (val) { data = { ...data, ...val }; updateDashboard(); }
+      if (val) {
+        const prevDemandCount = (data.demandEntries||[]).length;
+        data = { ...data, ...val };
+        updateDashboard();
+        updateDistList();
+        renderDemandSummaryPage(today());
+        // Auto-fill sales if new demand entry came from distributor
+        const newEntries = (data.demandEntries||[]).filter(e => 
+          e.source === 'distributor' && e.date === today() && !e.addedToSales
+        );
+        if (newEntries.length > 0 && (data.demandEntries||[]).length > prevDemandCount) {
+          const latest = newEntries[newEntries.length - 1];
+          autoFillSalesFromDemand(latest.distName, latest.date, latest.items);
+        }
+      }
     });
   }
 
@@ -810,46 +955,99 @@
     event.target.classList.add('active');
     if (tab === 'dashboard') updateDashboard();
     if (tab === 'demand') { renderDemandEntryGrid(); renderDemandSummaryPage(today()); updateDistList(); }
+    if (tab === 'products') { renderDefaultProductsGrid(); renderProducts(); }
   }
 
   // SALES
+  // All Parag product fields
+  const SALE_PRODUCTS = [
+    {id:'fcm300',       label:'FCM 300ml'},
+    {id:'fcm1l',        label:'FCM 1Ltr'},
+    {id:'fcm6l',        label:'FCM 6Ltr'},
+    {id:'std',          label:'STD'},
+    {id:'tond500',      label:'TOND 500ml'},
+    {id:'tond6l',       label:'Tond 6Ltr'},
+    {id:'dtm500',       label:'DTM 500ml'},
+    {id:'dtm1l',        label:'DTM 1Ltr'},
+    {id:'tdite',        label:'T-Dite'},
+    {id:'cowmilk',      label:'Cow Milk'},
+    {id:'dahi5kg',      label:'Dahi 5Kg'},
+    {id:'dahi15kg',     label:'Dahi 15Kg'},
+    {id:'chhachltr',    label:'Chhachh Ltr'},
+    {id:'chhach300',    label:'Chhachh 300ml'},
+    {id:'plaincurd200', label:'Plain Curd 200g'},
+    {id:'plaincurd100', label:'Plain Curd 100g'},
+    {id:'fm',           label:'F-M'},
+    {id:'nm',           label:'N/M'},
+    {id:'milkcake',     label:'Milk Cake'},
+    {id:'paneerkg',     label:'Paneer Kg'},
+    {id:'paneer500',    label:'Paneer 500g'},
+    {id:'paneerlitr',   label:'Paneer Litr'},
+    {id:'paneerkhawa',  label:'Paneer Khawa'},
+    {id:'chawla',       label:'Chawla Khower'},
+    {id:'ricekheer',    label:'Rice Kheer'},
+    {id:'pada',         label:'Pada'},
+    {id:'kalakand',     label:'Kala Kand'},
+  ];
+
   function addSale() {
+    const date = document.getElementById('sale-date').value;
+    const customer = document.getElementById('sale-customer').value.trim();
+    const payment = document.getElementById('sale-payment').value;
+    const notes = document.getElementById('sale-notes').value;
+    if (!date) { alert('Date select karein!'); return; }
+    if (!customer) { alert('Party ka naam bharo!'); return; }
+    // Collect all product quantities
+    const products = {};
+    let hasAny = false;
+    SALE_PRODUCTS.forEach(p => {
+      const val = parseFloat(document.getElementById('sq-' + p.id).value) || 0;
+      if (val > 0) { products[p.id] = val; hasAny = true; }
+    });
+    if (!hasAny) { alert('Kam se kam ek product ki qty bharo!'); return; }
     const rec = {
       id: Date.now(),
-      date: document.getElementById('sale-date').value,
-      customer: document.getElementById('sale-customer').value,
-      product: document.getElementById('sale-product').value,
-      qty: parseFloat(document.getElementById('sale-qty').value) || 0,
-      rate: parseFloat(document.getElementById('sale-rate').value) || 0,
-      amount: parseFloat(document.getElementById('sale-amount').value) || 0,
-      payment: document.getElementById('sale-payment').value,
-      notes: document.getElementById('sale-notes').value
+      date, customer, payment, notes, products
     };
-    if (!rec.amount) { alert('Please enter amount!'); return; }
     data.sales.unshift(rec);
     saveData();
     renderSales();
+    updateDashboard();
     updateCustomerList();
+    clearSaleForm();
+    alert('✅ Sale save ho gayi!');
+  }
+
+  function clearSaleForm() {
     document.getElementById('sale-customer').value = '';
-    document.getElementById('sale-qty').value = '';
-    document.getElementById('sale-rate').value = '';
-    document.getElementById('sale-amount').value = '';
     document.getElementById('sale-notes').value = '';
+    SALE_PRODUCTS.forEach(p => {
+      const el = document.getElementById('sq-' + p.id);
+      if (el) el.value = '';
+    });
+    document.getElementById('sale-total-preview').textContent = '';
   }
 
   function renderSales() {
     const tb = document.getElementById('sales-table');
-    if (!data.sales.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">No sales records yet.</td></tr>'; return; }
-    tb.innerHTML = data.sales.map(r => `
-      <tr>
+    if (!data.sales.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">Abhi koi sales record nahi hai.</td></tr>'; return; }
+    tb.innerHTML = data.sales.map(r => {
+      const prodList = r.products
+        ? Object.entries(r.products).map(([k,v]) => {
+            const p = SALE_PRODUCTS.find(x => x.id === k);
+            return `${p ? p.label : k}: <b>${v}</b>`;
+          }).join(', ')
+        : (r.product ? `${r.product}: ${r.qty}` : '-');
+      const badgeCls = r.payment==='Paid'?'badge-green':r.payment==='Pending'?'badge-red':'badge-amber';
+      return `<tr>
         <td>${formatDate(r.date)}</td>
         <td>${r.customer || '-'}</td>
-        <td>${r.product}</td>
-        <td>${r.qty} L</td>
-        <td><strong>₹${r.amount}</strong></td>
-        <td><span class="badge ${r.payment==='Paid'?'badge-green':r.payment==='Pending'?'badge-red':'badge-amber'}">${r.payment}</span></td>
+        <td style="font-size:0.75rem;max-width:220px;">${prodList}</td>
+        <td><strong>${r.amount ? '₹'+r.amount : '-'}</strong></td>
+        <td><span class="badge ${badgeCls}">${r.payment}</span></td>
         <td><button class="btn btn-danger btn-sm" onclick="delRecord('sales',${r.id})">✕</button></td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   }
 
   // CUSTOMERS
@@ -1005,8 +1203,8 @@
       return saved ? saved : { ...dp, rate: 0 };
     });
     const customs = data.products.filter(p => p.custom);
-    // Filter out inactive products
-    return [...defaults.filter(p => p.rate > 0 && p.active !== false), ...customs.filter(p => p.active !== false)];
+    // Show all products (rate 0 wale bhi) - sirf inactive filter karein
+    return [...defaults.filter(p => p.active !== false), ...customs.filter(p => p.active !== false)];
   }
 
   let demandRowCount = 0;
@@ -1020,9 +1218,14 @@
 
   function addDemandRow() {
     const grid = document.getElementById('demand-entry-grid');
-    const allProds = getAllProducts();
+    if (!grid) { alert('Grid nahi mili!'); return; }
+    // Use saved products if available, otherwise use DEFAULT_PRODUCTS directly
+    let allProds = getAllProducts();
     if (!allProds.length) {
-      alert('Pehle Products tab mein products add karein!');
+      allProds = DEFAULT_PRODUCTS.map(dp => ({ ...dp, rate: 0 }));
+    }
+    if (!allProds.length) {
+      alert('Koi product nahi mila!');
       return;
     }
     demandRowCount++;
@@ -1138,51 +1341,64 @@
     if (!Object.keys(items).length) { alert('Kam se kam ek product select karke quantity daalo!'); return; }
     if (!data.demandEntries) data.demandEntries = [];
     const idx = data.demandEntries.findIndex(e => e.date === date && e.distName === distName);
-    const entryId = Date.now();
     if (idx >= 0) {
       if (!confirm(`${distName} ki demand already hai is date ke liye. Update karein?`)) return;
-      // Remove old sales entries for this demand
-      const oldEntry = data.demandEntries[idx];
-      if (oldEntry.addedToSales) {
-        data.sales = (data.sales||[]).filter(s => s.note !== `Demand #${oldEntry.id}`);
-      }
-      data.demandEntries[idx] = { ...oldEntry, date, distName, items, savedAt: Date.now(), addedToSales: true };
-      autoAddToSales(data.demandEntries[idx]);
+      data.demandEntries[idx] = { date, distName, items, savedAt: Date.now() };
     } else {
-      const newEntry = { id: entryId, date, distName, items, savedAt: Date.now(), addedToSales: true };
-      data.demandEntries.push(newEntry);
-      autoAddToSales(newEntry);
+      data.demandEntries.push({ id: Date.now(), date, distName, items, savedAt: Date.now() });
     }
     saveData();
     updateDistList();
     renderDemandSummaryPage(date);
     clearDemandForm();
-    alert(`✅ ${distName} ki demand save ho gayi aur Sales mein add ho gayi!`);
+
+    // Auto-fill Sales form with demand quantities
+    autoFillSalesFromDemand(distName, date, items);
+
+    alert(`✅ ${distName} ki demand save ho gayi!\nSales tab mein quantities auto-fill ho gayi hain — check karein!`);
   }
 
-  function autoAddToSales(entry) {
-    const allProds = getAllProducts();
-    const customers = data.customers || [];
-    const dist = customers.find(c => c.name === entry.distName);
-    if (!data.sales) data.sales = [];
+  function autoFillSalesFromDemand(distName, date, items) {
+    // Set date and customer in sales form
+    const saleDateEl = document.getElementById('sale-date');
+    const saleCustomerEl = document.getElementById('sale-customer');
+    if (saleDateEl) saleDateEl.value = date;
+    if (saleCustomerEl) saleCustomerEl.value = distName;
 
-    Object.entries(entry.items||{}).forEach(([pid, qtyVal]) => {
-      const prod = allProds.find(p => String(p.id) === String(pid));
-      if (!prod) return;
-      const qty = typeof qtyVal === 'object' ? (qtyVal.qty||0) : qtyVal;
+    // Clear all sales inputs first
+    SALE_PRODUCTS.forEach(p => {
+      const el = document.getElementById('sq-' + p.id);
+      if (el) el.value = '';
+    });
+
+    // Fill quantities - match by product ID directly
+    Object.entries(items).forEach(([pid, qtyVal]) => {
+      const qty = typeof qtyVal === 'object' ? (qtyVal.qty || 0) : qtyVal;
       if (!qty) return;
-      const rate = (dist && dist.productRates && dist.productRates[pid]) ? dist.productRates[pid] : (prod.rate||0);
-      const amount = rate * qty;
-      data.sales.push({
-        id: Date.now() + Math.random(),
-        date: entry.date,
-        customer: entry.distName,
-        product: `${prod.name} ${prod.size||''}`.trim(),
-        qty: qty,
-        rate: rate,
-        amount: amount,
-        note: `Demand #${entry.id}`
-      });
+      // Try direct match first: sq-{pid}
+      let el = document.getElementById('sq-' + pid);
+      if (el) { el.value = qty; return; }
+      // Try matching via SALE_PRODUCTS
+      const sp = SALE_PRODUCTS.find(p => p.id === pid);
+      if (sp) {
+        el = document.getElementById('sq-' + sp.id);
+        if (el) { el.value = qty; return; }
+      }
+      // Try matching via DEFAULT_PRODUCTS id
+      const dp = DEFAULT_PRODUCTS.find(p => String(p.id) === String(pid));
+      if (dp) {
+        el = document.getElementById('sq-' + dp.id);
+        if (el) el.value = qty;
+      }
+    });
+
+    // Switch to Sales tab automatically
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    const salesSection = document.getElementById('sales');
+    if (salesSection) salesSection.classList.add('active');
+    document.querySelectorAll('.nav button').forEach(b => {
+      if (b.textContent.includes('Sales')) b.classList.add('active');
     });
   }
 
@@ -1607,65 +1823,6 @@
   }
 
   // DEFAULT PRODUCTS
-  const DEFAULT_PRODUCTS = [
-    { id: 'fcm500',    name: 'F.C.M.',      size: '500 ML',   cat: 'FCM' },
-    { id: 'fcm1l',     name: 'F.C.M.',      size: '01 LTR',   cat: 'FCM' },
-    { id: 'fcm6l',     name: 'F.C.M.',      size: '06 LTR',   cat: 'FCM' },
-    { id: 'std500',    name: 'STD MILK',    size: '500 ML',   cat: 'STD' },
-    { id: 'std350',    name: 'COW MILK',    size: '350 ML',   cat: 'STD' },
-    { id: 'std1l',     name: 'STD MILK',    size: '01 LTR',   cat: 'STD' },
-    { id: 'ton500',    name: 'TONED',       size: '500 ML',   cat: 'Toned' },
-    { id: 'ton1l',     name: 'TONED',       size: '01 LTR',   cat: 'Toned' },
-    { id: 'ton6l',     name: 'TONED',       size: '06 LTR',   cat: 'Toned' },
-    { id: 'matka5',    name: 'MATKA',       size: '5 KG',     cat: 'Other' },
-    { id: 'matka15',   name: 'DAHI MATKA',  size: '15 KG',    cat: 'Curd' },
-    { id: 'chhach300', name: 'CHHACH',      size: '300 ML',   cat: 'Other' },
-    { id: 'curd200',   name: 'P. CURD',     size: '200 GM',   cat: 'Curd' },
-    { id: 'dahi140',   name: 'DAHI P.PACK', size: '140 GM',   cat: 'Curd' },
-    { id: 'kheer90',   name: 'P. KHEER',    size: '90 GM',    cat: 'Other' },
-    { id: 'paneer1kg', name: 'PANEER LITE', size: '01 KG',    cat: 'Paneer' },
-    { id: 'ghee1l',    name: 'GHEE',        size: '01 LTR',   cat: 'Ghee' },
-    { id: 'butter500', name: 'BUTTER',      size: '500 GM',   cat: 'Butter' },
-  ];
-
-  const catColors = { FCM:'badge-amber', STD:'badge-green', Toned:'badge-blue', Paneer:'badge-amber', Ghee:'badge-green', Curd:'badge-blue', Butter:'badge-red', Other:'badge-blue' };
-
-  function renderDefaultProductsGrid() {
-    const grid = document.getElementById('default-products-grid');
-    grid.innerHTML = DEFAULT_PRODUCTS.map(dp => {
-      const saved = data.products.find(p => p.id === dp.id);
-      const rate = saved ? saved.rate : '';
-      const qty = saved ? (saved.qty || '') : '';
-      return `
-        <div style="display:flex;align-items:center;gap:10px;background:var(--cream);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;">
-          <div style="flex:1;">
-            <div style="font-weight:700;font-size:0.9rem;">${dp.name} <span style="color:var(--muted);font-size:0.8rem;">${dp.size}</span></div>
-            <span class="badge ${catColors[dp.cat]}" style="margin-top:4px;">${dp.cat}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
-            <span style="font-weight:700;color:var(--muted);font-size:0.9rem;">₹</span>
-            <input type="number" id="rate-${dp.id}" value="${rate}" placeholder="Rate" min="0"
-              style="width:75px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.85rem;background:white;">
-            <input type="number" id="qty-${dp.id}" value="${qty}" placeholder="Qty" min="0"
-              style="width:65px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.85rem;background:white;">
-            <button class="btn btn-primary btn-sm" onclick="saveDefaultProduct('${dp.id}','${dp.name}','${dp.size}','${dp.cat}')">💾</button>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  function saveDefaultProduct(id, name, size, cat) {
-    const rate = parseFloat(document.getElementById('rate-' + id).value) || 0;
-    const qty  = parseFloat(document.getElementById('qty-'  + id).value) || 0;
-    if (!rate) { alert('Please enter a rate!'); return; }
-    const existing = data.products.find(p => p.id === id);
-    if (existing) { existing.rate = rate; existing.qty = qty; }
-    else { data.products.push({ id, name, size, cat, rate, qty, custom: false }); }
-    saveData();
-    renderProducts();
-    const btn = document.querySelector(`button[onclick*="'${id}'"]`);
-    if (btn) { btn.textContent = '✅'; setTimeout(() => btn.textContent = '💾', 1200); }
-  }
 
   function addCustomProduct() {
     const name = document.getElementById('new-prod-name').value.trim();
