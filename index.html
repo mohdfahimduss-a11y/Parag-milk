@@ -2597,43 +2597,80 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     const wb = XLSX.utils.book_new();
     const wsData = [];
 
-    // Row 0: Title
-    wsData.push([`PARAG MILK — DEMAND SUMMARY`, `Date: ${formatDate(date)}`]);
-    wsData.push([]); // blank
+    // NCR distributors — zone field mein 'NCR' ya 'Delhi' ho
+    const isNCR = name => {
+      const dist = (data.customers||[]).find(c => c.name === name);
+      const zone = (dist && (dist.daily || dist.zone || dist.area) || '').toUpperCase();
+      return zone.includes('NCR') || zone.includes('DELHI');
+    };
 
-    // Row 2: Size header
-    wsData.push(['PARTY NAME', ...PROD_COLS.map(p => p.size), 'TOTAL CRATE']);
-    // Row 3: Product name header
-    wsData.push(['', ...PROD_COLS.map(p => p.name), '']);
-    // Row 4: Unit header
-    wsData.push(['', ...PROD_COLS.map(p => p.unit), '']);
+    const mrdEntries = entries.filter(e => !isNCR(e.distName));
+    const ncrEntries = entries.filter(e => isNCR(e.distName));
 
-    // Data rows
+    // Grand totals across all groups
     const colTotals = {};
     PROD_COLS.forEach(p => { colTotals[p.id] = 0; });
     let grandCrates = 0;
 
-    entries.forEach(e => {
-      const dist = (data.customers||[]).find(c => c.name === e.distName);
-      const label = e.distName + (dist && dist.vehicle ? ` (${dist.vehicle})` : '');
-      const row = [label];
-      let rowCrates = 0;
-      PROD_COLS.forEach(p => {
-        const itemData = (e.items||{})[p.id];
-        const qty    = itemData ? (typeof itemData==='object' ? (itemData.qty||0)    : Number(itemData)) : 0;
-        const crates = itemData ? (typeof itemData==='object' ? (itemData.crates||0) : 0) : 0;
-        colTotals[p.id] += qty;
-        rowCrates += crates;
-        row.push(qty > 0 ? qty : '');
-      });
-      grandCrates += rowCrates;
-      row.push(rowCrates > 0 ? rowCrates : '');
-      wsData.push(row);
-    });
+    // Helper to build group rows
+    function buildGroupRows(groupEntries, groupLabel) {
+      const rows = [];
+      const groupTotals = {};
+      PROD_COLS.forEach(p => { groupTotals[p.id] = 0; });
+      let groupCrates = 0;
 
-    // Blank + TOTAL row
-    wsData.push([]);
-    wsData.push(['TOTAL', ...PROD_COLS.map(p => colTotals[p.id] > 0 ? colTotals[p.id] : ''), grandCrates > 0 ? grandCrates : '']);
+      // Group header
+      rows.push([groupLabel]);
+      rows.push(['PARTY NAME', ...PROD_COLS.map(p => p.size), 'TOTAL CRATE']);
+      rows.push(['', ...PROD_COLS.map(p => p.name), '']);
+
+      groupEntries.forEach(e => {
+        const dist = (data.customers||[]).find(c => c.name === e.distName);
+        const label = e.distName + (dist && dist.vehicle ? ` (${dist.vehicle})` : '');
+        const row = [label];
+        let rowCrates = 0;
+        PROD_COLS.forEach(p => {
+          const itemData = (e.items||{})[p.id];
+          const qty    = itemData ? (typeof itemData==='object' ? (itemData.qty||0)    : Number(itemData)) : 0;
+          const crates = itemData ? (typeof itemData==='object' ? (itemData.crates||0) : 0) : 0;
+          groupTotals[p.id] += qty;
+          rowCrates += crates;
+          row.push(qty > 0 ? qty : '');
+        });
+        groupCrates += rowCrates;
+        row.push(rowCrates > 0 ? rowCrates : '');
+        rows.push(row);
+      });
+
+      rows.push([]);
+      rows.push(['TOTAL', ...PROD_COLS.map(p => groupTotals[p.id] > 0 ? groupTotals[p.id] : ''), groupCrates > 0 ? groupCrates : '']);
+      rows.push(['CRATES (÷12)', ...PROD_COLS.map(p => groupTotals[p.id] > 0 ? (groupTotals[p.id] / 12).toFixed(2) : ''), '']);
+      rows.push([]); // blank between groups
+
+      // Add to overall totals
+      PROD_COLS.forEach(p => { colTotals[p.id] += groupTotals[p.id]; });
+      grandCrates += groupCrates;
+
+      return rows;
+    }
+
+    // Row 0: Title
+    wsData.push([`PARAG MILK — DEMAND SUMMARY`, `Date: ${formatDate(date)}`]);
+    wsData.push([]); // blank
+
+    // MORADABAD group
+    if (mrdEntries.length) {
+      buildGroupRows(mrdEntries, '📍 MORADABAD').forEach(r => wsData.push(r));
+    }
+
+    // NCR group
+    if (ncrEntries.length) {
+      buildGroupRows(ncrEntries, '📍 DELHI / NCR').forEach(r => wsData.push(r));
+    }
+
+    // Grand Total
+    wsData.push(['🔢 GRAND TOTAL', ...PROD_COLS.map(p => colTotals[p.id] > 0 ? colTotals[p.id] : ''), grandCrates > 0 ? grandCrates : '']);
+    wsData.push(['CRATES (÷12)', ...PROD_COLS.map(p => colTotals[p.id] > 0 ? (colTotals[p.id] / 12).toFixed(2) : ''), '']);
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const totalCols = PROD_COLS.length + 2; // party + products + total crate
@@ -2774,6 +2811,8 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     // TOTAL row
     const totalRow = ['TOTAL', ...PROD_COLS.map(p => colTotals[p.id] > 0 ? colTotals[p.id] : ''), grandCrates > 0 ? grandCrates : ''];
     wsData.push(totalRow);
+    // CRATES row — Total ÷ 12
+    wsData.push(['CRATES (÷12)', ...PROD_COLS.map(p => colTotals[p.id] > 0 ? (colTotals[p.id] / 12).toFixed(2) : ''), '']);
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const totalCols = PROD_COLS.length + 2; // party name + products + total crate
