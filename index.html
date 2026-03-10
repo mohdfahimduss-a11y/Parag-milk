@@ -831,6 +831,11 @@
         data.customers = DEFAULT_CUSTOMERS;
         saveData();
       }
+      // Permanently remove COW MILK (std350) from products
+      const before = (data.products||[]).length;
+      data.products = (data.products||[]).filter(p => String(p.id) !== 'std350');
+      if (data.products.length !== before) saveData();
+
       renderSales();
       renderCustomers();
       renderProducts();
@@ -844,6 +849,7 @@
       const val = snap.val();
       if (val) {
         data = { ...data, ...val };
+        data.products = (data.products||[]).filter(p => String(p.id) !== 'std350');
         updateDashboard();
         renderProducts();
         renderSales();
@@ -3013,7 +3019,6 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     { id: 'fcm1l',     name: 'F.C.M.',      size: '01 LTR',   cat: 'Milk' },
     { id: 'fcm6l',     name: 'F.C.M.',      size: '06 LTR',   cat: 'Milk' },
     { id: 'std500',    name: 'STD MILK',    size: '500 ML',   cat: 'Milk' },
-    { id: 'std350',    name: 'COW MILK',    size: '350 ML',   cat: 'Milk' },
     { id: 'std1l',     name: 'STD MILK',    size: '01 LTR',   cat: 'Milk' },
     { id: 'ton500',    name: 'TONED',       size: '500 ML',   cat: 'Milk' },
     { id: 'ton1l',     name: 'TONED',       size: '01 LTR',   cat: 'Milk' },
@@ -3070,7 +3075,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
             ${p.active===false?'❌ Off':'✅ On'}
           </button>
         </td>
-        <td>${(p.custom || !DEFAULT_PRODUCTS.find(dp => String(dp.id) === String(p.id)) || String(p.id) === 'std350') ? `<button class="btn btn-danger btn-sm" onclick="delRecord('products',${JSON.stringify(p.id)})">✕</button>` : '-'}</td>
+        <td>${!DEFAULT_PRODUCTS.find(dp => String(dp.id) === String(p.id)) ? `<button class="btn btn-danger btn-sm" onclick="delRecord('products',${JSON.stringify(p.id)})">✕</button>` : '-'}</td>
       </tr>`).join('');
   }
 
