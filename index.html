@@ -1135,12 +1135,31 @@
 
   // For exports — include ALL products regardless of rate
   function getAllProductsForExport() {
-    const defaults = DEFAULT_PRODUCTS.map(dp => {
-      const saved = data.products.find(p => p.id === dp.id);
-      return saved ? saved : { ...dp, rate: 0 };
+    // Merge DEFAULT_PRODUCTS with saved data.products - NO rate/active/custom filter
+    const allSaved = data.products || [];
+    const merged = DEFAULT_PRODUCTS.map(dp => {
+      const saved = allSaved.find(p => String(p.id) === String(dp.id));
+      return saved ? { ...dp, ...saved } : { ...dp, rate: 0 };
     });
-    const customs = data.products.filter(p => p.custom);
-    return [...defaults, ...customs].filter(p => p.active !== false);
+    // Add any extra saved products not in DEFAULT_PRODUCTS
+    allSaved.forEach(p => {
+      if (!DEFAULT_PRODUCTS.find(dp => String(dp.id) === String(p.id))) {
+        merged.push(p);
+      }
+    });
+    return merged;
+  }
+
+  // Find product by ID from ALL possible sources (for export naam lookup)
+  function findProductById(pid) {
+    const pidStr = String(pid);
+    // Check data.products first (all saved products)
+    const fromSaved = (data.products||[]).find(p => String(p.id) === pidStr);
+    if (fromSaved) return fromSaved;
+    // Check DEFAULT_PRODUCTS
+    const fromDefault = DEFAULT_PRODUCTS.find(p => String(p.id) === pidStr);
+    if (fromDefault) return fromDefault;
+    return null;
   }
 
   let demandRowCount = 0;
@@ -1400,7 +1419,10 @@
       Object.entries(e.items||{}).forEach(([pid, val]) => {
         const qty = typeof val==='object' ? val.qty : val;
         const kgltr = typeof val==='object' ? val.kgltr : 0;
-        msg += `  ${pid}: qty=${qty}, kgltr=${kgltr}\n`;
+        const savedName = typeof val==='object' ? (val.name||'') : '';
+        const foundProd = findProductById(pid);
+        const resolvedName = savedName || (foundProd ? foundProd.name : '❌ NOT FOUND');
+        msg += `  [${pid}] ${resolvedName}: qty=${qty}, kgltr=${kgltr}\n`;
       });
       msg += '\n';
     });
@@ -2550,15 +2572,21 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
       if (!FIXED_IDS.includes(String(pid)) && !extraPids.includes(String(pid))) extraPids.push(String(pid));
     }));
     const extraCols = extraPids.map(pid => {
+      // 1. Try allProds (merged list)
       const p = allProds.find(p => String(p.id) === pid);
-      if (p) return { id: pid, name: p.name, size: p.size||'', unit: 'Pack' };
-      // Try to get name from demand entries items
-      let nameFromEntry = pid, sizeFromEntry = '';
+      if (p && p.name) return { id: pid, name: p.name, size: p.size||'', unit: 'Pack' };
+      // 2. Try findProductById (all data.products)
+      const p2 = findProductById(pid);
+      if (p2 && p2.name) return { id: pid, name: p2.name, size: p2.size||'', unit: 'Pack' };
+      // 3. Try name saved inside demand entry items
+      let nameFromEntry = '', sizeFromEntry = '';
       entries.forEach(e => {
         const item = (e.items||{})[pid];
         if (item && item.name) { nameFromEntry = item.name; sizeFromEntry = item.size||''; }
       });
-      return { id: pid, name: nameFromEntry, size: sizeFromEntry, unit: 'Pack' };
+      if (nameFromEntry) return { id: pid, name: nameFromEntry, size: sizeFromEntry, unit: 'Pack' };
+      // 4. Fallback: show pid as name
+      return { id: pid, name: String(pid), size: '', unit: 'Pack' };
     });
 
     const PROD_COLS = [...FIXED_COLS, ...extraCols];
@@ -2694,13 +2722,16 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     }));
     const extraCols = extraPids.map(pid => {
       const p = allProds.find(p => String(p.id) === pid);
-      if (p) return { id: pid, name: p.name, size: p.size||'', unit: 'Pack' };
-      let nameFromEntry = pid, sizeFromEntry = '';
+      if (p && p.name) return { id: pid, name: p.name, size: p.size||'', unit: 'Pack' };
+      const p2 = findProductById(pid);
+      if (p2 && p2.name) return { id: pid, name: p2.name, size: p2.size||'', unit: 'Pack' };
+      let nameFromEntry = '', sizeFromEntry = '';
       entries.forEach(e => {
         const item = (e.items||{})[pid];
         if (item && item.name) { nameFromEntry = item.name; sizeFromEntry = item.size||''; }
       });
-      return { id: pid, name: nameFromEntry, size: sizeFromEntry, unit: 'Pack' };
+      if (nameFromEntry) return { id: pid, name: nameFromEntry, size: sizeFromEntry, unit: 'Pack' };
+      return { id: pid, name: String(pid), size: '', unit: 'Pack' };
     });
 
     const PROD_COLS = [...FIXED_COLS, ...extraCols];
