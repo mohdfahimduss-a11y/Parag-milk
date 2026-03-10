@@ -1133,6 +1133,16 @@
     return [...defaults.filter(p => p.rate > 0 && p.active !== false), ...customs.filter(p => p.active !== false)];
   }
 
+  // For exports — include ALL products regardless of rate
+  function getAllProductsForExport() {
+    const defaults = DEFAULT_PRODUCTS.map(dp => {
+      const saved = data.products.find(p => p.id === dp.id);
+      return saved ? saved : { ...dp, rate: 0 };
+    });
+    const customs = data.products.filter(p => p.custom);
+    return [...defaults, ...customs].filter(p => p.active !== false);
+  }
+
   let demandRowCount = 0;
 
   function renderDemandEntryGrid() {
@@ -1311,7 +1321,11 @@
       }
 
       if (pid && (qty > 0 || kgltr > 0)) {
-        items[pid] = { qty: (items[pid]?.qty || 0) + qty, crates, kgltr };
+        // Save product name+size for display even if product deleted later
+        const selOpt = sel.options[sel.selectedIndex];
+        const prodName = selOpt ? selOpt.textContent.trim() : pid;
+        const prodSize = sizeEl ? sizeEl.textContent.trim() : '';
+        items[pid] = { qty: (items[pid]?.qty || 0) + qty, crates, kgltr, name: prodName, size: prodSize };
       }
     });
 
@@ -1879,7 +1893,7 @@ ${slipHTML}
   <div>
     <div class="company-name">🥛 Parag Milk</div>
     <div class="company-sub">Dairy Products | Quality Assured</div>
-    <div class="gstin">GSTIN: 09AAAAM5648K1B7</div>
+    <div class="gstin">GSTIN: 09AAAAM5648K1Z7</div>
   </div>
   <div class="top-right">
     <div><strong>दिनांक / Date:</strong> ${formatDate(date)}</div>
@@ -2296,6 +2310,18 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     <div class="sign-box"><div class="line"></div>Checked By</div>
     <div class="sign-box"><div class="line"></div>Authorized Signatory</div>
   </div>
+
+  <div style="display:flex;gap:0;border-top:1px solid #333;margin-top:6px;font-size:9px;">
+    <div style="flex:1;padding:6px 8px;border-right:1px solid #333;">
+      <strong>Terms And Conditions:</strong><br>
+      DECLARATION:- I/WE HEREBY CERTIFY THAT MILK/MILK PRODUCT MENTIONED THIS INVOICE IS/ARE WARRANTED TO BE OF THE NATURE AND QUALITY WHICH IS/THERE PURPORTS/PURPORTED TO BE MORADABAD DUGDH UTPADAK SAHEKARI SANGH LTD. DALPATPUR MORADABAD.<br>
+      FSSAI LICENSE NO. 12714060000158
+    </div>
+    <div style="flex:1;padding:6px 8px;text-align:center;">
+      For Moradabad Dugdh Utpadak Sahekari Sangh Ltd. Dalpatpur:<br><br><br>
+      <div style="border-top:1px solid #333;margin-top:20px;padding-top:4px;">Authorized Signatory</div>
+    </div>
+  </div>
 </div>
 <br>
 <div class="no-print" style="text-align:center;margin-top:12px;">
@@ -2491,11 +2517,13 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     date = date || today();
     if (typeof XLSX === 'undefined') { alert('Excel library load nahi hui!'); return; }
 
+    const allProds = getAllProductsForExport();
     const entries = (data.demandEntries||[]).filter(e => e.date === date);
     if (!entries.length) { alert('Koi demand nahi is date ki!'); return; }
 
     // Fixed product columns — same order as image
-    const PROD_COLS = [
+    const FIXED_IDS = ['fcm500','fcm1l','fcm6l','std500','std1l','std350','ton500','ton1l','ton6l','matka5','matka15','chhach300','curd200','dahi140','kheer90','paneer1kg','ghee1l','butter500'];
+    const FIXED_COLS = [
       { id:'fcm500',    name:'FCM',        size:'500 ML', unit:'Ltr' },
       { id:'fcm1l',     name:'FCM',        size:'1 LTR',  unit:'Ltr' },
       { id:'fcm6l',     name:'FCM',        size:'6 LTR',  unit:'Ltr' },
@@ -2515,6 +2543,25 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
       { id:'ghee1l',    name:'GHEE',       size:'1 LTR',  unit:'Ltr' },
       { id:'butter500', name:'BUTTER',     size:'500 GM', unit:'Kg'  },
     ];
+
+    // Collect extra (timestamp/custom) product IDs used in entries
+    const extraPids = [];
+    entries.forEach(e => Object.keys(e.items||{}).forEach(pid => {
+      if (!FIXED_IDS.includes(String(pid)) && !extraPids.includes(String(pid))) extraPids.push(String(pid));
+    }));
+    const extraCols = extraPids.map(pid => {
+      const p = allProds.find(p => String(p.id) === pid);
+      if (p) return { id: pid, name: p.name, size: p.size||'', unit: 'Pack' };
+      // Try to get name from demand entries items
+      let nameFromEntry = pid, sizeFromEntry = '';
+      entries.forEach(e => {
+        const item = (e.items||{})[pid];
+        if (item && item.name) { nameFromEntry = item.name; sizeFromEntry = item.size||''; }
+      });
+      return { id: pid, name: nameFromEntry, size: sizeFromEntry, unit: 'Pack' };
+    });
+
+    const PROD_COLS = [...FIXED_COLS, ...extraCols];
 
     const wb = XLSX.utils.book_new();
     const wsData = [];
@@ -2613,7 +2660,13 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     const date = document.getElementById('demand-view-date') ?
                  document.getElementById('demand-view-date').value || today() : today();
 
-    const PROD_COLS = [
+    const allProds = getAllProductsForExport();
+    const entries = (data.demandEntries||[]).filter(e => e.date === date);
+    if (!entries.length) { alert('Is date ki koi demand nahi hai!'); return; }
+    if (typeof XLSX === 'undefined') { alert('Excel library load nahi hui. Internet connection check karo!'); return; }
+
+    const FIXED_IDS = ['fcm500','fcm1l','fcm6l','std500','std1l','std350','ton500','ton1l','ton6l','matka5','matka15','chhach300','curd200','dahi140','kheer90','paneer1kg','ghee1l','butter500'];
+    const FIXED_COLS = [
       { id:'fcm500',    name:'FCM',         size:'500 ML',  unit:'Ltr' },
       { id:'fcm1l',     name:'FCM',         size:'1 LTR',   unit:'Ltr' },
       { id:'fcm6l',     name:'FCM',         size:'6 LTR',   unit:'Ltr' },
@@ -2634,12 +2687,23 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
       { id:'butter500', name:'BUTTER',      size:'500 GM',  unit:'Kg' },
     ];
 
-    const entries = (data.demandEntries||[]).filter(e => e.date === date);
-    if (!entries.length) { alert('Is date ki koi demand nahi hai!'); return; }
+    // Extra custom products used in entries
+    const extraPids = [];
+    entries.forEach(e => Object.keys(e.items||{}).forEach(pid => {
+      if (!FIXED_IDS.includes(String(pid)) && !extraPids.includes(String(pid))) extraPids.push(String(pid));
+    }));
+    const extraCols = extraPids.map(pid => {
+      const p = allProds.find(p => String(p.id) === pid);
+      if (p) return { id: pid, name: p.name, size: p.size||'', unit: 'Pack' };
+      let nameFromEntry = pid, sizeFromEntry = '';
+      entries.forEach(e => {
+        const item = (e.items||{})[pid];
+        if (item && item.name) { nameFromEntry = item.name; sizeFromEntry = item.size||''; }
+      });
+      return { id: pid, name: nameFromEntry, size: sizeFromEntry, unit: 'Pack' };
+    });
 
-    if (typeof XLSX === 'undefined') {
-      alert('Excel library load nahi hui. Internet connection check karo!'); return;
-    }
+    const PROD_COLS = [...FIXED_COLS, ...extraCols];
 
     const wb = XLSX.utils.book_new();
     const wsData = [];
