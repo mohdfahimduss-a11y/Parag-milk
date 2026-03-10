@@ -165,7 +165,7 @@
       <div id="extra-rows"></div>
 
       <div style="background:#FFF3E0;border:1px solid #F0D8A0;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:0.82rem;color:var(--brown);text-align:center;">
-        ⏰ Demand time: <strong>9:00 AM — 2:00 PM</strong>
+        
       </div>
       
       <button class="btn-submit" onclick="submitDemand()">✅ Demand Submit Karo</button>
@@ -361,18 +361,6 @@
   }
 
   function submitDemand() {
-    // Time check — sirf 9 AM to 2 PM
-    const now = new Date();
-    const hour = now.getHours();
-    const min = now.getMinutes();
-    const timeNow = hour * 60 + min;
-    const startTime = 9 * 60;   // 9:00 AM
-    const endTime = 14 * 60;    // 2:00 PM
-
-    if (timeNow < startTime || timeNow >= endTime) {
-      alert('⏰ Demand sirf 9:00 AM se 2:00 PM ke beech submit ho sakti hai!\n\nAbhi ka time: ' + now.toLocaleTimeString('hi-IN', {hour:'2-digit', minute:'2-digit'}));
-      return;
-    }
 
     const date = document.getElementById('d-date').value;
     const vehicle = document.getElementById('d-vehicle').value.trim().toUpperCase();

@@ -3063,7 +3063,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
             style="width:65px;padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--mono);font-size:0.85rem;background:var(--cream);">
         </td>
         <td>
-          <button class="btn btn-sm" style="background:#FFF3E0;color:var(--amber);border:1px solid #F0D8A0" onclick="openEditProduct('${p.id}')">✏️</button>
+          <button class="btn btn-sm" style="background:#FFF3E0;color:var(--amber);border:1px solid #F0D8A0" onclick="openEditProduct('${p.id}')">✏️ Edit</button>
         </td>
         <td>
           <button class="btn btn-sm" onclick="toggleActive('${p.id}')"
@@ -3071,7 +3071,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
             ${p.active===false?'❌ Off':'✅ On'}
           </button>
         </td>
-        <td>${!DEFAULT_PRODUCTS.find(dp => String(dp.id) === String(p.id)) ? `<button class="btn btn-danger btn-sm" onclick="delRecord('products',${JSON.stringify(p.id)})">✕</button>` : '-'}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">🗑️ Del</button></td>
       </tr>`).join('');
   }
 
@@ -3126,6 +3126,20 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     const panel = document.getElementById('edit-prod-panel');
     if (panel) panel.style.display = 'none';
     editingProductId = null;
+  }
+
+  function deleteProduct(id) {
+    const p = data.products.find(x => String(x.id) === String(id));
+    const isDefault = DEFAULT_PRODUCTS.find(dp => String(dp.id) === String(id));
+    const name = p ? p.name + ' ' + (p.size||'') : id;
+    if (isDefault) {
+      if (!confirm(`"${name}" ek default product hai.\nDelete karne par demand mein nahi dikhega.\nKya aap sure hain?`)) return;
+    } else {
+      if (!confirm(`"${name}" delete karein?`)) return;
+    }
+    data.products = (data.products||[]).filter(x => String(x.id) !== String(id));
+    saveData();
+    renderProducts();
   }
 
   function toggleActive(id) {
