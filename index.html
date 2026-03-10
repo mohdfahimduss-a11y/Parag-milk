@@ -376,6 +376,7 @@
           <input type="date" id="demand-view-date" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;"
             onchange="renderDemandSummaryPage(this.value)">
           <button class="btn btn-sm" style="background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;font-weight:700;" onclick="renderDemandSummaryPage(document.getElementById('demand-view-date').value||today())">🔄 Refresh</button>
+          <button class="btn btn-sm" style="background:#FFF9C4;color:#5D4037;border:1px solid #F9A825;font-weight:700;" onclick="debugDemandData()">🔍 Debug</button>
           <button class="btn btn-sm" style="background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;font-weight:700;" onclick="printMangPatra('vehicle')">🖨️ Mang Patra (Vehicle-wise)</button>
           <button class="btn btn-sm" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;font-weight:700;" onclick="printMangPatra('dist')">🖨️ Mang Patra (Dist-wise)</button>
         </div>
@@ -1152,10 +1153,9 @@
     const rowId = 'drow-' + demandRowCount;
     const options = allProds.map(p => `<option value="${p.id}" data-size="${p.size||''}" data-rate="${p.rate||0}" data-cat="${p.cat}">${p.name} ${p.size||''}</option>`).join('');
     const tr = document.createElement('tr');
-    tr.id = rowId;
     tr.style.borderBottom = '1px solid #F5EDE0';
     tr.innerHTML = `
-      <td style="padding:8px 12px;color:var(--muted);font-size:0.85rem;">${demandRowCount}</td>
+      <td id="${rowId}" style="padding:8px 12px;color:var(--muted);font-size:0.85rem;">${demandRowCount}</td>
       <td style="padding:8px 10px;">
         <select onchange="onDemandProductSelect(this, '${rowId}')"
           style="width:100%;min-width:140px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font);font-size:0.85rem;background:white;cursor:pointer;">
@@ -1245,8 +1245,8 @@
   }
 
   function removeDemandRow(rowId) {
-    const row = document.getElementById(rowId);
-    if (row) row.remove();
+    const td = document.getElementById(rowId);
+    if (td && td.parentElement) td.parentElement.remove();
   }
 
   function updateDistList() {
@@ -1283,13 +1283,34 @@
     const items = {};
     rows.forEach(row => {
       const sel = row.querySelector('select');
-      const inputs = row.querySelectorAll('input[type="number"]');
-      if (!sel || !inputs.length) return;
+      if (!sel || !sel.value) return;
       const pid = sel.value;
-      const kgltr  = parseFloat(inputs[0] ? inputs[0].value : 0) || 0;
-      const qty    = parseFloat(inputs[1] ? inputs[1].value : 0) || 0;
-      const crates = parseFloat(inputs[2] ? inputs[2].value : 0) || 0;
-      if (pid && qty > 0) {
+      // rowId is stored in the first td's id
+      const firstTd = row.querySelector('td[id^="drow-"]');
+      if (!firstTd) return;
+      const rowId = firstTd.id;
+      const kgltrEl  = document.getElementById(rowId + '-kgltr');
+      const qtyEl    = document.getElementById(rowId + '-qty');
+      const cratesEl = document.getElementById(rowId + '-crates');
+      const sizeEl   = document.getElementById(rowId + '-size');
+      const kgltr  = parseFloat(kgltrEl  ? kgltrEl.value  : 0) || 0;
+      const crates = parseFloat(cratesEl ? cratesEl.value : 0) || 0;
+
+      // Recalculate qty from kgltr + size (don't rely on readonly field)
+      let qty = parseFloat(qtyEl ? qtyEl.value : 0) || 0;
+      if (!qty && kgltr > 0 && sizeEl) {
+        const sizeText = sizeEl.textContent || '';
+        const match = sizeText.match(/([\d.]+)\s*(ML|LTR|KG|GM)/i);
+        if (match) {
+          let packSize = parseFloat(match[1]);
+          const unit = match[2].toUpperCase();
+          if (unit === 'ML') packSize = packSize / 1000;
+          if (unit === 'GM') packSize = packSize / 1000;
+          qty = Math.round(kgltr / packSize);
+        }
+      }
+
+      if (pid && (qty > 0 || kgltr > 0)) {
         items[pid] = { qty: (items[pid]?.qty || 0) + qty, crates, kgltr };
       }
     });
@@ -1351,6 +1372,25 @@
     formCard.style.border = '';
     document.getElementById('demand-edit-badge').style.display = 'none';
     renderDemandEntryGrid();
+  }
+
+  function debugDemandData() {
+    const date = document.getElementById('demand-view-date').value || today();
+    const entries = (data.demandEntries||[]).filter(e => e.date === date);
+    if (!entries.length) { alert('Koi demand nahi is date ki!'); return; }
+    let msg = `Date: ${date}\nTotal entries: ${entries.length}\n\n`;
+    entries.forEach(e => {
+      msg += `--- ${e.distName} ---\n`;
+      const itemCount = Object.keys(e.items||{}).length;
+      msg += `Products saved: ${itemCount}\n`;
+      Object.entries(e.items||{}).forEach(([pid, val]) => {
+        const qty = typeof val==='object' ? val.qty : val;
+        const kgltr = typeof val==='object' ? val.kgltr : 0;
+        msg += `  ${pid}: qty=${qty}, kgltr=${kgltr}\n`;
+      });
+      msg += '\n';
+    });
+    alert(msg);
   }
 
   function clearAllDemandToday() {
