@@ -2539,57 +2539,59 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     date = date || today();
     if (typeof XLSX === 'undefined') { alert('Excel library load nahi hui!'); return; }
 
-    const allProds = getAllProductsForExport();
     const entries = (data.demandEntries||[]).filter(e => e.date === date);
     if (!entries.length) { alert('Koi demand nahi is date ki!'); return; }
 
-    // Fixed product columns — same order as image
-    const FIXED_IDS = ['fcm500','fcm1l','fcm6l','std500','std1l','std350','ton500','ton1l','ton6l','matka5','matka15','chhach300','curd200','dahi140','kheer90','paneer1kg','ghee1l','butter500'];
-    const FIXED_COLS = [
-      { id:'fcm500',    name:'FCM',        size:'500 ML', unit:'Ltr' },
-      { id:'fcm1l',     name:'FCM',        size:'1 LTR',  unit:'Ltr' },
-      { id:'fcm6l',     name:'FCM',        size:'6 LTR',  unit:'Ltr' },
-      { id:'std500',    name:'STD',        size:'500 ML', unit:'Ltr' },
-      { id:'std1l',     name:'STD',        size:'1 LTR',  unit:'Ltr' },
-      { id:'std350',    name:'COW MILK',   size:'350 ML', unit:'Ltr' },
-      { id:'ton500',    name:'TOND',       size:'500 ML', unit:'Ltr' },
-      { id:'ton1l',     name:'TOND',       size:'1 LTR',  unit:'Ltr' },
-      { id:'ton6l',     name:'TOND',       size:'6 LTR',  unit:'Ltr' },
-      { id:'matka5',    name:'DAHI MATKA', size:'5 KG',   unit:'Kg'  },
-      { id:'matka15',   name:'DAHI MATKA', size:'15 KG',  unit:'Kg'  },
-      { id:'chhach300', name:'CHHACH',     size:'300 ML', unit:'Pack'},
-      { id:'curd200',   name:'P. CURD',    size:'200 GM', unit:'Pack'},
-      { id:'dahi140',   name:'DAHI PACK',  size:'140 GM', unit:'Pack'},
-      { id:'kheer90',   name:'P. KHEER',   size:'90 GM',  unit:'Pack'},
-      { id:'paneer1kg', name:'PANEER',     size:'1 KG',   unit:'Kg'  },
-      { id:'ghee1l',    name:'GHEE',       size:'1 LTR',  unit:'Ltr' },
-      { id:'butter500', name:'BUTTER',     size:'500 GM', unit:'Kg'  },
-    ];
-
-    // Collect extra (timestamp/custom) product IDs used in entries
-    const extraPids = [];
-    entries.forEach(e => Object.keys(e.items||{}).forEach(pid => {
-      if (!FIXED_IDS.includes(String(pid)) && !extraPids.includes(String(pid))) extraPids.push(String(pid));
-    }));
-    const extraCols = extraPids.map(pid => {
-      // 1. Try allProds (merged list)
-      const p = allProds.find(p => String(p.id) === pid);
-      if (p && p.name) return { id: pid, name: p.name, size: p.size||'', unit: 'Pack' };
-      // 2. Try findProductById (all data.products)
-      const p2 = findProductById(pid);
-      if (p2 && p2.name) return { id: pid, name: p2.name, size: p2.size||'', unit: 'Pack' };
-      // 3. Try name saved inside demand entry items
-      let nameFromEntry = '', sizeFromEntry = '';
-      entries.forEach(e => {
-        const item = (e.items||{})[pid];
-        if (item && item.name) { nameFromEntry = item.name; sizeFromEntry = item.size||''; }
+    // Step 1: Collect ALL unique product IDs actually used in entries
+    const usedPidSet = {};
+    entries.forEach(e => {
+      Object.entries(e.items||{}).forEach(([pid, val]) => {
+        if (!usedPidSet[pid]) {
+          // Try to get name from multiple sources
+          let name = '', size = '';
+          // Source 1: saved inside item data
+          if (typeof val === 'object' && val.name) { name = val.name; size = val.size||''; }
+          // Source 2: data.products
+          if (!name) {
+            const p = (data.products||[]).find(p => String(p.id) === String(pid));
+            if (p) { name = p.name; size = p.size||''; }
+          }
+          // Source 3: DEFAULT_PRODUCTS
+          if (!name) {
+            const dp = DEFAULT_PRODUCTS.find(p => String(p.id) === String(pid));
+            if (dp) { name = dp.name; size = dp.size||''; }
+          }
+          // Source 4: fallback
+          if (!name) name = pid;
+          usedPidSet[pid] = { id: pid, name, size, unit: 'Pack' };
+        }
       });
-      if (nameFromEntry) return { id: pid, name: nameFromEntry, size: sizeFromEntry, unit: 'Pack' };
-      // 4. Fallback: show pid as name
-      return { id: pid, name: String(pid), size: '', unit: 'Pack' };
     });
 
-    const PROD_COLS = [...FIXED_COLS, ...extraCols];
+    // Step 2: Fixed order for known products, then extras
+    const FIXED_ORDER = ['fcm500','fcm1l','fcm6l','std500','std1l','std350','ton500','ton1l','ton6l','matka5','matka15','chhach300','curd200','dahi140','kheer90','paneer1kg','ghee1l','butter500'];
+    const FIXED_META = {
+      fcm500:{name:'FCM',size:'500 ML',unit:'Ltr'}, fcm1l:{name:'FCM',size:'1 LTR',unit:'Ltr'},
+      fcm6l:{name:'FCM',size:'6 LTR',unit:'Ltr'}, std500:{name:'STD',size:'500 ML',unit:'Ltr'},
+      std1l:{name:'STD',size:'1 LTR',unit:'Ltr'}, std350:{name:'COW MILK',size:'350 ML',unit:'Ltr'},
+      ton500:{name:'TOND',size:'500 ML',unit:'Ltr'}, ton1l:{name:'TOND',size:'1 LTR',unit:'Ltr'},
+      ton6l:{name:'TOND',size:'6 LTR',unit:'Ltr'}, matka5:{name:'DAHI MATKA',size:'5 KG',unit:'Kg'},
+      matka15:{name:'DAHI MATKA',size:'15 KG',unit:'Kg'}, chhach300:{name:'CHHACH',size:'300 ML',unit:'Pack'},
+      curd200:{name:'P. CURD',size:'200 GM',unit:'Pack'}, dahi140:{name:'DAHI PACK',size:'140 GM',unit:'Pack'},
+      kheer90:{name:'P. KHEER',size:'90 GM',unit:'Pack'}, paneer1kg:{name:'PANEER',size:'1 KG',unit:'Kg'},
+      ghee1l:{name:'GHEE',size:'1 LTR',unit:'Ltr'}, butter500:{name:'BUTTER',size:'500 GM',unit:'Kg'},
+    };
+
+    const PROD_COLS = [];
+    // Add fixed products that are actually used
+    FIXED_ORDER.forEach(id => {
+      if (usedPidSet[id]) {
+        PROD_COLS.push({ id, ...FIXED_META[id] });
+        delete usedPidSet[id];
+      }
+    });
+    // Add remaining (custom/timestamp) products
+    Object.values(usedPidSet).forEach(p => PROD_COLS.push(p));
 
     const wb = XLSX.utils.book_new();
     const wsData = [];
@@ -2688,53 +2690,41 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     const date = document.getElementById('demand-view-date') ?
                  document.getElementById('demand-view-date').value || today() : today();
 
-    const allProds = getAllProductsForExport();
     const entries = (data.demandEntries||[]).filter(e => e.date === date);
     if (!entries.length) { alert('Is date ki koi demand nahi hai!'); return; }
     if (typeof XLSX === 'undefined') { alert('Excel library load nahi hui. Internet connection check karo!'); return; }
 
-    const FIXED_IDS = ['fcm500','fcm1l','fcm6l','std500','std1l','std350','ton500','ton1l','ton6l','matka5','matka15','chhach300','curd200','dahi140','kheer90','paneer1kg','ghee1l','butter500'];
-    const FIXED_COLS = [
-      { id:'fcm500',    name:'FCM',         size:'500 ML',  unit:'Ltr' },
-      { id:'fcm1l',     name:'FCM',         size:'1 LTR',   unit:'Ltr' },
-      { id:'fcm6l',     name:'FCM',         size:'6 LTR',   unit:'Ltr' },
-      { id:'std500',    name:'STD',         size:'500 ML',  unit:'Ltr' },
-      { id:'std1l',     name:'STD',         size:'1 LTR',   unit:'Ltr' },
-      { id:'std350',    name:'COW MILK',    size:'350 ML',  unit:'Ltr' },
-      { id:'ton500',    name:'TOND',        size:'500 ML',  unit:'Ltr' },
-      { id:'ton1l',     name:'TOND',        size:'1 LTR',   unit:'Ltr' },
-      { id:'ton6l',     name:'TOND',        size:'6 LTR',   unit:'Ltr' },
-      { id:'matka5',    name:'DAHI MATKA',  size:'5 KG',    unit:'Kg' },
-      { id:'matka15',   name:'DAHI MATKA',  size:'15 KG',   unit:'Kg' },
-      { id:'chhach300', name:'CHHACH',      size:'300 ML',  unit:'Pack' },
-      { id:'curd200',   name:'P. CURD',     size:'200 GM',  unit:'Pack' },
-      { id:'dahi140',   name:'DAHI PACK',   size:'140 GM',  unit:'Pack' },
-      { id:'kheer90',   name:'P. KHEER',    size:'90 GM',   unit:'Pack' },
-      { id:'paneer1kg', name:'PANEER',      size:'1 KG',    unit:'Kg' },
-      { id:'ghee1l',    name:'GHEE',        size:'1 LTR',   unit:'Ltr' },
-      { id:'butter500', name:'BUTTER',      size:'500 GM',  unit:'Kg' },
-    ];
-
-    // Extra custom products used in entries
-    const extraPids = [];
-    entries.forEach(e => Object.keys(e.items||{}).forEach(pid => {
-      if (!FIXED_IDS.includes(String(pid)) && !extraPids.includes(String(pid))) extraPids.push(String(pid));
-    }));
-    const extraCols = extraPids.map(pid => {
-      const p = allProds.find(p => String(p.id) === pid);
-      if (p && p.name) return { id: pid, name: p.name, size: p.size||'', unit: 'Pack' };
-      const p2 = findProductById(pid);
-      if (p2 && p2.name) return { id: pid, name: p2.name, size: p2.size||'', unit: 'Pack' };
-      let nameFromEntry = '', sizeFromEntry = '';
-      entries.forEach(e => {
-        const item = (e.items||{})[pid];
-        if (item && item.name) { nameFromEntry = item.name; sizeFromEntry = item.size||''; }
+    // Collect ALL unique product IDs from entries with name lookup
+    const usedPidSet = {};
+    entries.forEach(e => {
+      Object.entries(e.items||{}).forEach(([pid, val]) => {
+        if (!usedPidSet[pid]) {
+          let name = '', size = '';
+          if (typeof val === 'object' && val.name) { name = val.name; size = val.size||''; }
+          if (!name) { const p = (data.products||[]).find(p => String(p.id) === String(pid)); if (p) { name = p.name; size = p.size||''; } }
+          if (!name) { const dp = DEFAULT_PRODUCTS.find(p => String(p.id) === String(pid)); if (dp) { name = dp.name; size = dp.size||''; } }
+          if (!name) name = pid;
+          usedPidSet[pid] = { id: pid, name, size, unit: 'Pack' };
+        }
       });
-      if (nameFromEntry) return { id: pid, name: nameFromEntry, size: sizeFromEntry, unit: 'Pack' };
-      return { id: pid, name: String(pid), size: '', unit: 'Pack' };
     });
 
-    const PROD_COLS = [...FIXED_COLS, ...extraCols];
+    const FIXED_ORDER = ['fcm500','fcm1l','fcm6l','std500','std1l','std350','ton500','ton1l','ton6l','matka5','matka15','chhach300','curd200','dahi140','kheer90','paneer1kg','ghee1l','butter500'];
+    const FIXED_META = {
+      fcm500:{name:'FCM',size:'500 ML',unit:'Ltr'}, fcm1l:{name:'FCM',size:'1 LTR',unit:'Ltr'},
+      fcm6l:{name:'FCM',size:'6 LTR',unit:'Ltr'}, std500:{name:'STD',size:'500 ML',unit:'Ltr'},
+      std1l:{name:'STD',size:'1 LTR',unit:'Ltr'}, std350:{name:'COW MILK',size:'350 ML',unit:'Ltr'},
+      ton500:{name:'TOND',size:'500 ML',unit:'Ltr'}, ton1l:{name:'TOND',size:'1 LTR',unit:'Ltr'},
+      ton6l:{name:'TOND',size:'6 LTR',unit:'Ltr'}, matka5:{name:'DAHI MATKA',size:'5 KG',unit:'Kg'},
+      matka15:{name:'DAHI MATKA',size:'15 KG',unit:'Kg'}, chhach300:{name:'CHHACH',size:'300 ML',unit:'Pack'},
+      curd200:{name:'P. CURD',size:'200 GM',unit:'Pack'}, dahi140:{name:'DAHI PACK',size:'140 GM',unit:'Pack'},
+      kheer90:{name:'P. KHEER',size:'90 GM',unit:'Pack'}, paneer1kg:{name:'PANEER',size:'1 KG',unit:'Kg'},
+      ghee1l:{name:'GHEE',size:'1 LTR',unit:'Ltr'}, butter500:{name:'BUTTER',size:'500 GM',unit:'Kg'},
+    };
+
+    const PROD_COLS = [];
+    FIXED_ORDER.forEach(id => { if (usedPidSet[id]) { PROD_COLS.push({ id, ...FIXED_META[id] }); delete usedPidSet[id]; } });
+    Object.values(usedPidSet).forEach(p => PROD_COLS.push(p));
 
     const wb = XLSX.utils.book_new();
     const wsData = [];
