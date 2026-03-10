@@ -1114,7 +1114,7 @@
   // Delete
   function delRecord(type, id) {
     if (!confirm('Delete this record?')) return;
-    data[type] = data[type].filter(r => r.id !== id);
+    data[type] = data[type].filter(r => String(r.id) !== String(id));
     saveData();
     if (type === 'production') renderProduction();
     if (type === 'sales') renderSales();
