@@ -3070,7 +3070,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
             ${p.active===false?'❌ Off':'✅ On'}
           </button>
         </td>
-        <td>${p.custom ? `<button class="btn btn-danger btn-sm" onclick="delRecord('products',${p.id})">✕</button>` : '-'}</td>
+        <td>${(p.custom || !DEFAULT_PRODUCTS.find(dp => String(dp.id) === String(p.id))) ? `<button class="btn btn-danger btn-sm" onclick="delRecord('products',${p.id})">✕</button>` : '-'}</td>
       </tr>`).join('');
   }
 
