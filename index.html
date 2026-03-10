@@ -845,7 +845,6 @@
       const val = snap.val();
       if (val) {
         data = { ...data, ...val };
-        data.products = (data.products||[]).filter(p => String(p.id) !== 'std350');
         updateDashboard();
         renderProducts();
         renderSales();
@@ -1131,8 +1130,8 @@
       return saved ? saved : { ...dp, rate: 0 };
     });
     const customs = data.products.filter(p => p.custom);
-    // Filter out inactive products
-    return [...defaults.filter(p => p.rate > 0 && p.active !== false), ...customs.filter(p => p.active !== false)];
+    // Filter out only inactive products (rate 0 wale bhi dikhao)
+    return [...defaults.filter(p => p.active !== false), ...customs.filter(p => p.active !== false)];
   }
 
   // For exports — include ALL products regardless of rate
@@ -3014,6 +3013,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     { id: 'fcm500',    name: 'F.C.M.',      size: '500 ML',   cat: 'Milk' },
     { id: 'fcm1l',     name: 'F.C.M.',      size: '01 LTR',   cat: 'Milk' },
     { id: 'fcm6l',     name: 'F.C.M.',      size: '06 LTR',   cat: 'Milk' },
+    { id: 'std350',    name: 'COW MILK',    size: '350 ML',   cat: 'Milk' },
     { id: 'std500',    name: 'STD MILK',    size: '500 ML',   cat: 'Milk' },
     { id: 'std1l',     name: 'STD MILK',    size: '01 LTR',   cat: 'Milk' },
     { id: 'ton500',    name: 'TONED',       size: '500 ML',   cat: 'Milk' },
