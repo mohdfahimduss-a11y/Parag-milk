@@ -1286,9 +1286,9 @@
       const inputs = row.querySelectorAll('input[type="number"]');
       if (!sel || !inputs.length) return;
       const pid = sel.value;
-      const qty = parseFloat(inputs[0].value) || 0;
-      const crates = parseFloat(inputs[1] ? inputs[1].value : 0) || 0;
-      const kgltr = parseFloat(inputs[2] ? inputs[2].value : 0) || 0;
+      const kgltr  = parseFloat(inputs[0] ? inputs[0].value : 0) || 0;
+      const qty    = parseFloat(inputs[1] ? inputs[1].value : 0) || 0;
+      const crates = parseFloat(inputs[2] ? inputs[2].value : 0) || 0;
       if (pid && qty > 0) {
         items[pid] = { qty: (items[pid]?.qty || 0) + qty, crates, kgltr };
       }
