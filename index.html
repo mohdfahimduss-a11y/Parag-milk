@@ -831,10 +831,6 @@
         data.customers = DEFAULT_CUSTOMERS;
         saveData();
       }
-      // Permanently remove COW MILK (std350) from products
-      const before = (data.products||[]).length;
-      data.products = (data.products||[]).filter(p => String(p.id) !== 'std350');
-      if (data.products.length !== before) saveData();
 
       renderSales();
       renderCustomers();
