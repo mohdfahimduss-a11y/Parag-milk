@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Parag Milk - Demand Entry</title>
+<title>Parag Milk - Demand</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   :root {
@@ -20,176 +20,164 @@
 
   .header {
     background: linear-gradient(135deg, var(--brown), #6B3A10);
-    color: white;
-    padding: 16px 20px;
-    text-align: center;
+    color: white; padding: 14px 20px; text-align: center;
   }
-  .header h1 { font-size: 1.3rem; font-weight: 800; }
-  .header p { font-size: 0.8rem; opacity: 0.75; margin-top: 4px; }
+  .header h1 { font-size: 1.2rem; font-weight: 800; }
 
-  .main { max-width: 500px; margin: 0 auto; padding: 16px; }
+  .main { max-width: 480px; margin: 0 auto; padding: 14px; }
 
   .card {
-    background: white;
-    border-radius: 14px;
-    border: 1.5px solid var(--border);
-    padding: 18px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 8px rgba(61,31,0,0.06);
+    background: white; border-radius: 14px;
+    border: 1.5px solid var(--border); padding: 16px;
+    margin-bottom: 14px; box-shadow: 0 2px 8px rgba(61,31,0,0.06);
   }
-  .card h3 { font-size: 1rem; font-weight: 800; color: var(--brown); margin-bottom: 14px; }
 
-  label { font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px; }
+  label {
+    font-size: 0.75rem; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: block; margin-bottom: 5px;
+  }
 
-  select, input {
-    width: 100%;
-    padding: 11px 14px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    font-size: 0.9rem;
-    background: var(--cream);
-    color: var(--brown);
-    font-family: var(--font);
-    margin-bottom: 14px;
+  select, input[type="text"], input[type="date"], input[type="number"] {
+    width: 100%; padding: 10px 13px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 0.9rem; background: var(--cream);
+    color: var(--brown); font-family: var(--font); margin-bottom: 12px;
   }
   select:focus, input:focus { outline: none; border-color: var(--orange); }
 
+  .btn {
+    width: 100%; padding: 13px; border: none; border-radius: 10px;
+    font-size: 0.95rem; font-weight: 800; cursor: pointer;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--brown), #6B3A10); color: white; }
+  .btn-orange  { background: var(--orange); color: white; }
+  .btn-blue    { background: #1A5FAB; color: white; }
+  .btn:active  { opacity: 0.85; }
+  .btn + .btn  { margin-top: 8px; }
+
   .prod-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    margin-bottom: 8px;
-    background: var(--cream);
+    border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 10px; margin-bottom: 8px; background: var(--cream);
   }
-  .prod-info { flex: 1; }
-  .prod-name { font-weight: 700; font-size: 0.88rem; color: var(--brown); }
-  .prod-size { font-size: 0.75rem; color: var(--muted); }
   .qty-input {
-    width: 80px;
-    padding: 8px;
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    font-size: 0.9rem;
-    text-align: center;
-    margin-bottom: 0;
-    background: white;
+    padding: 8px; text-align: center;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 0.9rem; margin-bottom: 0; background: white;
   }
-  .qty-input:focus { outline: none; border-color: var(--orange); }
 
-  .btn-submit {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, var(--brown), #6B3A10);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 800;
-    cursor: pointer;
-    margin-top: 8px;
+  .info-bar {
+    background: var(--brown); color: white; border-radius: 12px;
+    padding: 11px 14px; margin-bottom: 12px;
+    display: flex; justify-content: space-between; align-items: center;
   }
-  .btn-submit:active { opacity: 0.85; }
 
-  .success-screen {
-    display: none;
-    text-align: center;
-    padding: 40px 20px;
-  }
-  .success-screen .emoji { font-size: 4rem; }
-  .success-screen h2 { font-size: 1.4rem; font-weight: 800; color: var(--green); margin: 12px 0 8px; }
-  .success-screen p { color: var(--muted); font-size: 0.9rem; }
-  .btn-new { display: inline-block; margin-top: 20px; padding: 12px 28px; background: var(--orange); color: white; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+  .success-screen { display:none; text-align:center; padding:36px 20px; }
+  .success-screen .emoji { font-size: 3.5rem; }
+  .success-screen h2 { font-size: 1.3rem; font-weight: 800; color: var(--green); margin: 10px 0 6px; }
+  .success-screen p { color: var(--muted); font-size: 0.88rem; }
 
   #loading { text-align: center; padding: 30px; color: var(--muted); }
-  .badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:0.7rem; font-weight:700; background:#FFF3E0; color:var(--orange); margin-left:4px; }
 </style>
 </head>
 <body>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
 <div class="header">
   <h1>🥛 Parag Milk</h1>
-  <p>Apni daily demand yahan daalo</p>
 </div>
 
 <div class="main">
 
-  <div id="loading" style="display:none;">⏳ Loading...</div>
+  <div id="loading" style="text-align:center;padding:50px 20px;display:none;">
+    <div style="font-size:2rem;margin-bottom:10px;">🥛</div>
+    <div style="color:var(--muted);font-size:0.9rem;">Loading...</div>
+  </div>
 
-  <!-- Step 1: Login with Code -->
-  <div id="login-step" class="card">
-    <h3>🔐 Apna Code Daalo</h3>
-    <p style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">Apna distributor code daalo — sirf aapki demand dikhegi</p>
+  <!-- Login -->
+  <div id="login-step" class="card" style="display:none;">
     <label>Distributor Code</label>
-    <input type="text" id="login-code" placeholder="e.g. 0177, D001" style="text-transform:uppercase;">
+    <input type="text" id="login-code" placeholder="e.g. 0177" style="text-transform:uppercase;">
     <label>Vehicle Number</label>
     <input type="text" id="login-vehicle" placeholder="e.g. UP32 AB 1234" style="text-transform:uppercase;">
-    <button onclick="verifyCode()" style="width:100%;padding:13px;background:var(--brown);color:white;border:none;border-radius:10px;font-size:1rem;font-weight:800;cursor:pointer;">🔓 Login</button>
+    <button class="btn btn-primary" onclick="verifyCode()">🔓 Login</button>
     <p id="login-error" style="color:var(--red);font-size:0.82rem;text-align:center;margin-top:8px;display:none;"></p>
   </div>
 
+  <!-- Demand Form -->
   <div id="demand-form" style="display:none;">
-    <!-- Logged in info bar -->
-    <div style="background:var(--brown);color:white;border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+
+    <div class="info-bar">
       <div>
-        <div style="font-weight:800;font-size:0.95rem;" id="logged-dist-name"></div>
-        <div style="font-size:0.75rem;opacity:0.75;" id="logged-dist-info"></div>
+        <div style="font-weight:800;font-size:0.92rem;" id="logged-dist-name"></div>
+        <div style="font-size:0.72rem;opacity:0.7;" id="logged-dist-info"></div>
       </div>
-      <button onclick="logoutDist()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.8rem;cursor:pointer;">🚪 Logout</button>
+      <button onclick="logoutDist()" style="background:rgba(255,255,255,0.18);color:white;border:none;border-radius:8px;padding:5px 11px;font-size:0.78rem;cursor:pointer;">🚪 Logout</button>
     </div>
 
     <div class="card">
-      <h3>📋 Demand Form</h3>
-      <label>Aaj Ki Taareekh</label>
+      <label>Taareekh</label>
       <input type="date" id="d-date">
       <label>Vehicle Number</label>
       <input type="text" id="d-vehicle" placeholder="Vehicle Number" style="text-transform:uppercase;">
-      <!-- View Previous Demand Button -->
-      <button onclick="viewMyDemand()" style="width:100%;padding:11px;background:#1A5FAB;color:white;border:none;border-radius:10px;font-size:0.88rem;font-weight:700;cursor:pointer;margin-top:4px;">👁️ Apni Purani Demand Dekho</button>
+      <button class="btn btn-orange" onclick="addDemandRow()">➕ Add Demand</button>
     </div>
 
     <div class="card" id="products-card">
-      <h3>🥛 Products — Quantity Daalo</h3>
-      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">Sirf jo chahiye uska quantity daalo, baaki 0 rehne do</p>
-      
-      <!-- Add Row Button - TOP -->
-      <button onclick="addDemandRow()" style="width:100%;padding:13px;background:#C97A2A;color:white;border:none;border-radius:10px;font-size:0.95rem;font-weight:800;cursor:pointer;margin-bottom:14px;">➕ Product Row Add Karo</button>
-      
-      <!-- Extra rows at top -->
       <div id="extra-rows"></div>
 
-      <div style="background:#FFF3E0;border:1px solid #F0D8A0;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:0.82rem;color:var(--brown);text-align:center;">
-        
+      <label style="margin-top:4px;">💰 Deposit Amount (₹)</label>
+      <input type="number" id="d-deposit" placeholder="0.00" min="0" step="0.01" oninput="calcBalance()">
+
+      <!-- Balance (auto shows) -->
+      <div id="balance-bar" style="display:none;background:#F0F4FF;border:1.5px solid #C0D0F0;border-radius:10px;padding:10px 13px;margin-bottom:12px;font-size:0.82rem;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+          <span style="color:var(--muted);">🧾 Total</span>
+          <strong id="bal-total" style="color:var(--brown);"></strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="color:var(--muted);">💰 Deposit</span>
+          <strong id="bal-deposit" style="color:#1A5FAB;"></strong>
+        </div>
+        <div style="border-top:1px solid #C0D0F0;padding-top:6px;display:flex;justify-content:space-between;">
+          <span id="bal-label" style="font-weight:700;font-size:0.85rem;"></span>
+          <strong id="bal-balance" style="font-size:0.95rem;"></strong>
+        </div>
       </div>
-      
-      <button class="btn-submit" onclick="submitDemand()">✅ Demand Submit Karo</button>
+
+      <button class="btn btn-primary" onclick="submitDemand()">✅ Submit Demand</button>
+      <button class="btn btn-blue" onclick="viewMyDemand()">👁️ Purani Demand Dekho</button>
+    </div>
+
+    <!-- Monthly Excel Report -->
+    <div class="card">
+      <label>📊 Monthly Excel Report</label>
+      <input type="month" id="report-month" style="margin-bottom:10px;">
+      <button class="btn btn-blue" onclick="downloadMonthlyReport()">📥 Download 1–31 Excel</button>
     </div>
   </div>
 
-  <!-- View Demand Screen -->
+  <!-- View Demand -->
   <div id="view-demand-screen" style="display:none;">
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <h3 style="margin-bottom:0;">👁️ Meri Demand</h3>
-        <button onclick="closeViewDemand()" style="background:var(--red);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.82rem;font-weight:700;cursor:pointer;">✕ Band Karo</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <strong style="color:var(--brown);font-size:0.95rem;">👁️ Meri Demand</strong>
+        <button onclick="closeViewDemand()" style="background:var(--red);color:white;border:none;border-radius:8px;padding:5px 11px;font-size:0.8rem;cursor:pointer;">✕ Band Karo</button>
       </div>
       <div id="view-demand-content"></div>
     </div>
   </div>
 
+  <!-- Success -->
   <div class="success-screen" id="success-screen">
     <div class="emoji">🎉</div>
     <h2>Demand Submit Ho Gayi!</h2>
-    <p id="success-msg">Aapki demand successfully register ho gayi hai.</p>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
-      <button class="btn-new" onclick="viewMyDemandFromSuccess()">👁️ Apni Demand Dekho</button>
-      <button class="btn-new" onclick="resetForm()" style="background:var(--brown);">+ Nayi Demand</button>
+    <p id="success-msg"></p>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;">
+      <button class="btn btn-blue" onclick="viewMyDemandFromSuccess()">👁️ Demand Dekho</button>
+      <button class="btn btn-primary" onclick="resetForm()">+ Nayi Demand</button>
     </div>
   </div>
 
@@ -210,239 +198,196 @@
   const db = firebase.database();
   const dbRef = db.ref('sharedData');
 
+  // Show loading immediately
+  document.getElementById('loading').style.display = 'block';
+
   let extraRowCount = 0;
-
-  function addDemandRow() {
-    extraRowCount++;
-    const rowId = 'extra-' + extraRowCount;
-    const options = allProds.map(p =>
-      `<option value="${p.id}" data-rate="${p.rate||0}">${p.name} ${p.size||''}</option>`
-    ).join('');
-    const div = document.createElement('div');
-    div.id = rowId;
-    div.className = 'prod-row';
-    div.style.marginBottom = '8px';
-    div.innerHTML = `
-      <div style="flex:1;">
-        <select id="${rowId}-sel" onchange="updateExtraRate('${rowId}')"
-          style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;background:white;color:var(--brown);">
-          <option value="">-- Product Select --</option>
-          ${options}
-        </select>
-        <div id="${rowId}-rate" style="font-size:0.75rem;color:var(--muted);margin-top:3px;"></div>
-      </div>
-      <input type="number" id="${rowId}-qty" class="qty-input" placeholder="Qty" min="0">
-      <button onclick="removeRow('${rowId}')"
-        style="background:var(--red);color:white;border:none;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:0.85rem;">✕</button>
-    `;
-    document.getElementById('extra-rows').appendChild(div);
-  }
-
-  function updateExtraRate(rowId) {
-    const sel = document.getElementById(rowId + '-sel');
-    const opt = sel.options[sel.selectedIndex];
-    const pid = opt.value;
-    const dist = currentDist;
-    let rate = opt.dataset.rate || 0;
-    if (dist && dist.productRates && dist.productRates[pid]) rate = dist.productRates[pid];
-    const rateEl = document.getElementById(rowId + '-rate');
-    rateEl.textContent = rate ? 'Rate: ₹' + rate : '';
-  }
-
-  function removeRow(rowId) {
-    const el = document.getElementById(rowId);
-    if (el) el.remove();
-  }
-
-  // Today's date
-  function today() {
-    return new Date().toISOString().split('T')[0];
-  }
-
   let appData = {};
   let allProds = [];
   let currentDist = null;
 
-  // Load data on start
+  function today() { return new Date().toISOString().split('T')[0]; }
+
   dbRef.once('value').then(snap => {
     appData = snap.val() || {};
-
-    // 30 din purani demand auto delete
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const cutoffDate = thirtyDaysAgo.toISOString().split('T')[0];
-    if (appData.demandEntries && appData.demandEntries.length) {
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+    const cutoffDate = cutoff.toISOString().split('T')[0];
+    if (appData.demandEntries) {
       const before = appData.demandEntries.length;
       appData.demandEntries = appData.demandEntries.filter(e => e.date >= cutoffDate);
-      if (appData.demandEntries.length < before) {
-        dbRef.set(appData); // Save cleaned data
-      }
+      if (appData.demandEntries.length < before) dbRef.set(appData);
     }
+    allProds = (appData.products || []).filter(p => p.active !== false && p.rate > 0);
+    showLogin();
+  }).catch(() => showLogin());
+  setTimeout(showLogin, 5000);
 
-    allProds = (appData.products || []).filter(p => p.active !== false);
+  function showLogin() {
+    if (showLogin.done) return;
+    showLogin.done = true;
     document.getElementById('loading').style.display = 'none';
     document.getElementById('login-step').style.display = 'block';
-  }).catch(e => {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('login-step').style.display = 'block';
-  });
-
-  // Timeout - 5 sec mein load na ho toh bhi show karo
-  setTimeout(() => {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('login-step').style.display = 'block';
-  }, 5000);
+  }
 
   function verifyCode() {
     const code = document.getElementById('login-code').value.trim().toUpperCase();
     const vehicle = document.getElementById('login-vehicle').value.trim().toUpperCase();
     const errEl = document.getElementById('login-error');
-
     if (!code) { errEl.textContent = 'Code daalo!'; errEl.style.display = 'block'; return; }
-
-    // Find distributor by code
-    const dist = (appData.customers || []).find(c =>
-      c.code && c.code.toString().toUpperCase() === code
-    );
-
-    if (!dist) {
-      errEl.textContent = '❌ Code galat hai! Admin se contact karo.';
-      errEl.style.display = 'block';
-      return;
-    }
-
-    // Login successful
+    const dist = (appData.customers || []).find(c => c.code && c.code.toString().toUpperCase() === code);
+    if (!dist) { errEl.textContent = '❌ Code galat hai!'; errEl.style.display = 'block'; return; }
     currentDist = dist;
     errEl.style.display = 'none';
     document.getElementById('login-step').style.display = 'none';
     document.getElementById('demand-form').style.display = 'block';
-
-    // Set info bar
     document.getElementById('logged-dist-name').textContent = '🏪 ' + dist.name;
-    document.getElementById('logged-dist-info').textContent = 'Code: ' + dist.code + (vehicle ? ' | Vehicle: ' + vehicle : '');
-
-    // Set date and vehicle
+    document.getElementById('logged-dist-info').textContent = 'Code: ' + dist.code + (vehicle ? ' | ' + vehicle : '');
     document.getElementById('d-date').value = today();
     if (vehicle) document.getElementById('d-vehicle').value = vehicle;
-
-    // Load products
-    loadProducts(dist.name);
   }
 
   function logoutDist() {
     currentDist = null;
-    document.getElementById('demand-form').style.display = 'none';
+    ['demand-form','view-demand-screen','success-screen'].forEach(id =>
+      document.getElementById(id).style.display = 'none');
     document.getElementById('login-step').style.display = 'block';
     document.getElementById('login-code').value = '';
     document.getElementById('login-vehicle').value = '';
-    document.getElementById('view-demand-screen').style.display = 'none';
-    document.getElementById('success-screen').style.display = 'none';
   }
 
-  function loadProducts(distName) {
-    const dist = (appData.customers || []).find(c => c.name === distName);
-    const prodList = document.getElementById('prod-list');
-
-    if (!allProds.length) {
-      prodList.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">Koi product nahi mila. Admin se contact karo.</p>';
-      return;
+  function addDemandRow() {
+    const date = document.getElementById('d-date').value || today();
+    const distName = currentDist ? currentDist.name : '';
+    const existing = (appData.demandEntries||[]).find(e => e.date === date && e.distName === distName);
+    if (existing && document.getElementById('extra-rows').children.length === 0) {
+      if (!confirm(`⚠️ ${distName} ki ${date} ki demand already hai!\nPhir bhi add karein?`)) return;
     }
+    extraRowCount++;
+    const rowId = 'extra-' + extraRowCount;
+    const div = document.createElement('div');
+    div.id = rowId;
+    div.className = 'prod-row';
+    div.innerHTML = `
+      <div style="margin-bottom:6px;">
+  
+        <select id="${rowId}-sel" onchange="updateRate('${rowId}')"
+          style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;background:white;color:var(--brown);">
+          <option value="">-- Product --</option>
+          ${allProds.map(p=>`<option value="${p.id}" data-rate="${p.rate||0}">${p.name}${p.size?' '+p.size:''}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="number" id="${rowId}-qty" class="qty-input" placeholder="Qty" min="0"
+          oninput="updateRate('${rowId}');calcBalance();"
+          style="flex:1;width:auto;margin-bottom:0;">
+        <div id="${rowId}-amount" style="flex:1;text-align:right;font-weight:800;color:var(--green);font-size:0.88rem;"></div>
+        <button onclick="removeRow('${rowId}');calcBalance();"
+          style="background:var(--red);color:white;border:none;border-radius:8px;padding:7px 11px;cursor:pointer;font-size:0.82rem;">✕</button>
+      </div>
+      <div id="${rowId}-rateinfo" style="font-size:0.75rem;color:var(--muted);margin-top:3px;"></div>
+    `;
+    document.getElementById('extra-rows').appendChild(div);
+  }
 
-    prodList.innerHTML = allProds.map(p => {
-      const distRate = dist && dist.productRates && dist.productRates[p.id] ? dist.productRates[p.id] : (p.rate || '');
-      return `<div class="prod-row">
-        <div class="prod-info">
-          <div class="prod-name">${p.name} <span class="badge">${p.size || ''}</span></div>
-          ${distRate ? `<div class="prod-size">Rate: ₹${distRate}</div>` : ''}
-        </div>
-        <input type="number" class="qty-input" id="qty-${p.id}" placeholder="0" min="0">
-      </div>`;
-    }).join('');
+  function filterProducts(rowId) {
+    const q = document.getElementById(rowId+'-search').value.toLowerCase();
+    const sel = document.getElementById(rowId+'-sel');
+    Array.from(sel.options).forEach(o => {
+      if (!o.value) return;
+      o.style.display = o.text.toLowerCase().includes(q) ? '' : 'none';
+    });
+    const visible = Array.from(sel.options).filter(o => o.value && o.style.display !== 'none');
+    if (visible.length === 1) { sel.value = visible[0].value; updateRate(rowId); }
+  }
+
+  function updateRate(rowId) {
+    const sel = document.getElementById(rowId+'-sel');
+    const opt = sel.options[sel.selectedIndex];
+    if (!opt || !opt.value) return;
+    let rate = parseFloat(opt.dataset.rate) || 0;
+    if (currentDist?.productRates?.[opt.value]) rate = parseFloat(currentDist.productRates[opt.value]);
+    const qty = parseFloat(document.getElementById(rowId+'-qty').value) || 0;
+    const amt = rate * qty;
+    document.getElementById(rowId+'-rateinfo').textContent = rate ? `Rate: ₹${rate}` : '';
+    document.getElementById(rowId+'-amount').textContent = amt > 0 ? `= ₹${amt.toFixed(2)}` : '';
+  }
+
+  function removeRow(rowId) { document.getElementById(rowId)?.remove(); }
+
+  function calcBalance() {
+    let total = 0;
+    for (let i = 1; i <= extraRowCount; i++) {
+      const rowId = 'extra-'+i;
+      const sel = document.getElementById(rowId+'-sel');
+      const qty = parseFloat(document.getElementById(rowId+'-qty')?.value) || 0;
+      if (!sel) continue;
+      const opt = sel.options[sel.selectedIndex];
+      if (!opt?.value) continue;
+      let rate = parseFloat(opt.dataset.rate) || 0;
+      if (currentDist?.productRates?.[opt.value]) rate = parseFloat(currentDist.productRates[opt.value]);
+      total += rate * qty;
+    }
+    const deposit = parseFloat(document.getElementById('d-deposit').value) || 0;
+    const bar = document.getElementById('balance-bar');
+    if (total > 0) {
+      bar.style.display = 'block';
+      const bal = total - deposit;
+      document.getElementById('bal-total').textContent = '₹'+total.toFixed(2);
+      document.getElementById('bal-deposit').textContent = '₹'+deposit.toFixed(2);
+      document.getElementById('bal-balance').textContent = '₹'+Math.abs(bal).toFixed(2);
+      document.getElementById('bal-balance').style.color = bal <= 0 ? '#2A7A4A' : '#C0392B';
+      document.getElementById('bal-label').textContent = bal <= 0 ? '✅ Advance' : '⚠️ Baaki';
+    } else {
+      bar.style.display = 'none';
+    }
   }
 
   function submitDemand() {
-
     const date = document.getElementById('d-date').value;
     const vehicle = document.getElementById('d-vehicle').value.trim().toUpperCase();
+    const deposit = parseFloat(document.getElementById('d-deposit').value) || 0;
     const distName = currentDist ? currentDist.name : '';
-
     if (!distName) { alert('Pehle login karo!'); return; }
     if (!date) { alert('Date select karo!'); return; }
 
     const items = {};
-    allProds.forEach(p => {
-      const inp = document.getElementById('qty-' + p.id);
-      if (inp) {
-        const qty = parseFloat(inp.value) || 0;
-        if (qty > 0) items[p.id] = qty;
-      }
-    });
-
-    // Also collect extra rows
     for (let i = 1; i <= extraRowCount; i++) {
-      const rowId = 'extra-' + i;
-      const sel = document.getElementById(rowId + '-sel');
-      const qtyInp = document.getElementById(rowId + '-qty');
-      if (sel && qtyInp && sel.value) {
-        const qty = parseFloat(qtyInp.value) || 0;
-        if (qty > 0) {
-          items[sel.value] = (items[sel.value] || 0) + qty;
-        }
-      }
+      const rowId = 'extra-'+i;
+      const sel = document.getElementById(rowId+'-sel');
+      const qty = parseFloat(document.getElementById(rowId+'-qty')?.value) || 0;
+      if (sel?.value && qty > 0) items[sel.value] = (items[sel.value]||0) + qty;
     }
+    if (!Object.keys(items).length) { alert('Kam se kam ek product ki quantity daalo!'); return; }
 
-    if (!Object.keys(items).length) {
-      alert('Kam se kam ek product ki quantity daalo!');
-      return;
-    }
-
-    // Save to Firebase
-    const entry = {
-      id: Date.now(),
-      date,
-      distName,
-      vehicle: vehicle || '',
-      items,
-      submittedAt: new Date().toISOString(),
-      source: 'distributor'
-    };
-
+    const entry = { id: Date.now(), date, distName, vehicle: vehicle||'', deposit, items, submittedAt: new Date().toISOString(), source: 'distributor' };
     if (!appData.demandEntries) appData.demandEntries = [];
-
-    // Check if already exists
-    const existing = appData.demandEntries.findIndex(e => e.date === date && e.distName === distName);
-    if (existing >= 0) {
-      if (!confirm(`${distName} ki demand already hai ${date} ke liye. Update karein?`)) return;
-      appData.demandEntries[existing] = entry;
+    const idx = appData.demandEntries.findIndex(e => e.date === date && e.distName === distName);
+    if (idx >= 0) {
+      if (!confirm(`${distName} ki demand already hai. Update karein?`)) return;
+      appData.demandEntries[idx] = entry;
     } else {
       appData.demandEntries.push(entry);
     }
 
     dbRef.set(appData).then(() => {
-      // Show success
       document.getElementById('demand-form').style.display = 'none';
-      const prodCount = Object.keys(items).length;
-      document.getElementById('success-msg').textContent =
-        `${distName} ki ${prodCount} product(s) ki demand ${date} ke liye save ho gayi!`;
+      document.getElementById('success-msg').textContent = `${distName} ki ${Object.keys(items).length} product(s) ki demand save ho gayi!`;
       document.getElementById('success-screen').style.display = 'block';
-    }).catch(e => {
-      alert('❌ Save nahi hua! Internet check karo aur dobara try karo.');
-    });
+    }).catch(() => alert('❌ Save nahi hua! Internet check karo.'));
   }
 
   function resetForm() {
-    document.getElementById('success-screen').style.display = 'none';
-    document.getElementById('view-demand-screen').style.display = 'none';
+    ['success-screen','view-demand-screen'].forEach(id => document.getElementById(id).style.display = 'none');
     document.getElementById('demand-form').style.display = 'block';
-    document.getElementById('products-card').style.display = 'block';
     document.getElementById('d-date').value = today();
     document.getElementById('d-vehicle').value = '';
+    document.getElementById('d-deposit').value = '';
     document.getElementById('extra-rows').innerHTML = '';
+    document.getElementById('balance-bar').style.display = 'none';
     extraRowCount = 0;
-    if (currentDist) loadProducts(currentDist.name);
     dbRef.once('value').then(snap => {
       appData = snap.val() || {};
-      allProds = (appData.products || []).filter(p => p.active !== false);
+      allProds = (appData.products||[]).filter(p => p.active !== false && p.rate > 0);
     });
   }
 
@@ -453,78 +398,141 @@
   }
 
   function viewMyDemand() {
-    const distName = currentDist ? currentDist.name : '';
-    const date = document.getElementById('d-date').value;
-    if (!distName) { alert('Pehle login karo!'); return; }
-
-    // Reload fresh data then show
+    if (!currentDist) { alert('Pehle login karo!'); return; }
     dbRef.once('value').then(snap => {
       appData = snap.val() || {};
       allProds = appData.products || [];
-      const entries = (appData.demandEntries || []).filter(e => e.distName === distName);
-
+      const entries = (appData.demandEntries||[]).filter(e => e.distName === currentDist.name);
       const content = document.getElementById('view-demand-content');
-
       if (!entries.length) {
-        content.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px;">Koi demand nahi mili abhi tak!</p>';
+        content.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px;">Koi demand nahi mili!</p>';
       } else {
-        // Sort by date descending
-        entries.sort((a, b) => b.date.localeCompare(a.date));
+        entries.sort((a,b) => b.date.localeCompare(a.date));
         content.innerHTML = entries.map(e => {
-          const items = Object.entries(e.items || {}).map(([pid, qty]) => {
-            const prod = allProds.find(p => String(p.id) === String(pid));
-            const name = prod ? `${prod.name} ${prod.size||''}` : pid;
-            const rate = prod ? (prod.rate || 0) : 0;
-            return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:0.85rem;">
+          let total = 0;
+          const rows = Object.entries(e.items||{}).map(([pid,qty]) => {
+            const prod = allProds.find(p => String(p.id)===String(pid));
+            const name = prod ? `${prod.name}${prod.size?' '+prod.size:''}` : pid;
+            const rate = prod ? (prod.rate||0) : 0;
+            total += rate * qty;
+            return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:0.84rem;">
               <span><strong>${name}</strong></span>
-              <span style="color:var(--orange);">Qty: <strong>${qty}</strong> | ₹${rate*qty}</span>
+              <span style="color:var(--orange);">Qty: <strong>${qty}</strong> &nbsp;₹${rate*qty}</span>
             </div>`;
           }).join('');
-
           const isToday = e.date === today();
-          return `<div style="border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-              <div>
-                <strong style="color:var(--brown);">${e.date}</strong>
-                ${isToday ? '<span style="background:#2A7A4A;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:6px;">Aaj</span>' : ''}
-              </div>
-              ${isToday ? `<button onclick="editDemand('${e.distName}','${e.date}')" style="background:var(--orange);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;cursor:pointer;">✏️ Edit</button>` : ''}
+          return `<div style="border:1.5px solid var(--border);border-radius:12px;padding:13px;margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
+              <strong style="color:var(--brown);">${e.date}${isToday?'<span style="background:#2A7A4A;color:white;font-size:0.68rem;padding:2px 7px;border-radius:8px;margin-left:5px;">Aaj</span>':''}</strong>
+              ${isToday?`<button onclick="editDemand('${e.distName}','${e.date}')" style="background:var(--orange);color:white;border:none;border-radius:7px;padding:5px 11px;font-size:0.78rem;font-weight:700;cursor:pointer;">✏️ Edit</button>`:''}
             </div>
-            ${items}
+            ${rows}
+            <div style="margin-top:8px;padding:7px 11px;background:#FFF3E0;border-radius:8px;display:flex;justify-content:space-between;">
+              <span style="font-size:0.8rem;color:var(--brown);font-weight:700;">🧾 Total</span>
+              <strong style="color:var(--orange);">₹${total.toFixed(2)}</strong>
+            </div>
+            ${e.deposit>0?`<div style="margin-top:5px;padding:7px 11px;background:#E8F5EE;border-radius:8px;display:flex;justify-content:space-between;">
+              <span style="font-size:0.8rem;color:#2A7A4A;font-weight:700;">💰 Deposit</span>
+              <strong style="color:#2A7A4A;">₹${e.deposit} &nbsp;|&nbsp; ${e.date}</strong>
+            </div>`:''}
           </div>`;
         }).join('');
       }
-
       document.getElementById('view-demand-screen').style.display = 'block';
-      document.getElementById('view-demand-screen').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('view-demand-screen').scrollIntoView({ behavior:'smooth' });
     });
   }
 
-  function closeViewDemand() {
-    document.getElementById('view-demand-screen').style.display = 'none';
+  function closeViewDemand() { document.getElementById('view-demand-screen').style.display = 'none'; }
+
+  function downloadMonthlyReport() {
+    if (!currentDist) { alert('Pehle login karo!'); return; }
+    const monthVal = document.getElementById('report-month').value;
+    if (!monthVal) { alert('Month select karo!'); return; }
+    const [yr, mn] = monthVal.split('-');
+    const lastDay = new Date(parseInt(yr), parseInt(mn), 0).getDate();
+    const fromDate = `${yr}-${mn}-01`;
+    const toDate = `${yr}-${mn}-${String(lastDay).padStart(2,'0')}`;
+    const monthLabel = new Date(parseInt(yr), parseInt(mn)-1, 1)
+      .toLocaleString('en-IN', { month:'long', year:'numeric' }).toUpperCase();
+
+    dbRef.once('value').then(snap => {
+      const fresh = snap.val() || {};
+      const prods = (fresh.products||[]).filter(p => p.active !== false);
+      const entries = (fresh.demandEntries||[]).filter(e =>
+        e.distName === currentDist.name && e.date >= fromDate && e.date <= toDate);
+      if (!entries.length) { alert(`${monthLabel} mein koi demand nahi mili!`); return; }
+
+      const usedPids = new Set();
+      entries.forEach(e => Object.keys(e.items||{}).forEach(pid => usedPids.add(pid)));
+      const monthProds = [...usedPids].map(pid => prods.find(p => String(p.id)===String(pid))).filter(Boolean);
+
+      const BOM = '\uFEFF';
+      let csv = BOM;
+      csv += `"PARAG MILK — MONTHLY DEMAND"\n`;
+      csv += `"${currentDist.name} | ${monthLabel}"\n\n`;
+      csv += `"Date"`;
+      monthProds.forEach(p => { csv += `,"${p.name}${p.size?' '+p.size:''}"`.trim(); });
+      csv += `,"Deposit","Total Value"\n`;
+
+      let grandTotal = 0;
+      const colTotals = {};
+      monthProds.forEach(p => { colTotals[p.id] = 0; });
+
+      for (let d = 1; d <= lastDay; d++) {
+        const dateStr = `${yr}-${mn}-${String(d).padStart(2,'0')}`;
+        const entry = entries.find(e => e.date === dateStr);
+        let row = `"${d}-${mn}-${yr}"`;
+        let dayTotal = 0;
+        monthProds.forEach(p => {
+          if (entry) {
+            const itemData = (entry.items||{})[p.id];
+            const qty = itemData ? (typeof itemData==='object' ? (itemData.qty||0) : Number(itemData)) : 0;
+            const rate = (currentDist.productRates?.[p.id]) ? currentDist.productRates[p.id] : (p.rate||0);
+            const val = qty * rate;
+            dayTotal += val; grandTotal += val;
+            colTotals[p.id] = (colTotals[p.id]||0) + qty;
+            row += `,${qty > 0 ? qty : ''}`;
+          } else { row += `,`; }
+        });
+        row += `,${entry?.deposit > 0 ? entry.deposit : ''}`;
+        row += `,${dayTotal > 0 ? dayTotal.toFixed(2) : ''}`;
+        csv += row + '\n';
+      }
+
+      let totalRow = '"TOTAL"';
+      monthProds.forEach(p => { totalRow += `,${colTotals[p.id] > 0 ? colTotals[p.id] : ''}`; });
+      totalRow += `,,"${grandTotal.toFixed(2)}"`;
+      csv += totalRow + '\n';
+
+      const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${currentDist.name}_${yr}_${mn}.csv`;
+      a.click(); URL.revokeObjectURL(url);
+    }).catch(() => alert('Data load nahi hua!'));
   }
 
   function editDemand(distName, date) {
-    // Close view screen
     document.getElementById('view-demand-screen').style.display = 'none';
-    // Set form values
     document.getElementById('d-date').value = date;
-    document.getElementById('d-dist').value = distName;
-    // Load products with existing values
-    loadProducts(distName);
-    document.getElementById('products-card').style.display = 'block';
-
-    // Fill existing quantities
-    const entry = (appData.demandEntries || []).find(e => e.date === date && e.distName === distName);
+    document.getElementById('extra-rows').innerHTML = '';
+    extraRowCount = 0;
+    const entry = (appData.demandEntries||[]).find(e => e.date===date && e.distName===distName);
     if (entry) {
-      setTimeout(() => {
-        Object.entries(entry.items || {}).forEach(([pid, qty]) => {
-          const inp = document.getElementById('qty-' + pid);
-          if (inp) inp.value = qty;
-        });
-      }, 200);
+      if (entry.deposit) document.getElementById('d-deposit').value = entry.deposit;
+      Object.entries(entry.items||{}).forEach(([pid,qty]) => {
+        addDemandRow();
+        const rowId = 'extra-'+extraRowCount;
+        setTimeout(() => {
+          const sel = document.getElementById(rowId+'-sel');
+          if (sel) { sel.value = pid; updateRate(rowId); }
+          const qtyInp = document.getElementById(rowId+'-qty');
+          if (qtyInp) { qtyInp.value = qty; calcBalance(); }
+        }, 50);
+      });
     }
-    document.getElementById('demand-form').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('demand-form').scrollIntoView({ behavior:'smooth' });
   }
 </script>
 </body>
