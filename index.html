@@ -1378,13 +1378,29 @@
     } else {
       const idx = data.demandEntries.findIndex(e => e.date === date && e.distName === distName);
       if (idx >= 0) {
-        if (!confirm(`${distName} ki demand already hai is date ke liye. Update karein?`)) return;
-        data.demandEntries[idx] = { ...data.demandEntries[idx], date, distName, items, savedAt: Date.now() };
+        // MERGE: Add new quantities to existing demand
+        const existingItems = data.demandEntries[idx].items || {};
+        Object.entries(items).forEach(([pid, newData]) => {
+          if (existingItems[pid]) {
+            // Add quantities
+            existingItems[pid] = {
+              ...newData,
+              qty: (existingItems[pid].qty || 0) + (newData.qty || 0),
+              kgltr: (parseFloat(existingItems[pid].kgltr) || 0) + (parseFloat(newData.kgltr) || 0),
+              crates: (parseFloat(existingItems[pid].crates) || 0) + (parseFloat(newData.crates) || 0),
+            };
+          } else {
+            existingItems[pid] = newData;
+          }
+        });
+        data.demandEntries[idx] = { ...data.demandEntries[idx], date, distName, items: existingItems, savedAt: Date.now() };
+        saveData(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
+        alert(`✅ ${distName} ki demand add ho gayi! (Total demand update ho gaya)`);
       } else {
         data.demandEntries.push({ id: Date.now(), date, distName, items, savedAt: Date.now() });
+        saveData(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
+        alert(`✅ ${distName} ki demand save ho gayi!`);
       }
-      saveData(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
-      alert(`✅ ${distName} ki demand save ho gayi!`);
     }
   }
 
