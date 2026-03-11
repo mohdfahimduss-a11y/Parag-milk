@@ -832,6 +832,22 @@
         saveData();
       }
 
+      // Auto sync codes from DEFAULT_PRODUCTS to existing saved products
+      let codeUpdated = false;
+      DEFAULT_PRODUCTS.forEach(dp => {
+        const saved = data.products.find(p => String(p.id) === String(dp.id));
+        if (saved && !saved.code) {
+          saved.code = dp.code;
+          codeUpdated = true;
+        }
+        if (!saved) {
+          // Add missing default product with rate 0
+          data.products.push({ ...dp, rate: 0 });
+          codeUpdated = true;
+        }
+      });
+      if (codeUpdated) saveData();
+
       renderSales();
       renderCustomers();
       renderProducts();
