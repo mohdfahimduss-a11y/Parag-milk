@@ -3049,24 +3049,24 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
 
   // DEFAULT PRODUCTS
   const DEFAULT_PRODUCTS = [
-    { id: 'fcm500',    name: 'F.C.M.',      size: '500 ML',   cat: 'Milk' },
-    { id: 'fcm1l',     name: 'F.C.M.',      size: '01 LTR',   cat: 'Milk' },
-    { id: 'fcm6l',     name: 'F.C.M.',      size: '06 LTR',   cat: 'Milk' },
-    { id: 'std350',    name: 'COW MILK',    size: '350 ML',   cat: 'Milk' },
-    { id: 'std500',    name: 'STD MILK',    size: '500 ML',   cat: 'Milk' },
-    { id: 'std1l',     name: 'STD MILK',    size: '01 LTR',   cat: 'Milk' },
-    { id: 'ton500',    name: 'TONED',       size: '500 ML',   cat: 'Milk' },
-    { id: 'ton1l',     name: 'TONED',       size: '01 LTR',   cat: 'Milk' },
-    { id: 'ton6l',     name: 'TONED',       size: '06 LTR',   cat: 'Milk' },
-    { id: 'matka5',    name: 'MATKA',       size: '5 KG',     cat: 'Milk' },
-    { id: 'matka15',   name: 'DAHI MATKA',  size: '15 KG',    cat: 'Milk Products' },
-    { id: 'chhach300', name: 'CHHACH',      size: '300 ML',   cat: 'Milk' },
-    { id: 'curd200',   name: 'P. CURD',     size: '200 GM',   cat: 'Milk Products' },
-    { id: 'dahi140',   name: 'DAHI P.PACK', size: '140 GM',   cat: 'Milk Products' },
-    { id: 'kheer90',   name: 'P. KHEER',    size: '90 GM',    cat: 'Milk Products' },
-    { id: 'paneer1kg', name: 'PANEER LITE', size: '01 KG',    cat: 'Milk Products' },
-    { id: 'ghee1l',    name: 'GHEE',        size: '01 LTR',   cat: 'Milk Products' },
-    { id: 'butter500', name: 'BUTTER',      size: '500 GM',   cat: 'Milk Products' },
+    { id: 'fcm500',    code: 'P01', name: 'F.C.M.',      size: '500 ML',   cat: 'Milk' },
+    { id: 'fcm1l',     code: 'P02', name: 'F.C.M.',      size: '01 LTR',   cat: 'Milk' },
+    { id: 'fcm6l',     code: 'P03', name: 'F.C.M.',      size: '06 LTR',   cat: 'Milk' },
+    { id: 'std350',    code: 'P04', name: 'COW MILK',    size: '350 ML',   cat: 'Milk' },
+    { id: 'std500',    code: 'P05', name: 'STD MILK',    size: '500 ML',   cat: 'Milk' },
+    { id: 'std1l',     code: 'P06', name: 'STD MILK',    size: '01 LTR',   cat: 'Milk' },
+    { id: 'ton500',    code: 'P07', name: 'TONED',       size: '500 ML',   cat: 'Milk' },
+    { id: 'ton1l',     code: 'P08', name: 'TONED',       size: '01 LTR',   cat: 'Milk' },
+    { id: 'ton6l',     code: 'P09', name: 'TONED',       size: '06 LTR',   cat: 'Milk' },
+    { id: 'matka5',    code: 'P10', name: 'MATKA',       size: '5 KG',     cat: 'Milk' },
+    { id: 'chhach300', code: 'P11', name: 'CHHACH',      size: '300 ML',   cat: 'Milk' },
+    { id: 'matka15',   code: 'P12', name: 'DAHI MATKA',  size: '15 KG',    cat: 'Milk Products' },
+    { id: 'curd200',   code: 'P13', name: 'P. CURD',     size: '200 GM',   cat: 'Milk Products' },
+    { id: 'dahi140',   code: 'P14', name: 'DAHI P.PACK', size: '140 GM',   cat: 'Milk Products' },
+    { id: 'kheer90',   code: 'P15', name: 'P. KHEER',    size: '90 GM',    cat: 'Milk Products' },
+    { id: 'paneer1kg', code: 'P16', name: 'PANEER LITE', size: '01 KG',    cat: 'Milk Products' },
+    { id: 'ghee1l',    code: 'P17', name: 'GHEE',        size: '01 LTR',   cat: 'Milk Products' },
+    { id: 'butter500', code: 'P18', name: 'BUTTER',      size: '500 GM',   cat: 'Milk Products' },
   ];
 
   const catColors = { 'Milk':'badge-green', 'Milk Products':'badge-amber' };
@@ -3079,7 +3079,13 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     const qty  = parseFloat(document.getElementById('new-prod-qty').value) || 0;
     if (!name) { alert('Please enter product name!'); return; }
     if (!rate) { alert('Please enter rate!'); return; }
-    data.products.push({ id: Date.now(), name, size, cat, rate, qty, custom: true });
+
+    // Auto assign next code
+    const allCodes = data.products.map(p => p.code).filter(c => c && c.startsWith('P'));
+    const maxNum = allCodes.reduce((max, c) => { const n = parseInt(c.slice(1)); return n > max ? n : max; }, 18);
+    const newCode = 'P' + String(maxNum + 1).padStart(2, '0');
+
+    data.products.push({ id: Date.now(), code: newCode, name, size, cat, rate, qty, custom: true });
     saveData();
     renderProducts();
     document.getElementById('new-prod-name').value = '';
@@ -3091,9 +3097,17 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
   function renderProducts() {
     const tb = document.getElementById('products-table');
     if (!data.products.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No products yet. Set rates above!</td></tr>'; return; }
-    tb.innerHTML = data.products.map((p, i) => `
+
+    // Sort: Default products by code, then custom products at end
+    const sorted = [...data.products].sort((a, b) => {
+      const codeA = a.code || 'Z99';
+      const codeB = b.code || 'Z99';
+      return codeA.localeCompare(codeB);
+    });
+
+    tb.innerHTML = sorted.map((p, i) => `
       <tr style="opacity:${p.active===false?'0.45':'1'}">
-        <td>${i+1}</td>
+        <td><strong style="color:var(--amber);font-family:var(--mono);">${p.code || '—'}</strong></td>
         <td><strong>${p.name}</strong><br><span style="font-size:0.72rem;color:var(--muted)">${p.size||''}</span></td>
         <td><span class="badge ${catColors[p.cat] || 'badge-blue'}">${p.cat}</span></td>
         <td><strong style="color:var(--green)">₹${p.rate}</strong></td>
