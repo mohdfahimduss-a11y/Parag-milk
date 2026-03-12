@@ -242,6 +242,7 @@
 <!-- NAV -->
 <div class="nav">
   <button class="nav-tab active" onclick="showTab('dashboard',this)">📊 Dashboard</button>
+  <button class="nav-tab" onclick="showTab('demand',this)">📦 Demand</button>
   <button class="nav-tab" onclick="showTab('accounts',this)">💼 Accounts</button>
   <button class="nav-tab" onclick="showTab('tmu',this)">🏢 TMU Parties</button>
   <button class="nav-tab" onclick="showTab('tata',this)">🚗 Tata Parties</button>
@@ -289,6 +290,86 @@
   <div class="card">
     <div class="card-hd">⏰ Payment Reminders</div>
     <div id="reminder-list"></div>
+  </div>
+</div>
+
+<!-- ===== DEMAND ===== -->
+<div class="section" id="tab-demand">
+
+  <!-- Mode selector -->
+  <div class="card" style="padding:12px;">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button class="btn btn-yellow btn-sm" onclick="setDemandMode('subparty')">🏪 Sub-Party Demand</button>
+      <button class="btn btn-ghost btn-sm" onclick="setDemandMode('direct')">🏢 Direct Distributor</button>
+    </div>
+  </div>
+
+  <!-- Sub-party demand -->
+  <div id="dem-subparty-wrap">
+    <div class="card">
+      <div class="card-hd">🏪 Sub-Party Demand Entry</div>
+      <div class="frow">
+        <div class="fg full">
+          <label>Distributor</label>
+          <select id="dem-sub-dist" onchange="renderSubPartyList()">
+            <option value="">-- Select Distributor --</option>
+            <option value="T.M.U. MORADABAD">TMU MORADABAD</option>
+            <option value="TATA MOTORS">TATA MOTORS</option>
+            <option value="POLICE ACADEMY">POLICE ACADEMY</option>
+            <option value="M.F. TRADERS">MF TRADERS</option>
+          </select>
+        </div>
+        <div class="fg full">
+          <label>Date</label>
+          <input id="dem-sub-date" type="date" onchange="renderSubPartyList()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-party tabs -->
+    <div id="dem-subparty-tabs"></div>
+
+    <!-- Auto sum button -->
+    <div id="dem-autosum-btn"></div>
+  </div>
+
+  <!-- Direct distributor demand (hidden by default) -->
+  <div id="dem-direct-wrap" style="display:none;">
+    <div class="card">
+      <div class="card-hd">🏢 Direct Demand Entry</div>
+      <div class="frow">
+        <div class="fg full">
+          <label>Distributor</label>
+          <select id="dem-dist" onchange="renderDemandForm()">
+            <option value="">-- Select Distributor --</option>
+            <option>T.M.U. MORADABAD</option>
+            <option>TATA MOTORS</option>
+            <option>M.F. TRADERS</option>
+            <option>POLICE ACADEMY</option>
+          </select>
+        </div>
+        <div class="fg full">
+          <label>Date</label>
+          <input id="dem-date" type="date">
+        </div>
+      </div>
+    </div>
+    <div id="dem-form-wrap"></div>
+  </div>
+
+  <!-- Recent demands -->
+  <div class="card">
+    <div class="card-hd">📋 Recent Demands</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <select id="dem-hist-dist" onchange="renderDemandHistory()" style="flex:1;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:0.82rem;">
+        <option value="">-- All --</option>
+        <option>T.M.U. MORADABAD</option>
+        <option>TATA MOTORS</option>
+        <option>M.F. TRADERS</option>
+        <option>POLICE ACADEMY</option>
+      </select>
+    </div>
+    <div id="dem-history-list"></div>
   </div>
 </div>
 
@@ -360,7 +441,10 @@
       <div class="fg"><label>From</label><input id="tmu-inv-from" type="date"></div>
       <div class="fg"><label>To</label><input id="tmu-inv-to" type="date"></div>
     </div>
-    <button class="btn btn-yellow btn-block" onclick="generateTmuInvoice()">🖨️ Generate Invoice</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-yellow" style="flex:1;" onclick="generateTmuAutoInvoice()">🧾 Auto Invoice (Demand)</button>
+      <button class="btn btn-ghost btn-sm" onclick="openRatesForTmu()">⚙️ Rates</button>
+    </div>
   </div>
   <div id="tmu-invoice-preview"></div>
 </div>
@@ -428,7 +512,10 @@
       <div class="fg"><label>From</label><input id="tata-inv-from" type="date"></div>
       <div class="fg"><label>To</label><input id="tata-inv-to" type="date"></div>
     </div>
-    <button class="btn btn-yellow btn-block" onclick="generateTataInvoice()">🖨️ Generate Invoice</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-yellow" style="flex:1;" onclick="generateTataAutoInvoice()">🧾 Auto Invoice (Demand)</button>
+      <button class="btn btn-ghost btn-sm" onclick="openRatesForTata()">⚙️ Rates</button>
+    </div>
   </div>
   <div id="tata-invoice-preview"></div>
 </div>
@@ -493,7 +580,10 @@
       <div class="fg"><label>From</label><input id="police-inv-from" type="date"></div>
       <div class="fg"><label>To</label><input id="police-inv-to" type="date"></div>
     </div>
-    <button class="btn btn-yellow btn-block" onclick="generatePoliceInvoice()">🖨️ Generate Invoice</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-yellow" style="flex:1;" onclick="generatePoliceAutoInvoice()">🧾 Auto Invoice (Demand)</button>
+      <button class="btn btn-ghost btn-sm" onclick="openRatesForPolice()">⚙️ Rates</button>
+    </div>
   </div>
   <div id="police-invoice-preview"></div>
 </div>
@@ -558,7 +648,10 @@
       <div class="fg"><label>From</label><input id="mft-inv-from" type="date"></div>
       <div class="fg"><label>To</label><input id="mft-inv-to" type="date"></div>
     </div>
-    <button class="btn btn-yellow btn-block" onclick="generateMftInvoice()">🖨️ Generate Invoice</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-yellow" style="flex:1;" onclick="generateMftAutoInvoice()">🧾 Auto Invoice (Demand)</button>
+      <button class="btn btn-ghost btn-sm" onclick="openRatesForMft()">⚙️ Rates</button>
+    </div>
   </div>
   <div id="mft-invoice-preview"></div>
 </div>
@@ -741,6 +834,8 @@
       appData.tataBills = val.tataBills || [];
       appData.policeBills = val.policeBills || [];
       appData.mftBills = val.mftBills || [];
+      appData.partyBillingRates = val.partyBillingRates || {};
+      appData.subPartyDemands = val.subPartyDemands || {};
       renderAll();
     });
   }
@@ -826,6 +921,7 @@
     renderPoliceHistory();
     renderMftPartyList();
     renderMftHistory();
+    renderDemandHistory();
     // Set today's date defaults
     if (!document.getElementById('p-date').value) document.getElementById('p-date').value = today();
   }
@@ -1862,6 +1958,334 @@
     XLSX.writeFile(wb, `TMU_Bills_${today()}.xlsx`);
   }
 
+  // ===== DEMAND ENTRY =====
+  // Sub-party mapping
+  const SUB_PARTIES = {
+    'T.M.U. MORADABAD': ['MGH','OGH','MBH','NBH','CANTEEN','RAJU'],
+    'TATA MOTORS':      ['SODEXO','JAY MARKETING','BILASPUR ENTERPRISES','AXON','SURAJ'],
+    'POLICE ACADEMY':   ['RAMESH','PAC','GOVINDA'],
+    'M.F. TRADERS':     ['SUMIT','GOVINDA2']
+  };
+
+  let demandMode = 'subparty';
+  let currentSubParty = null;
+
+  function setDemandMode(mode) {
+    demandMode = mode;
+    document.getElementById('dem-subparty-wrap').style.display = mode==='subparty' ? 'block' : 'none';
+    document.getElementById('dem-direct-wrap').style.display = mode==='direct' ? 'block' : 'none';
+  }
+
+  // ---- SUB-PARTY DEMAND ----
+  function renderSubPartyList() {
+    const distName = document.getElementById('dem-sub-dist').value;
+    const date = document.getElementById('dem-sub-date').value || today();
+    const tabsEl = document.getElementById('dem-subparty-tabs');
+    const autosumEl = document.getElementById('dem-autosum-btn');
+
+    if (!distName) { tabsEl.innerHTML=''; autosumEl.innerHTML=''; return; }
+
+    const parties = SUB_PARTIES[distName] || [];
+    currentSubParty = parties[0];
+
+    // Party selector buttons
+    tabsEl.innerHTML = `
+      <div style="display:flex;gap:6px;flex-wrap:wrap;padding:0 0 12px;">
+        ${parties.map(p => `
+          <button id="spbtn-${p.replace(/\s+/g,'_')}" 
+            onclick="selectSubParty('${p}','${distName}','${date}')"
+            style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--muted);font-family:var(--font);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;">
+            ${p}
+          </button>`).join('')}
+      </div>
+      <div id="subparty-form-area"></div>`;
+
+    // Auto-sum button
+    autosumEl.innerHTML = `
+      <div class="card" style="border-color:rgba(247,201,72,0.3);">
+        <div class="card-hd">🔄 Auto Sum → ${distName}</div>
+        <p style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">
+          Sabhi sub-parties ki demand jod kar <strong style="color:var(--accent);">${distName}</strong> mein save kar do
+        </p>
+        <div id="autosum-preview" style="margin-bottom:12px;"></div>
+        <button class="btn btn-yellow btn-block" onclick="autoSumToDistributor('${distName}','${date}')">
+          ➕ Sum Karo aur ${distName} mein Save Karo
+        </button>
+      </div>`;
+
+    // Auto-show first party
+    selectSubParty(parties[0], distName, date);
+    updateAutoSumPreview(distName, date);
+  }
+
+  function selectSubParty(party, distName, date) {
+    currentSubParty = party;
+    // Update button styles
+    const parties = SUB_PARTIES[distName] || [];
+    parties.forEach(p => {
+      const btn = document.getElementById('spbtn-' + p.replace(/\s+/g,'_'));
+      if (btn) {
+        btn.style.background = p===party ? 'var(--accent)' : 'var(--card2)';
+        btn.style.color = p===party ? '#000' : 'var(--muted)';
+        btn.style.borderColor = p===party ? 'var(--accent)' : 'var(--border)';
+      }
+    });
+
+    // Render product form for this sub-party
+    const allProds = getAllProducts();
+    const formArea = document.getElementById('subparty-form-area');
+    if (!formArea) return;
+
+    // Get existing sub-party demand
+    const key = distName + '|' + party;
+    const existing = (appData.subPartyDemands || {})[key + '|' + date] || {};
+
+    formArea.innerHTML = `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="font-weight:800;font-size:0.95rem;">${party}</div>
+          <button class="btn btn-ghost btn-sm" onclick="clearSubForm()">Clear</button>
+        </div>
+        ${allProds.map(p => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-size:0.82rem;font-weight:600;">${p.name} <span style="color:var(--muted);font-size:0.75rem;">${p.size}</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <button onclick="adjQty('sq-${p.id}',-1)" style="width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem;cursor:pointer;">−</button>
+              <input type="number" id="sq-${p.id}" value="${existing[p.id]||0}" min="0"
+                style="width:52px;text-align:center;padding:4px;background:var(--card2);border:1px solid var(--border);border-radius:7px;color:var(--accent);font-family:var(--mono);font-size:0.85rem;">
+              <button onclick="adjQty('sq-${p.id}',1)" style="width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem;cursor:pointer;">+</button>
+            </div>
+          </div>`).join('')}
+        <button class="btn btn-yellow btn-block" style="margin-top:12px;" onclick="saveSubPartyDemand('${party}','${distName}','${date}')">💾 ${party} Save Karo</button>
+      </div>`;
+  }
+
+  function clearSubForm() {
+    const allProds = getAllProducts();
+    allProds.forEach(p => { const el = document.getElementById('sq-'+p.id); if(el) el.value=0; });
+  }
+
+  function saveSubPartyDemand(party, distName, date) {
+    const allProds = getAllProducts();
+    const items = {};
+    let hasAny = false;
+    allProds.forEach(p => {
+      const qty = parseInt(document.getElementById('sq-'+p.id)?.value)||0;
+      if (qty>0) { items[p.id]=qty; hasAny=true; }
+    });
+    if (!hasAny) { alert('Koi quantity nahi!'); return; }
+
+    if (!appData.subPartyDemands) appData.subPartyDemands = {};
+    const key = distName+'|'+party+'|'+date;
+    appData.subPartyDemands[key] = items;
+    dbRef.update({ subPartyDemands: appData.subPartyDemands });
+    alert(`✅ ${party} demand saved!`);
+    updateAutoSumPreview(distName, date);
+
+    // Move to next party
+    const parties = SUB_PARTIES[distName]||[];
+    const idx = parties.indexOf(party);
+    if (idx < parties.length-1) selectSubParty(parties[idx+1], distName, date);
+  }
+
+  function updateAutoSumPreview(distName, date) {
+    const el = document.getElementById('autosum-preview');
+    if (!el) return;
+    const parties = SUB_PARTIES[distName]||[];
+    const allProds = getAllProducts();
+
+    // Aggregate
+    const totals = {};
+    parties.forEach(p => {
+      const items = (appData.subPartyDemands||{})[distName+'|'+p+'|'+date]||{};
+      Object.entries(items).forEach(([pid,qty]) => {
+        totals[pid] = (totals[pid]||0) + qty;
+      });
+    });
+
+    const saved = parties.map(p => {
+      const hasData = Object.keys((appData.subPartyDemands||{})[distName+'|'+p+'|'+date]||{}).length > 0;
+      return `<span class="badge ${hasData?'bg-green':'bg-red'}" style="margin:2px;">${p} ${hasData?'✓':'—'}</span>`;
+    }).join('');
+
+    const total = Object.values(totals).reduce((s,v)=>s+v, 0);
+    el.innerHTML = `
+      <div style="margin-bottom:8px;line-height:1.8;">${saved}</div>
+      <div style="font-size:0.78rem;color:var(--muted);">Total units: <strong style="color:var(--accent);">${total}</strong></div>`;
+  }
+
+  function autoSumToDistributor(distName, date) {
+    const parties = SUB_PARTIES[distName]||[];
+    const allProds = getAllProducts();
+
+    // Aggregate all sub-party demands
+    const totals = {};
+    let anyData = false;
+    parties.forEach(p => {
+      const items = (appData.subPartyDemands||{})[distName+'|'+p+'|'+date]||{};
+      Object.entries(items).forEach(([pid,qty]) => {
+        totals[pid] = (totals[pid]||0)+qty;
+        anyData = true;
+      });
+    });
+
+    if (!anyData) { alert('Koi sub-party demand nahi mili!'); return; }
+
+    // Save as distributor demand
+    appData.demandEntries = appData.demandEntries.filter(e => !(e.distName===distName && e.date===date));
+    appData.demandEntries.push({ id: Date.now(), distName, date, items: totals, fromSubParties: true });
+    dbRef.update({ demandEntries: appData.demandEntries });
+
+    const total = Object.values(totals).reduce((s,v)=>s+v,0);
+    alert(`✅ ${distName} mein ${total} units ki demand save ho gayi!\n(${parties.join(' + ')} ka sum)`);
+    renderDemandHistory();
+  }
+
+  // ---- DIRECT DEMAND (existing functions) ----
+  function renderDemandForm() {
+    const distName = document.getElementById('dem-dist').value;
+    const wrap = document.getElementById('dem-form-wrap');
+    if (!distName) { wrap.innerHTML = ''; return; }
+    const allProds = getAllProducts();
+    const date = document.getElementById('dem-date').value || today();
+    wrap.innerHTML = `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div class="card-hd" style="margin:0;">${distName}</div>
+          <button class="btn btn-ghost btn-sm" onclick="clearDemandForm()">🗑️ Clear</button>
+        </div>
+        ${allProds.map(p => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-size:0.85rem;font-weight:600;">${p.name} <span style="color:var(--muted);font-weight:400;">${p.size}</span></div>
+              <div style="font-size:0.68rem;color:var(--muted);font-family:var(--mono);">${p.code||''}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick="adjQty('dq-${p.id}',-1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:1rem;cursor:pointer;">−</button>
+              <input type="number" id="dq-${p.id}" value="0" min="0"
+                style="width:56px;text-align:center;padding:5px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:0.88rem;">
+              <button onclick="adjQty('dq-${p.id}',1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:1rem;cursor:pointer;">+</button>
+            </div>
+          </div>`).join('')}
+        <button class="btn btn-yellow btn-block" style="margin-top:14px;" onclick="saveDemandEntry()">💾 Save Demand</button>
+      </div>`;
+    loadExistingDemand(distName, date);
+  }
+
+  function adjQty(id, delta) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = Math.max(0, (parseInt(el.value)||0) + delta);
+  }
+
+  function clearDemandForm() {
+    getAllProducts().forEach(p => { const el=document.getElementById('dq-'+p.id); if(el) el.value=0; });
+  }
+
+  function loadExistingDemand(distName, date) {
+    const entry = appData.demandEntries.find(e => e.distName===distName && e.date===date);
+    if (!entry) return;
+    getAllProducts().forEach(p => {
+      const el = document.getElementById('dq-'+p.id);
+      if (!el) return;
+      const qv = entry.items && entry.items[p.id];
+      el.value = qv ? (typeof qv==='object'?(qv.qty||0):qv) : 0;
+    });
+  }
+
+  function saveDemandEntry() {
+    const distName = document.getElementById('dem-dist').value;
+    const date = document.getElementById('dem-date').value || today();
+    if (!distName) { alert('Distributor select karo!'); return; }
+    const items = {};
+    let hasAny = false;
+    getAllProducts().forEach(p => {
+      const qty = parseInt(document.getElementById('dq-'+p.id)?.value)||0;
+      if (qty>0) { items[p.id]=qty; hasAny=true; }
+    });
+    if (!hasAny) { alert('Koi quantity nahi daali!'); return; }
+    appData.demandEntries = appData.demandEntries.filter(e => !(e.distName===distName && e.date===date));
+    appData.demandEntries.push({ id: Date.now(), distName, date, items });
+    dbRef.update({ demandEntries: appData.demandEntries });
+    alert(`✅ ${distName} ki demand saved!`);
+    renderDemandHistory();
+  }
+
+  function renderDemandHistory() {
+    const filter = document.getElementById('dem-hist-dist')?.value || '';
+    const el = document.getElementById('dem-history-list');
+    if (!el) return;
+    let list = [...appData.demandEntries]
+      .filter(e => MY_DISTS.includes(e.distName))
+      .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    if (filter) list = list.filter(e => e.distName===filter);
+    list = list.slice(0,20);
+    if (!list.length) { el.innerHTML='<div class="empty">Koi demand nahi</div>'; return; }
+    el.innerHTML = list.map(e => {
+      const total = Object.values(e.items||{}).reduce((s,v)=>s+(typeof v==='object'?(v.qty||0):v),0);
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-weight:700;font-size:0.88rem;">${e.distName}</div>
+            <div style="font-size:0.72rem;color:var(--muted);">${fmtDate(e.date)} · ${total} units ${e.fromSubParties?'<span class="badge bg-green" style="font-size:0.65rem;">Auto Sum</span>':''}</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" onclick="editDemand('${e.distName}','${e.date}')">✏️</button>
+            <button class="btn btn-red btn-sm" onclick="deleteDemandEntry('${e.distName}','${e.date}')">✕</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function editDemand(distName, date) {
+    setDemandMode('direct');
+    document.getElementById('dem-dist').value = distName;
+    document.getElementById('dem-date').value = date;
+    renderDemandForm();
+    showTab('demand', document.querySelectorAll('.nav-tab')[1]);
+    window.scrollTo(0,0);
+  }
+
+  function deleteDemandEntry(distName, date) {
+    if (!confirm(`${distName} ki ${fmtDate(date)} demand delete karein?`)) return;
+    appData.demandEntries = appData.demandEntries.filter(e => !(e.distName===distName && e.date===date));
+    dbRef.update({ demandEntries: appData.demandEntries });
+  }
+
+  // Auto invoice wrappers
+  function generateTmuAutoInvoice() {
+    const party = document.getElementById('tmu-inv-party').value;
+    const from = document.getElementById('tmu-inv-from').value;
+    const to = document.getElementById('tmu-inv-to').value;
+    generatePartyBillWithRates('T.M.U. MORADABAD','tmu',party,from,to,'TMU','tmu-invoice-preview','tmu-print-area');
+  }
+  function generateTataAutoInvoice() {
+    const party = document.getElementById('tata-inv-party').value;
+    const from = document.getElementById('tata-inv-from').value;
+    const to = document.getElementById('tata-inv-to').value;
+    generatePartyBillWithRates('TATA MOTORS','tata',party,from,to,'TATA','tata-invoice-preview','tata-print-area');
+  }
+  function generatePoliceAutoInvoice() {
+    const party = document.getElementById('police-inv-party').value;
+    const from = document.getElementById('police-inv-from').value;
+    const to = document.getElementById('police-inv-to').value;
+    generatePartyBillWithRates('POLICE ACADEMY','police',party,from,to,'PAC','police-invoice-preview','police-print-area');
+  }
+  function generateMftAutoInvoice() {
+    const party = document.getElementById('mft-inv-party').value;
+    const from = document.getElementById('mft-inv-from').value;
+    const to = document.getElementById('mft-inv-to').value;
+    generatePartyBillWithRates('M.F. TRADERS','mft',party,from,to,'MFT','mft-invoice-preview','mft-print-area');
+  }
+
+  // Rates openers
+  function openRatesForTmu()    { const p=document.getElementById('tmu-inv-party').value; if(!p){alert('Pehle party select karo!');return;} openRatesModal('tmu',p); }
+  function openRatesForTata()   { const p=document.getElementById('tata-inv-party').value; if(!p){alert('Pehle party select karo!');return;} openRatesModal('tata',p); }
+  function openRatesForPolice() { const p=document.getElementById('police-inv-party').value; if(!p){alert('Pehle party select karo!');return;} openRatesModal('police',p); }
+  function openRatesForMft()    { const p=document.getElementById('mft-inv-party').value; if(!p){alert('Pehle party select karo!');return;} openRatesModal('mft',p); }
+
   // TAB SWITCHER
   function showTab(name, el) {
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -1873,10 +2297,177 @@
   // INIT DATE DEFAULTS
   const t0 = new Date();
   document.getElementById('p-date').value = today();
+  document.getElementById('dem-date').value = today();
   document.getElementById('inv-from').value = new Date(t0.getFullYear(),t0.getMonth(),1).toISOString().split('T')[0];
   document.getElementById('inv-to').value = today();
   document.getElementById('st-from').value = new Date(t0.getFullYear(),t0.getMonth(),1).toISOString().split('T')[0];
   document.getElementById('st-to').value = today();
+
+  // ===== PARTY BILLING RATES =====
+  let ratesModalParty = null;
+  let ratesModalDist = null;
+
+  function savePartyRatesData() { dbRef.update({ partyBillingRates: appData.partyBillingRates }); }
+
+  function openRatesModal(distKey, party) {
+    ratesModalParty = party;
+    ratesModalDist = distKey;
+    document.getElementById('rates-modal-title').textContent = party + ' — Billing Rates';
+    const allProds = getAllProducts();
+    const saved = (appData.partyBillingRates || {})[distKey + '_' + party] || {};
+    document.getElementById('rates-modal-body').innerHTML = allProds.map(p => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+        <div style="font-size:0.82rem;">${p.name} ${p.size}</div>
+        <input type="number" id="br-${p.id}" value="${saved[p.id]||''}" placeholder="₹ Rate"
+          style="width:90px;padding:6px 8px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:0.82rem;text-align:right;">
+      </div>`).join('');
+    document.getElementById('rates-modal').classList.add('open');
+  }
+
+  function closeRatesModal() { document.getElementById('rates-modal').classList.remove('open'); }
+
+  function savePartyRates() {
+    if (!appData.partyBillingRates) appData.partyBillingRates = {};
+    const key = ratesModalDist + '_' + ratesModalParty;
+    const allProds = getAllProducts();
+    const rates = {};
+    allProds.forEach(p => {
+      const v = parseFloat(document.getElementById('br-' + p.id)?.value) || 0;
+      if (v > 0) rates[p.id] = v;
+    });
+    appData.partyBillingRates[key] = rates;
+    savePartyRatesData();
+    closeRatesModal();
+    alert(`✅ ${ratesModalParty} ke rates save ho gaye!`);
+  }
+
+  function getPartyBillingRate(distKey, party, pid) {
+    const rates = (appData.partyBillingRates || {})[distKey + '_' + party] || {};
+    return rates[pid] || getRate(party, pid) || 0;
+  }
+
+  // Auto-calculate bill from demand
+  function calcPartyBillFromDemand(distName, distKey, party, from, to) {
+    // Get demand entries for this distributor in date range
+    const entries = appData.demandEntries.filter(e =>
+      e.distName === distName && e.date >= from && e.date <= to
+    );
+    // Aggregate by product
+    const items = {};
+    entries.forEach(e => {
+      Object.entries(e.items || {}).forEach(([pid, qv]) => {
+        const qty = typeof qv === 'object' ? (qv.qty || 0) : qv;
+        if (qty > 0) {
+          if (!items[pid]) items[pid] = { name: getProdName(pid), qty: 0 };
+          items[pid].qty += qty;
+        }
+      });
+    });
+    // Calculate total using billing rates
+    let total = 0;
+    const lineItems = [];
+    Object.entries(items).forEach(([pid, item]) => {
+      const rate = getPartyBillingRate(distKey, party, pid);
+      const amt = item.qty * rate;
+      total += amt;
+      lineItems.push({ pid, name: item.name, qty: item.qty, rate, amt });
+    });
+    return { total, lineItems };
+  }
+
+  // Enhanced generate functions with auto-calc
+  function generatePartyBillWithRates(distName, distKey, party, from, to, prefix, previewId, printId) {
+    if (!party||!from||!to) { alert('Party aur dates select karo!'); return null; }
+    const { total, lineItems } = calcPartyBillFromDemand(distName, distKey, party, from, to);
+    if (!lineItems.length) {
+      alert('Is period mein demand data nahi mila!\nManual bill entry use karo ya pehle demand enter karo.');
+      return null;
+    }
+    const invNo = prefix + '-' + Date.now().toString().slice(-6);
+    const html = `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div class="card-hd" style="margin:0;">Invoice Preview</div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" onclick="saveAutoInvoice('${distKey}','${party}','${from}','${to}',${total})">💾 Save</button>
+            <button class="btn btn-yellow btn-sm" onclick="document.getElementById('${printId}').closest('.card').querySelector('.btn-yellow').click(); printGen('${printId}')">🖨️ Print</button>
+          </div>
+        </div>
+        <div class="inv-body" id="${printId}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #000;">
+            <div>
+              <div style="font-size:1.1rem;font-weight:900;">PARAG MILK</div>
+              <div style="font-size:0.7rem;color:#555;">${distName} — Party Bill</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:0.75rem;font-weight:700;">${invNo}</div>
+              <div style="font-size:0.72rem;color:#555;">${fmtDate(from)} to ${fmtDate(to)}</div>
+            </div>
+          </div>
+          <div style="margin-bottom:14px;">
+            <div style="font-size:0.68rem;color:#888;font-weight:700;text-transform:uppercase;">Bill To</div>
+            <div style="font-size:1rem;font-weight:900;">${party}</div>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:12px;">
+            <thead><tr style="background:#1a1a1a;color:white;">
+              <th style="padding:7px 8px;text-align:left;">Product</th>
+              <th style="padding:7px 8px;text-align:center;">Qty</th>
+              <th style="padding:7px 8px;text-align:right;">Amount</th>
+            </tr></thead>
+            <tbody>
+              ${lineItems.filter(r=>r.qty>0).map((r,i)=>`<tr style="background:${i%2?'#f9f9f9':'#fff'};">
+                <td style="padding:6px 8px;">${r.name}</td>
+                <td style="padding:6px 8px;text-align:center;">${r.qty}</td>
+                <td style="padding:6px 8px;text-align:right;font-weight:700;">₹${r.amt.toLocaleString('en-IN')}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+          <div style="border-top:2px solid #000;padding-top:10px;">
+            <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:900;">
+              <span>Total Amount</span>
+              <span>₹${total.toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+          <div style="margin-top:16px;font-size:0.72rem;color:#888;border-top:1px solid #ddd;padding-top:10px;display:flex;justify-content:space-between;">
+            <span>Date: ${fmtDate(today())}</span><span>Parag Milk — Route Manager</span>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById(previewId).innerHTML = html;
+    return total;
+  }
+
+  function printGen(printId) {
+    const content = document.getElementById(printId)?.innerHTML;
+    if (!content) return;
+    const win = window.open('','_blank');
+    win.document.write(`<html><head><title>Invoice</title><style>body{font-family:Arial,sans-serif;padding:20px;}</style></head><body>${content}<script>window.print();<\/script></body></html>`);
+    win.document.close();
+  }
+
+  function saveAutoInvoice(distKey, party, from, to, total) {
+    const paidAmt = parseFloat(prompt('Paid amount daalo (0 if unpaid):') || '0') || 0;
+    const note = prompt('Note (optional):') || '';
+    const store = distKey + 'Bills';
+    if (!appData[store]) appData[store] = [];
+    appData[store].push({ id: Date.now(), party, from, to, billAmt: total, paidAmt, note, createdAt: today(), autoCalc: true });
+    const upd = {}; upd[store] = appData[store];
+    dbRef.update(upd);
+    alert(`✅ Bill saved! Amount: ₹${total.toLocaleString('en-IN')}`);
+  }
 </script>
+<!-- RATES MODAL -->
+<div class="modal-bg" id="rates-modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title" id="rates-modal-title">⚙️ Party Billing Rates</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeRatesModal()">✕</button>
+    </div>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:14px;">Billing rate daalo — ye rate invoice amount calculate karne ke liye use hoga (rate invoice mein print nahi hoga)</p>
+    <div id="rates-modal-body"></div>
+    <button class="btn btn-yellow btn-block" style="margin-top:14px;" onclick="savePartyRates()">💾 Save Rates</button>
+  </div>
+</div>
+
 </body>
 </html>
