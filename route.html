@@ -13,8 +13,8 @@
     --card: #111111;
     --card2: #181818;
     --border: #222222;
-    --accent: #f7c948;
-    --accent2: #e8a020;
+    --accent: #22c55e;
+    --accent2: #16a34a;
     --green: #22c55e;
     --red: #ef4444;
     --blue: #60a5fa;
@@ -54,7 +54,7 @@
   .login-wrap input:focus { outline: none; border-color: var(--accent); }
   .btn-login {
     width: 100%; padding: 14px;
-    background: var(--accent); color: #000;
+    background: var(--accent); color: #fff;
     border: none; border-radius: 12px;
     font-family: var(--font); font-size: 0.95rem; font-weight: 700;
     cursor: pointer; margin-top: 4px;
@@ -127,7 +127,7 @@
   .dist-top { display: flex; justify-content: space-between; align-items: center; }
   .dist-name-big { font-size: 1rem; font-weight: 700; }
   .dist-code-badge {
-    background: rgba(247,201,72,0.1); color: var(--accent);
+    background: rgba(34,197,94,0.1); color: var(--accent);
     font-family: var(--mono); font-size: 0.72rem;
     padding: 3px 8px; border-radius: 6px;
   }
@@ -144,7 +144,7 @@
 
   /* BUTTONS */
   .btn { padding: 10px 18px; border-radius: 10px; border: none; font-family: var(--font); font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-  .btn-yellow { background: var(--accent); color: #000; }
+  .btn-yellow { background: var(--accent); color: #fff; }
   .btn-green { background: var(--green); color: #000; }
   .btn-red { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
   .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
@@ -176,7 +176,7 @@
   .badge { display: inline-block; padding: 3px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: 700; }
   .bg-green { background: rgba(34,197,94,0.15); color: var(--green); }
   .bg-red { background: rgba(239,68,68,0.15); color: var(--red); }
-  .bg-yellow { background: rgba(247,201,72,0.15); color: var(--accent); }
+  .bg-yellow { background: rgba(34,197,94,0.15); color: var(--accent); }
   .bg-blue { background: rgba(96,165,250,0.15); color: var(--blue); }
 
   /* MODAL */
@@ -241,16 +241,11 @@
 
 <!-- NAV -->
 <div class="nav">
-  <button class="nav-tab active" onclick="showTab('dashboard',this)">📊 Dashboard</button>
+  <button class="nav-tab active" onclick="showTab('dashboard',this)">📊 Home</button>
   <button class="nav-tab" onclick="showTab('demand',this)">📦 Demand</button>
-  <button class="nav-tab" onclick="showTab('accounts',this)">💼 Accounts</button>
-  <button class="nav-tab" onclick="askTabPassword('tmu',this)">🏢 TMU</button>
-  <button class="nav-tab" onclick="askTabPassword('tata',this)">🚗 Tata</button>
-  <button class="nav-tab" onclick="askTabPassword('police',this)">🚔 Police</button>
-  <button class="nav-tab" onclick="askTabPassword('mft',this)">🏬 MF</button>
+  <button class="nav-tab" onclick="showTab('bills',this)">🧾 Bills</button>
   <button class="nav-tab" onclick="showTab('payments',this)">💰 Payments</button>
-  <button class="nav-tab" onclick="showTab('invoice',this)">🧾 Invoice</button>
-  <button class="nav-tab" onclick="showTab('statement',this)">📋 Statement</button>
+  <button class="nav-tab" onclick="showTab('more',this)">⋯ More</button>
 </div>
 
 <!-- ===== DASHBOARD ===== -->
@@ -291,32 +286,57 @@
     <div class="card-hd">⏰ Payment Reminders</div>
     <div id="reminder-list"></div>
   </div>
+
+  <!-- Sub-party Outstanding -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="card-hd" style="margin:0;">🏪 Sub-Party Outstanding</div>
+      <select id="dash-sub-dist" onchange="renderSubPartyOutstanding()" style="padding:5px 8px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:0.75rem;">
+        <option value="T.M.U. MORADABAD">TMU</option>
+        <option value="TATA MOTORS">Tata</option>
+        <option value="POLICE ACADEMY">Police</option>
+        <option value="M.F. TRADERS">MF</option>
+      </select>
+    </div>
+    <div id="subparty-outstanding-list"></div>
+  </div>
 </div>
 
 <!-- ===== DEMAND ===== -->
 <div class="section" id="tab-demand">
 
-  <!-- Mode selector -->
-  <div class="card" style="padding:12px;">
-    <div style="display:flex;gap:6px;flex-wrap:wrap;">
-      <button class="btn btn-yellow btn-sm" onclick="setDemandMode('subparty')">🏪 Sub-Party Demand</button>
-      <button class="btn btn-ghost btn-sm" onclick="setDemandMode('direct')">🏢 Direct Distributor</button>
+  <!-- Header card with mode toggle -->
+  <div class="card" style="padding:14px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div>
+        <div style="font-weight:800;font-size:1rem;">📦 Demand Entry</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Sub-party ya direct distributor</div>
+      </div>
+    </div>
+    <div style="display:flex;background:var(--card2);border-radius:10px;padding:3px;gap:3px;">
+      <button id="mode-btn-sub" onclick="setDemandMode('subparty')"
+        style="flex:1;padding:8px;border-radius:8px;border:none;font-family:var(--font);font-size:0.82rem;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;transition:all 0.2s;">
+        🏪 Sub-Party
+      </button>
+      <button id="mode-btn-direct" onclick="setDemandMode('direct')"
+        style="flex:1;padding:8px;border-radius:8px;border:none;font-family:var(--font);font-size:0.82rem;font-weight:700;cursor:pointer;background:transparent;color:var(--muted);transition:all 0.2s;">
+        🏢 Direct
+      </button>
     </div>
   </div>
 
   <!-- Sub-party demand -->
   <div id="dem-subparty-wrap">
     <div class="card">
-      <div class="card-hd">🏪 Sub-Party Demand Entry</div>
       <div class="frow">
         <div class="fg full">
           <label>Distributor</label>
           <select id="dem-sub-dist" onchange="renderSubPartyList()">
             <option value="">-- Select Distributor --</option>
-            <option value="T.M.U. MORADABAD">TMU MORADABAD</option>
-            <option value="TATA MOTORS">TATA MOTORS</option>
-            <option value="POLICE ACADEMY">POLICE ACADEMY</option>
-            <option value="M.F. TRADERS">MF TRADERS</option>
+            <option value="T.M.U. MORADABAD">🏢 TMU MORADABAD</option>
+            <option value="TATA MOTORS">🚗 TATA MOTORS</option>
+            <option value="POLICE ACADEMY">🚔 POLICE ACADEMY</option>
+            <option value="M.F. TRADERS">🏬 MF TRADERS</option>
           </select>
         </div>
         <div class="fg full">
@@ -336,7 +356,6 @@
   <!-- Direct distributor demand (hidden by default) -->
   <div id="dem-direct-wrap" style="display:none;">
     <div class="card">
-      <div class="card-hd">🏢 Direct Demand Entry</div>
       <div class="frow">
         <div class="fg full">
           <label>Distributor</label>
@@ -359,28 +378,63 @@
 
   <!-- Recent demands -->
   <div class="card">
-    <div class="card-hd">📋 Recent Demands</div>
-    <div style="display:flex;gap:8px;margin-bottom:10px;">
-      <select id="dem-hist-dist" onchange="renderDemandHistory()" style="flex:1;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:0.82rem;">
-        <option value="">-- All --</option>
-        <option>T.M.U. MORADABAD</option>
-        <option>TATA MOTORS</option>
-        <option>M.F. TRADERS</option>
-        <option>POLICE ACADEMY</option>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-hd" style="margin:0;">📋 Recent Demands</div>
+      <select id="dem-hist-dist" onchange="renderDemandHistory()" style="padding:6px 10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:0.78rem;">
+        <option value="">All</option>
+        <option value="T.M.U. MORADABAD">TMU</option>
+        <option value="TATA MOTORS">Tata</option>
+        <option value="M.F. TRADERS">MF</option>
+        <option value="POLICE ACADEMY">Police</option>
       </select>
     </div>
     <div id="dem-history-list"></div>
   </div>
 </div>
 
-<!-- ===== ACCOUNTS ===== -->
+<!-- ===== BILLS (replaces TMU/Tata/Police/MF tabs) ===== -->
+<div class="section" id="tab-bills">
+  <!-- Distributor selector -->
+  <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;">
+    <button id="billbtn-tmu" onclick="switchBillsDist('tmu',this)"
+      style="padding:8px 16px;border-radius:20px;border:1px solid var(--accent);background:var(--accent);color:#fff;font-family:var(--font);font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;">
+      🏢 TMU
+    </button>
+    <button id="billbtn-tata" onclick="switchBillsDist('tata',this)"
+      style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--muted);font-family:var(--font);font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;">
+      🚗 Tata
+    </button>
+    <button id="billbtn-police" onclick="switchBillsDist('police',this)"
+      style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--muted);font-family:var(--font);font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;">
+      🚔 Police
+    </button>
+    <button id="billbtn-mft" onclick="switchBillsDist('mft',this)"
+      style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--muted);font-family:var(--font);font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;">
+      🏬 MF
+    </button>
+  </div>
+  <div id="bills-content"></div>
+</div>
+
+<!-- ===== MORE ===== -->
+<div class="section" id="tab-more">
+  <div class="card">
+    <div class="card-hd">More Options</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button class="btn btn-ghost" style="text-align:left;padding:14px 16px;border-radius:12px;" onclick="showTab('accounts',document.querySelector('.nav-tab'))">💼 Accounts & Outstanding</button>
+      <button class="btn btn-ghost" style="text-align:left;padding:14px 16px;border-radius:12px;" onclick="showInvoiceSection()">🧾 Generate Invoice</button>
+      <button class="btn btn-ghost" style="text-align:left;padding:14px 16px;border-radius:12px;" onclick="showTab('statement',document.querySelector('.nav-tab'))">📋 Statement</button>
+      <button class="btn btn-ghost" style="text-align:left;padding:14px 16px;border-radius:12px;" onclick="showTab('partyreport',document.querySelector('.nav-tab'))">📊 Party Report</button>
+    </div>
+  </div>
+</div>
 <div class="section" id="tab-accounts">
   <div class="dist-grid" id="accounts-list"></div>
 </div>
 
 <!-- ===== TMU PARTIES ===== -->
 <div class="section" id="tab-tmu">
-  <div class="card" style="border-color:rgba(247,201,72,0.3);background:rgba(247,201,72,0.04);">
+  <div class="card" style="border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.04);">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
       <div style="font-size:1rem;font-weight:800;">🏢 T.M.U. MORADABAD</div>
       <span class="badge bg-yellow">6 Parties</span>
@@ -932,6 +986,10 @@
     renderMftPartyList();
     renderMftHistory();
     renderDemandHistory();
+    renderSubPartyOutstanding();
+    if (document.getElementById('bills-content') && !document.getElementById('bills-content').innerHTML) {
+      renderBillsContent('tmu');
+    }
     // Set today's date defaults
     if (!document.getElementById('p-date').value) document.getElementById('p-date').value = today();
   }
@@ -1984,6 +2042,11 @@
     demandMode = mode;
     document.getElementById('dem-subparty-wrap').style.display = mode==='subparty' ? 'block' : 'none';
     document.getElementById('dem-direct-wrap').style.display = mode==='direct' ? 'block' : 'none';
+    // Toggle button styles
+    const subBtn = document.getElementById('mode-btn-sub');
+    const dirBtn = document.getElementById('mode-btn-direct');
+    if (subBtn) { subBtn.style.background = mode==='subparty' ? 'var(--accent)' : 'transparent'; subBtn.style.color = mode==='subparty' ? '#000' : 'var(--muted)'; }
+    if (dirBtn) { dirBtn.style.background = mode==='direct' ? 'var(--accent)' : 'transparent'; dirBtn.style.color = mode==='direct' ? '#000' : 'var(--muted)'; }
   }
 
   // ---- SUB-PARTY DEMAND ----
@@ -1998,32 +2061,52 @@
     const parties = SUB_PARTIES[distName] || [];
     currentSubParty = parties[0];
 
-    // Party selector buttons
+    // Count how many parties have saved data
+    const savedCount = parties.filter(p => Object.keys((appData.subPartyDemands||{})[distName+'|'+p+'|'+date]||{}).length > 0).length;
+
     tabsEl.innerHTML = `
-      <div style="display:flex;gap:6px;flex-wrap:wrap;padding:0 0 12px;">
-        ${parties.map(p => `
-          <button id="spbtn-${p.replace(/\s+/g,'_')}" 
-            onclick="selectSubParty('${p}','${distName}','${date}')"
-            style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--muted);font-family:var(--font);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;">
-            ${p}
-          </button>`).join('')}
+      <div class="card" style="padding:14px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Parties</div>
+          <div style="font-size:0.72rem;color:${savedCount===parties.length?'var(--green)':'var(--muted)'};">
+            ${savedCount}/${parties.length} saved
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:0;">
+          ${parties.map(p => {
+            const hasSaved = Object.keys((appData.subPartyDemands||{})[distName+'|'+p+'|'+date]||{}).length > 0;
+            return `<button id="spbtn-${p.replace(/\s+/g,'_')}"
+              onclick="selectSubParty('${p}','${distName}','${date}')"
+              style="padding:8px 14px;border-radius:20px;border:1px solid ${hasSaved?'var(--green)':'var(--border)'};
+                background:${hasSaved?'rgba(34,197,94,0.1)':'var(--card2)'};
+                color:${hasSaved?'var(--green)':'var(--muted)'};
+                font-family:var(--font);font-size:0.8rem;font-weight:700;cursor:pointer;transition:all 0.2s;position:relative;">
+              ${hasSaved?'✓ ':''}${p}
+            </button>`;
+          }).join('')}
+        </div>
       </div>
       <div id="subparty-form-area"></div>`;
 
     // Auto-sum button
     autosumEl.innerHTML = `
-      <div class="card" style="border-color:rgba(247,201,72,0.3);">
-        <div class="card-hd">🔄 Auto Sum → ${distName}</div>
-        <p style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">
-          Sabhi sub-parties ki demand jod kar <strong style="color:var(--accent);">${distName}</strong> mein save kar do
-        </p>
-        <div id="autosum-preview" style="margin-bottom:12px;"></div>
-        <button class="btn btn-yellow btn-block" onclick="autoSumToDistributor('${distName}','${date}')">
-          ➕ Sum Karo aur ${distName} mein Save Karo
+      <div class="card" style="border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.03);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="flex:1;">
+            <div style="font-weight:800;font-size:0.9rem;">🔄 Auto Sum → ${distName}</div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Sabhi parties jod kar distributor demand banao</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:1.2rem;font-weight:800;color:${savedCount===parties.length?'var(--green)':'var(--accent)'};">${savedCount}/${parties.length}</div>
+            <div style="font-size:0.65rem;color:var(--muted);">ready</div>
+          </div>
+        </div>
+        <div id="autosum-preview" style="margin-bottom:10px;"></div>
+        <button class="btn btn-yellow btn-block" onclick="autoSumToDistributor('${distName}','${date}')" ${savedCount===0?'disabled':''}>
+          ➕ Sum Karo — ${distName} mein Save Karo
         </button>
       </div>`;
 
-    // Auto-show first party
     selectSubParty(parties[0], distName, date);
     updateAutoSumPreview(distName, date);
   }
@@ -2031,13 +2114,17 @@
   function selectSubParty(party, distName, date) {
     currentSubParty = party;
     const parties = SUB_PARTIES[distName] || [];
+    const distKey = distName==='T.M.U. MORADABAD'?'tmu':distName==='TATA MOTORS'?'tata':distName==='POLICE ACADEMY'?'police':'mft';
+
+    // Update pill button styles
     parties.forEach(p => {
       const btn = document.getElementById('spbtn-' + p.replace(/\s+/g,'_'));
-      if (btn) {
-        btn.style.background = p===party ? 'var(--accent)' : 'var(--card2)';
-        btn.style.color = p===party ? '#000' : 'var(--muted)';
-        btn.style.borderColor = p===party ? 'var(--accent)' : 'var(--border)';
-      }
+      if (!btn) return;
+      const hasSaved = Object.keys((appData.subPartyDemands||{})[distName+'|'+p+'|'+date]||{}).length > 0;
+      const isActive = p === party;
+      btn.style.background = isActive ? 'var(--accent)' : hasSaved ? 'rgba(34,197,94,0.1)' : 'var(--card2)';
+      btn.style.color = isActive ? '#000' : hasSaved ? 'var(--green)' : 'var(--muted)';
+      btn.style.borderColor = isActive ? 'var(--accent)' : hasSaved ? 'var(--green)' : 'var(--border)';
     });
 
     const allProds = getAllProducts();
@@ -2045,55 +2132,84 @@
     if (!formArea) return;
 
     const existing = (appData.subPartyDemands || {})[distName+'|'+party+'|'+date] || {};
-    // Get saved product selection for this party from Firebase
     const selKey = distName.replace(/\s+/g,'_') + '_' + party.replace(/\s+/g,'_');
-    const savedSel = (appData.partyProductMap || {})[selKey] || {};
-    const selectedProds = savedSel;
+    const selectedProds = (appData.partyProductMap || {})[selKey] || {};
+    const hasSelectedProds = allProds.filter(p => selectedProds[p.id]).length > 0;
 
     formArea.innerHTML = `
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <div style="font-weight:800;font-size:0.95rem;">${party}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div>
+            <div style="font-weight:800;font-size:1rem;">${party}</div>
+            <div style="font-size:0.7rem;color:var(--muted);margin-top:1px;">${fmtDate(date)}</div>
+          </div>
           <div style="display:flex;gap:6px;">
-            <button class="btn btn-ghost btn-sm" onclick="toggleProdSelect('${party}','${distName}')">⚙️ Products</button>
-            <button class="btn btn-ghost btn-sm" onclick="clearSubForm()">Clear</button>
+            <button class="btn btn-ghost btn-sm"
+              data-party="${party}" data-dist="${distName}"
+              onclick="toggleProdSelectBtn(this)">⚙️ Products</button>
+            ${hasSelectedProds ? `<button class="btn btn-ghost btn-sm" onclick="clearSubForm()">🗑️</button>` : ''}
           </div>
         </div>
-        <div id="subparty-prod-form-${party.replace(/\s+/g,'_')}">
-          ${allProds.filter(p => selectedProds[p.id]).length === 0
-            ? `<div class="empty" style="padding:16px;">
-                ⚙️ Pehle products select karo<br>
-                <button class="btn btn-yellow btn-sm" style="margin-top:10px;" onclick="toggleProdSelect('${party}','${distName}')">Products Choose Karo</button>
-               </div>`
-            : allProds.filter(p => selectedProds[p.id]).map(p => `
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
-                <div style="font-size:0.85rem;font-weight:600;">${p.name} <span style="color:var(--muted);font-size:0.75rem;">${p.size}</span></div>
-                <div style="display:flex;align-items:center;gap:5px;">
-                  <button onclick="adjQty('sq-${p.id}',-1)" style="width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem;cursor:pointer;">−</button>
-                  <input type="number" id="sq-${p.id}" value="${existing[p.id]||0}" min="0"
-                    style="width:52px;text-align:center;padding:4px;background:var(--card2);border:1px solid var(--border);border-radius:7px;color:var(--accent);font-family:var(--mono);font-size:0.85rem;">
-                  <button onclick="adjQty('sq-${p.id}',1)" style="width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem;cursor:pointer;">+</button>
-                </div>
-              </div>`).join('')
-          }
-        </div>
-        ${allProds.filter(p => selectedProds[p.id]).length > 0
-          ? `<button class="btn btn-yellow btn-block" style="margin-top:12px;" onclick="saveSubPartyDemand('${party}','${distName}','${date}')">💾 ${party} Save Karo</button>`
-          : ''}
+
+        ${!hasSelectedProds
+          ? `<div style="text-align:center;padding:20px 0;">
+              <div style="font-size:2rem;margin-bottom:8px;">📦</div>
+              <div style="font-size:0.85rem;color:var(--muted);margin-bottom:14px;">Pehle is party ke products set karo</div>
+              <button class="btn btn-yellow" data-party="${party}" data-dist="${distName}" onclick="toggleProdSelectBtn(this)">⚙️ Products Choose Karo</button>
+             </div>`
+          : allProds.filter(p => selectedProds[p.id]).map(p => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);">
+              <div>
+                <div style="font-size:0.88rem;font-weight:700;">${p.name}</div>
+                <div style="font-size:0.72rem;color:var(--muted);">${p.size}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button onclick="adjQty('sq-${p.id}',-1);updateRealtimePreview('${distKey||''}','${party}')"
+                  style="width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1.1rem;cursor:pointer;font-weight:700;">−</button>
+                <input type="number" id="sq-${p.id}" value="${existing[p.id]||0}" min="0"
+                  oninput="updateRealtimePreview('${distKey||''}','${party}')"
+                  style="width:58px;text-align:center;padding:6px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--accent);font-family:var(--mono);font-size:1rem;font-weight:700;">
+                <button onclick="adjQty('sq-${p.id}',1);updateRealtimePreview('${distKey||''}','${party}')"
+                  style="width:32px;height:32px;border-radius:50%;border:1px solid var(--accent);background:rgba(34,197,94,0.1);color:var(--accent);font-size:1.1rem;cursor:pointer;font-weight:700;">+</button>
+              </div>
+            </div>`).join('')
+        }
+
+        ${hasSelectedProds ? `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;margin-bottom:8px;padding:10px 14px;background:var(--card2);border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:0.75rem;color:var(--muted);">Estimated Amount</div>
+            <div id="realtime-preview-${party.replace(/\s+/g,'_')}" style="font-family:var(--mono);font-weight:800;font-size:1rem;color:var(--accent);"></div>
+          </div>
+          <button class="btn btn-yellow btn-block"
+            data-party="${party}" data-dist="${distName}" data-date="${date}"
+            onclick="saveSubPartyDemandBtn(this)">
+            💾 ${party} Save Karo
+          </button>` : ''}
       </div>
 
-      <!-- Product selector panel (hidden by default) -->
       <div id="prod-select-panel-${party.replace(/\s+/g,'_')}" style="display:none;">
-        <div class="card" style="border-color:rgba(247,201,72,0.3);">
-          <div class="card-hd">${party} — Products Select Karo</div>
-          <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px;">Jo products is party ko jaate hain unhe tick karo</p>
+        <div class="card" style="border-color:rgba(34,197,94,0.3);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div>
+              <div class="card-hd" style="margin:0;">${party} — Products</div>
+              <div style="font-size:0.72rem;color:var(--muted);margin-top:3px;">Jo products jaate hain tick karo</div>
+            </div>
+            <button class="btn btn-ghost btn-sm"
+              data-party="${party}" data-dist="${distName}"
+              onclick="toggleProdSelectBtn(this)">✕</button>
+          </div>
           ${allProds.map(p => `
-            <label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
-              <input type="checkbox" id="chk-${p.id}" ${selectedProds[p.id]?'checked':''} 
-                style="width:16px;height:16px;accent-color:var(--accent);">
-              <span style="font-size:0.85rem;">${p.name} <span style="color:var(--muted);font-size:0.75rem;">${p.size}</span></span>
+            <label style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+              <input type="checkbox" id="chk-${p.id}" ${selectedProds[p.id]?'checked':''}
+                style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;">
+              <div>
+                <div style="font-size:0.85rem;font-weight:600;">${p.name}</div>
+                <div style="font-size:0.7rem;color:var(--muted);">${p.size}</div>
+              </div>
             </label>`).join('')}
-          <button class="btn btn-yellow btn-block" style="margin-top:14px;" onclick="saveProdSelection('${party}','${distName}','${date}')">✅ Done</button>
+          <button class="btn btn-yellow btn-block" style="margin-top:14px;"
+            data-party="${party}" data-dist="${distName}" data-date="${date}"
+            onclick="saveProdSelectionBtn(this)">✅ Save Products</button>
         </div>
       </div>`;
   }
@@ -2122,6 +2238,16 @@
   function clearSubForm() {
     const allProds = getAllProducts();
     allProds.forEach(p => { const el = document.getElementById('sq-'+p.id); if(el) el.value=0; });
+  }
+
+  function saveSubPartyDemandBtn(btn) {
+    saveSubPartyDemand(btn.dataset.party, btn.dataset.dist, btn.dataset.date);
+  }
+  function toggleProdSelectBtn(btn) {
+    toggleProdSelect(btn.dataset.party, btn.dataset.dist);
+  }
+  function saveProdSelectionBtn(btn) {
+    saveProdSelection(btn.dataset.party, btn.dataset.dist, btn.dataset.date);
   }
 
   function saveSubPartyDemand(party, distName, date) {
@@ -2346,7 +2472,328 @@
   function openRatesForPolice() { const p=document.getElementById('police-inv-party').value; if(!p){alert('Pehle party select karo!');return;} openRatesModal('police',p); }
   function openRatesForMft()    { const p=document.getElementById('mft-inv-party').value; if(!p){alert('Pehle party select karo!');return;} openRatesModal('mft',p); }
 
-  // ===== TAB PASSWORDS =====
+  // ===== BILLS TAB =====
+  let currentBillsDist = 'tmu';
+  const BILLS_DIST_MAP = {
+    tmu:    { name:'T.M.U. MORADABAD', parties: ['MGH','OGH','MBH','NBH','CANTEEN','RAJU'],         color:'rgba(34,197,94,0.3)',  label:'🏢 TMU' },
+    tata:   { name:'TATA MOTORS',      parties: ['SODEXO','JAY MARKETING','BILASPUR ENTERPRISES','AXON','SURAJ'], color:'rgba(96,165,250,0.3)', label:'🚗 Tata' },
+    police: { name:'POLICE ACADEMY',   parties: ['RAMESH','PAC','GOVINDA'],                          color:'rgba(167,139,250,0.3)', label:'🚔 Police' },
+    mft:    { name:'M.F. TRADERS',     parties: ['SUMIT','GOVINDA2'],                               color:'rgba(52,211,153,0.3)', label:'🏬 MF' },
+  };
+
+  function switchBillsDist(key, el) {
+    // Password check
+    askTabPassword(key, el, () => {
+      currentBillsDist = key;
+      // Update pill styles
+      ['tmu','tata','police','mft'].forEach(k => {
+        const btn = document.getElementById('billbtn-'+k);
+        if (!btn) return;
+        const active = k===key;
+        btn.style.background = active ? 'var(--accent)' : 'var(--card2)';
+        btn.style.color = active ? '#000' : 'var(--muted)';
+        btn.style.borderColor = active ? 'var(--accent)' : 'var(--border)';
+      });
+      renderBillsContent(key);
+    });
+  }
+
+  function renderBillsContent(key) {
+    const d = BILLS_DIST_MAP[key];
+    const bills = appData[key+'Bills'] || [];
+    const el = document.getElementById('bills-content');
+
+    // Outstanding summary per party
+    const partySummary = d.parties.map(p => {
+      const pb = bills.filter(b=>b.party===p);
+      const billed = pb.reduce((s,b)=>s+(b.billAmt||0),0);
+      const paid   = pb.reduce((s,b)=>s+(b.paidAmt||0),0);
+      const bal    = billed - paid;
+      return {p, billed, paid, bal, count: pb.length};
+    });
+
+    el.innerHTML = `
+      <!-- Outstanding cards -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        ${partySummary.map(r => `
+          <div style="background:var(--card2);border:1px solid ${r.bal>0?'rgba(239,68,68,0.3)':r.bal<0?'rgba(96,165,250,0.3)':'var(--border)'};border-radius:12px;padding:12px;">
+            <div style="font-weight:700;font-size:0.85rem;margin-bottom:4px;">${r.p}</div>
+            <div style="font-family:var(--mono);font-size:0.95rem;font-weight:800;color:${r.bal>0?'var(--red)':r.bal<0?'var(--blue)':'var(--green)'};">
+              ${r.bal>0?fmtMoney(r.bal):r.bal<0?'Adv '+fmtMoney(Math.abs(r.bal)):'✓'}
+            </div>
+            <div style="font-size:0.65rem;color:var(--muted);margin-top:2px;">${r.count} bills</div>
+          </div>`).join('')}
+      </div>
+
+      <!-- Add Bill -->
+      <div class="card">
+        <div class="card-hd">➕ Add Bill</div>
+        <div class="frow">
+          <div class="fg full">
+            <label>Party</label>
+            <select id="b-party">
+              <option value="">-- Select --</option>
+              ${d.parties.map(p=>`<option>${p}</option>`).join('')}
+            </select>
+          </div>
+          <div class="fg"><label>From</label><input id="b-from" type="date"></div>
+          <div class="fg"><label>To</label><input id="b-to" type="date"></div>
+          <div class="fg"><label>Bill ₹</label><input id="b-amt" type="number" placeholder="0"></div>
+          <div class="fg"><label>Paid ₹</label><input id="b-paid" type="number" placeholder="0"></div>
+          <div class="fg full"><label>Note</label><input id="b-note" placeholder="Optional"></div>
+        </div>
+        <button class="btn btn-yellow btn-block" onclick="addBillEntry('${key}')">💾 Save Bill</button>
+      </div>
+
+      <!-- Bill History -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="card-hd" style="margin:0;">📋 Bill History</div>
+          <div style="display:flex;gap:6px;">
+            <select id="b-filter" onchange="renderBillsContent('${key}')" style="padding:5px 8px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:0.75rem;">
+              <option value="">All</option>
+              ${d.parties.map(p=>`<option>${p}</option>`).join('')}
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="exportBillsExcel('${key}')">📥</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Party</th><th>Period</th><th>Bill</th><th>Paid</th><th>Bal</th><th></th></tr></thead>
+            <tbody>
+              ${(() => {
+                const filter = document.getElementById('b-filter')?.value || '';
+                let list = [...bills].sort((a,b)=>(b.from||'').localeCompare(a.from||''));
+                if (filter) list = list.filter(b=>b.party===filter);
+                if (!list.length) return '<tr><td colspan="6" class="empty">Koi bill nahi</td></tr>';
+                return list.map(b => {
+                  const bal = (b.billAmt||0)-(b.paidAmt||0);
+                  return `<tr>
+                    <td style="font-weight:700;">${b.party}</td>
+                    <td style="font-size:0.72rem;color:var(--muted);">${fmtDate(b.from)}–${fmtDate(b.to)}</td>
+                    <td style="font-family:var(--mono);color:var(--accent);">${fmtMoney(b.billAmt||0)}</td>
+                    <td style="font-family:var(--mono);color:var(--green);">${fmtMoney(b.paidAmt||0)}</td>
+                    <td style="font-family:var(--mono);font-weight:700;color:${bal>0?'var(--red)':'var(--green)'};">${bal>0?fmtMoney(bal):'✓'}</td>
+                    <td><button class="btn btn-red btn-sm" onclick="deleteBillEntry('${key}',${b.id})">✕</button></td>
+                  </tr>`;
+                }).join('');
+              })()}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Invoice -->
+      <div class="card">
+        <div class="card-hd">🧾 Invoice</div>
+        <div class="frow">
+          <div class="fg full">
+            <label>Party</label>
+            <select id="b-inv-party">
+              <option value="">-- Select --</option>
+              ${d.parties.map(p=>`<option>${p}</option>`).join('')}
+            </select>
+          </div>
+          <div class="fg"><label>From</label><input id="b-inv-from" type="date"></div>
+          <div class="fg"><label>To</label><input id="b-inv-to" type="date"></div>
+        </div>
+        <button class="btn btn-yellow btn-block" onclick="generateBillsAutoInvoice('${key}')">🧾 Generate Invoice</button>
+      </div>
+      <div id="bills-invoice-preview"></div>`;
+  }
+
+  function addBillEntry(key) {
+    const party = document.getElementById('b-party').value;
+    const from  = document.getElementById('b-from').value;
+    const to    = document.getElementById('b-to').value;
+    const billAmt = parseFloat(document.getElementById('b-amt').value)||0;
+    const paidAmt = parseFloat(document.getElementById('b-paid').value)||0;
+    const note  = document.getElementById('b-note').value.trim();
+    if (!party) { alert('Party select karo!'); return; }
+    if (!from||!to) { alert('Dates daalo!'); return; }
+    if (!billAmt) { alert('Bill amount daalo!'); return; }
+    if (!appData[key+'Bills']) appData[key+'Bills'] = [];
+    appData[key+'Bills'].push({ id:Date.now(), party, from, to, billAmt, paidAmt, note, createdAt:today() });
+    const upd={}; upd[key+'Bills']=appData[key+'Bills']; dbRef.update(upd);
+    document.getElementById('b-amt').value='';
+    document.getElementById('b-paid').value='';
+    document.getElementById('b-note').value='';
+    alert(`✅ Bill saved!`);
+  }
+
+  function deleteBillEntry(key, id) {
+    if (!confirm('Delete karein?')) return;
+    appData[key+'Bills'] = (appData[key+'Bills']||[]).filter(b=>b.id!==id);
+    const upd={}; upd[key+'Bills']=appData[key+'Bills']; dbRef.update(upd);
+  }
+
+  function exportBillsExcel(key) {
+    const d = BILLS_DIST_MAP[key];
+    const wb = XLSX.utils.book_new();
+    const rows = [['Party','From','To','Bill Amount','Paid Amount','Balance','Note']];
+    (appData[key+'Bills']||[]).forEach(b => rows.push([b.party,b.from,b.to,b.billAmt||0,b.paidAmt||0,(b.billAmt||0)-(b.paidAmt||0),b.note||'']));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Bills');
+    XLSX.writeFile(wb, `${key}_bills_${today()}.xlsx`);
+  }
+
+  function generateBillsAutoInvoice(key) {
+    const party = document.getElementById('b-inv-party').value;
+    const from  = document.getElementById('b-inv-from').value;
+    const to    = document.getElementById('b-inv-to').value;
+    const d     = BILLS_DIST_MAP[key];
+    generatePartyBillWithRates(d.name, key, party, from, to, key.toUpperCase(), 'bills-invoice-preview', 'bills-print-area');
+  }
+
+  function showInvoiceSection() { showTab('bills', document.querySelectorAll('.nav-tab')[2]); }
+
+  // ===== SUB-PARTY OUTSTANDING (Dashboard) =====
+  function renderSubPartyOutstanding() {
+    const distName = document.getElementById('dash-sub-dist')?.value || 'T.M.U. MORADABAD';
+    const el = document.getElementById('subparty-outstanding-list');
+    if (!el) return;
+
+    const parties = SUB_PARTIES[distName] || [];
+    const distKey = distName==='T.M.U. MORADABAD'?'tmu':distName==='TATA MOTORS'?'tata':distName==='POLICE ACADEMY'?'police':'mft';
+    const bills = appData[distKey+'Bills'] || [];
+
+    if (!bills.length) { el.innerHTML='<div class="empty">Koi bill nahi</div>'; return; }
+
+    let totalOut = 0;
+    el.innerHTML = parties.map(p => {
+      const pBills = bills.filter(b => b.party===p);
+      const billed = pBills.reduce((s,b)=>s+(b.billAmt||0),0);
+      const paid   = pBills.reduce((s,b)=>s+(b.paidAmt||0),0);
+      const bal    = billed - paid;
+      totalOut += bal;
+      if (!pBills.length) return '';
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-weight:700;font-size:0.88rem;">${p}</div>
+            <div style="font-size:0.7rem;color:var(--muted);">${pBills.length} bills · Billed: ${fmtMoney(billed)}</div>
+          </div>
+          <span class="badge ${bal>0?'bg-red':bal<0?'bg-blue':'bg-green'}">
+            ${bal>0?fmtMoney(bal)+' due':bal<0?'Adv '+fmtMoney(Math.abs(bal)):'✓ Clear'}
+          </span>
+        </div>`;
+    }).join('') + (totalOut > 0 ? `
+      <div style="display:flex;justify-content:space-between;padding:10px 0;margin-top:4px;">
+        <div style="font-weight:800;font-size:0.88rem;">Total Outstanding</div>
+        <div style="font-family:var(--mono);font-weight:800;color:var(--red);">${fmtMoney(totalOut)}</div>
+      </div>` : '');
+  }
+
+  // ===== MONTHLY PARTY REPORT =====
+  function renderPartyReport() {
+    const distName = document.getElementById('pr-dist').value;
+    const month = document.getElementById('pr-month').value;
+    if (!month) { alert('Month select karo!'); return; }
+
+    const distKey = distName==='T.M.U. MORADABAD'?'tmu':distName==='TATA MOTORS'?'tata':distName==='POLICE ACADEMY'?'police':'mft';
+    const parties = SUB_PARTIES[distName] || [];
+    const bills = (appData[distKey+'Bills']||[]).filter(b => (b.from||'').startsWith(month) || (b.to||'').startsWith(month));
+    const el = document.getElementById('party-report-body');
+
+    let grandBill=0, grandPaid=0;
+    const rows = parties.map(p => {
+      const pBills = bills.filter(b => b.party===p);
+      const billed = pBills.reduce((s,b)=>s+(b.billAmt||0),0);
+      const paid   = pBills.reduce((s,b)=>s+(b.paidAmt||0),0);
+      const bal    = billed - paid;
+      grandBill += billed; grandPaid += paid;
+      return { p, pBills, billed, paid, bal };
+    });
+
+    el.innerHTML = `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div>
+            <div style="font-weight:800;font-size:0.95rem;">${distName}</div>
+            <div style="font-size:0.72rem;color:var(--muted);">${month}</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="printPartyReport()">🖨️ Print</button>
+        </div>
+        <div id="party-report-print">
+          <!-- Summary stats -->
+          <div class="stat-grid" style="margin-bottom:14px;">
+            <div class="stat-box"><div class="stat-val" style="color:var(--accent);font-size:1.1rem;">${fmtMoney(grandBill)}</div><div class="stat-lbl">Total Billed</div></div>
+            <div class="stat-box"><div class="stat-val" style="color:var(--green);font-size:1.1rem;">${fmtMoney(grandPaid)}</div><div class="stat-lbl">Total Paid</div></div>
+          </div>
+          <div style="background:${(grandBill-grandPaid)>0?'rgba(239,68,68,0.08)':'rgba(34,197,94,0.08)'};border:1px solid ${(grandBill-grandPaid)>0?'rgba(239,68,68,0.2)':'rgba(34,197,94,0.2)'};border-radius:10px;padding:12px;text-align:center;margin-bottom:16px;">
+            <div style="font-size:0.7rem;color:var(--muted);">NET OUTSTANDING</div>
+            <div style="font-size:1.5rem;font-weight:800;font-family:var(--mono);color:${(grandBill-grandPaid)>0?'var(--red)':'var(--green)'};">${fmtMoney(Math.abs(grandBill-grandPaid))} ${(grandBill-grandPaid)<=0?'✓':''}</div>
+          </div>
+
+          <!-- Party wise breakdown -->
+          <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;">Party Wise Breakdown</div>
+          ${rows.map(r => r.billed===0 ? '' : `
+            <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="font-weight:800;">${r.p}</div>
+                <span class="badge ${r.bal>0?'bg-red':r.bal<0?'bg-blue':'bg-green'}">${r.bal>0?fmtMoney(r.bal)+' due':r.bal<0?'Adv':' ✓ Clear'}</span>
+              </div>
+              <div style="display:flex;gap:16px;">
+                <div style="font-size:0.75rem;color:var(--muted);">Billed: <strong style="color:var(--accent);">${fmtMoney(r.billed)}</strong></div>
+                <div style="font-size:0.75rem;color:var(--muted);">Paid: <strong style="color:var(--green);">${fmtMoney(r.paid)}</strong></div>
+                <div style="font-size:0.75rem;color:var(--muted);">${r.pBills.length} bills</div>
+              </div>
+              ${r.pBills.length ? `
+                <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+                  ${r.pBills.map(b=>`
+                    <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);padding:3px 0;">
+                      <span>${fmtDate(b.from)} – ${fmtDate(b.to)}</span>
+                      <span style="color:var(--text);">${fmtMoney(b.billAmt||0)}</span>
+                    </div>`).join('')}
+                </div>` : ''}
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  function printPartyReport() {
+    const content = document.getElementById('party-report-print')?.innerHTML;
+    if (!content) return;
+    const win = window.open('','_blank');
+    win.document.write(`<html><head><title>Party Report</title><style>
+      body{font-family:Arial,sans-serif;padding:20px;font-size:13px;}
+      .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+      .stat-box{background:#f5f5f5;padding:12px;border-radius:8px;}
+      .stat-val{font-size:1.1rem;font-weight:800;}
+      .stat-lbl{font-size:0.7rem;color:#888;margin-top:3px;}
+      .badge{display:inline-block;padding:3px 8px;border-radius:5px;font-size:0.7rem;font-weight:700;}
+      .bg-red{background:#fee2e2;color:#dc2626;} .bg-green{background:#dcfce7;color:#16a34a;} .bg-blue{background:#dbeafe;color:#2563eb;}
+    </style></head><body>${content}<script>window.print();<\/script></body></html>`);
+    win.document.close();
+  }
+
+  // ===== REAL-TIME AMOUNT PREVIEW =====
+  function calcRealtimeAmount(distKey, party) {
+    const allProds = getAllProducts();
+    const selKey = (
+      distKey==='tmu'?'T.M.U. MORADABAD':
+      distKey==='tata'?'TATA MOTORS':
+      distKey==='police'?'POLICE ACADEMY':'M.F. TRADERS'
+    ).replace(/\s+/g,'_') + '_' + party.replace(/\s+/g,'_');
+    const savedSel = (appData.partyProductMap||{})[selKey]||{};
+    const selectedProds = allProds.filter(p => savedSel[p.id]);
+    let total = 0;
+    selectedProds.forEach(p => {
+      const qty = parseInt(document.getElementById('sq-'+p.id)?.value)||0;
+      const rate = getPartyBillingRate(distKey, party, p.id);
+      total += qty * rate;
+    });
+    return total;
+  }
+
+  function updateRealtimePreview(distKey, party) {
+    const el = document.getElementById('realtime-preview-'+party.replace(/\s+/g,'_'));
+    if (!el) return;
+    const amt = calcRealtimeAmount(distKey, party);
+    el.textContent = amt > 0 ? '≈ ' + fmtMoney(amt) : '';
+    el.style.color = 'var(--accent)';
+  }
+
+  // ===== SUB-PARTY OUTSTANDING =====
   const TAB_PASSWORDS = {
     'tmu':    '1234',
     'tata':   '1234',
@@ -2361,10 +2808,12 @@
   };
   let pendingTab = null;
   let pendingTabEl = null;
+  let pendingCallback = null;
 
-  function askTabPassword(tabName, el) {
+  function askTabPassword(tabName, el, callback) {
     pendingTab = tabName;
     pendingTabEl = el;
+    pendingCallback = callback || null;
     document.getElementById('pass-modal-title').textContent = '🔒 ' + (TAB_NAMES[tabName]||tabName);
     document.getElementById('pass-modal-dist').textContent = 'Is section ko kholne ke liye password daalo';
     document.getElementById('pass-input').value = '';
@@ -2378,7 +2827,11 @@
     const correct = TAB_PASSWORDS[pendingTab] || '1234';
     if (entered === correct) {
       closePassModal();
-      showTab(pendingTab, pendingTabEl);
+      if (pendingCallback) {
+        pendingCallback();
+      } else {
+        showTab(pendingTab, pendingTabEl);
+      }
     } else {
       document.getElementById('pass-error').style.display = 'block';
       document.getElementById('pass-input').value = '';
@@ -2405,6 +2858,7 @@
   document.getElementById('p-date').value = today();
   document.getElementById('dem-date').value = today();
   document.getElementById('dem-sub-date').value = today();
+  document.getElementById('pr-month').value = today().substring(0,7);
   document.getElementById('inv-from').value = new Date(t0.getFullYear(),t0.getMonth(),1).toISOString().split('T')[0];
   document.getElementById('inv-to').value = today();
   document.getElementById('st-from').value = new Date(t0.getFullYear(),t0.getMonth(),1).toISOString().split('T')[0];
@@ -2563,6 +3017,30 @@
     alert(`✅ Bill saved! Amount: ₹${total.toLocaleString('en-IN')}`);
   }
 </script>
+<!-- ===== PARTY REPORT ===== -->
+<div class="section" id="tab-partyreport">
+  <div class="card">
+    <div class="card-hd">📊 Monthly Party Report</div>
+    <div class="frow">
+      <div class="fg full">
+        <label>Distributor</label>
+        <select id="pr-dist" onchange="renderPartyReport()">
+          <option value="T.M.U. MORADABAD">🏢 TMU MORADABAD</option>
+          <option value="TATA MOTORS">🚗 TATA MOTORS</option>
+          <option value="POLICE ACADEMY">🚔 POLICE ACADEMY</option>
+          <option value="M.F. TRADERS">🏬 MF TRADERS</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Month</label>
+        <input type="month" id="pr-month">
+      </div>
+    </div>
+    <button class="btn btn-yellow btn-block" onclick="renderPartyReport()">📊 Generate Report</button>
+  </div>
+  <div id="party-report-body"></div>
+</div>
+
 <!-- PASSWORD MODAL -->
 <div class="modal-bg" id="pass-modal">
   <div class="modal" style="max-height:auto;">
