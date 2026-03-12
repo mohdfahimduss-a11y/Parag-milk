@@ -836,6 +836,7 @@
       appData.mftBills = val.mftBills || [];
       appData.partyBillingRates = val.partyBillingRates || {};
       appData.subPartyDemands = val.subPartyDemands || {};
+      appData.partyProductMap = val.partyProductMap || {};
       renderAll();
     });
   }
@@ -2029,7 +2030,6 @@
 
   function selectSubParty(party, distName, date) {
     currentSubParty = party;
-    // Update button styles
     const parties = SUB_PARTIES[distName] || [];
     parties.forEach(p => {
       const btn = document.getElementById('spbtn-' + p.replace(/\s+/g,'_'));
@@ -2040,35 +2040,83 @@
       }
     });
 
-    // Render product form for this sub-party
     const allProds = getAllProducts();
     const formArea = document.getElementById('subparty-form-area');
     if (!formArea) return;
 
-    // Get existing sub-party demand
-    const key = distName + '|' + party;
-    const existing = (appData.subPartyDemands || {})[key + '|' + date] || {};
+    const existing = (appData.subPartyDemands || {})[distName+'|'+party+'|'+date] || {};
+    // Get saved product selection for this party from Firebase
+    const selKey = distName.replace(/\s+/g,'_') + '_' + party.replace(/\s+/g,'_');
+    const savedSel = (appData.partyProductMap || {})[selKey] || {};
+    const selectedProds = savedSel;
 
     formArea.innerHTML = `
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <div style="font-weight:800;font-size:0.95rem;">${party}</div>
-          <button class="btn btn-ghost btn-sm" onclick="clearSubForm()">Clear</button>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" onclick="toggleProdSelect('${party}','${distName}')">⚙️ Products</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearSubForm()">Clear</button>
+          </div>
         </div>
-        ${allProds.map(p => `
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
-            <div>
-              <div style="font-size:0.82rem;font-weight:600;">${p.name} <span style="color:var(--muted);font-size:0.75rem;">${p.size}</span></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:5px;">
-              <button onclick="adjQty('sq-${p.id}',-1)" style="width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem;cursor:pointer;">−</button>
-              <input type="number" id="sq-${p.id}" value="${existing[p.id]||0}" min="0"
-                style="width:52px;text-align:center;padding:4px;background:var(--card2);border:1px solid var(--border);border-radius:7px;color:var(--accent);font-family:var(--mono);font-size:0.85rem;">
-              <button onclick="adjQty('sq-${p.id}',1)" style="width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem;cursor:pointer;">+</button>
-            </div>
-          </div>`).join('')}
-        <button class="btn btn-yellow btn-block" style="margin-top:12px;" onclick="saveSubPartyDemand('${party}','${distName}','${date}')">💾 ${party} Save Karo</button>
+        <div id="subparty-prod-form-${party.replace(/\s+/g,'_')}">
+          ${allProds.filter(p => selectedProds[p.id]).length === 0
+            ? `<div class="empty" style="padding:16px;">
+                ⚙️ Pehle products select karo<br>
+                <button class="btn btn-yellow btn-sm" style="margin-top:10px;" onclick="toggleProdSelect('${party}','${distName}')">Products Choose Karo</button>
+               </div>`
+            : allProds.filter(p => selectedProds[p.id]).map(p => `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+                <div style="font-size:0.85rem;font-weight:600;">${p.name} <span style="color:var(--muted);font-size:0.75rem;">${p.size}</span></div>
+                <div style="display:flex;align-items:center;gap:5px;">
+                  <button onclick="adjQty('sq-${p.id}',-1)" style="width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem;cursor:pointer;">−</button>
+                  <input type="number" id="sq-${p.id}" value="${existing[p.id]||0}" min="0"
+                    style="width:52px;text-align:center;padding:4px;background:var(--card2);border:1px solid var(--border);border-radius:7px;color:var(--accent);font-family:var(--mono);font-size:0.85rem;">
+                  <button onclick="adjQty('sq-${p.id}',1)" style="width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem;cursor:pointer;">+</button>
+                </div>
+              </div>`).join('')
+          }
+        </div>
+        ${allProds.filter(p => selectedProds[p.id]).length > 0
+          ? `<button class="btn btn-yellow btn-block" style="margin-top:12px;" onclick="saveSubPartyDemand('${party}','${distName}','${date}')">💾 ${party} Save Karo</button>`
+          : ''}
+      </div>
+
+      <!-- Product selector panel (hidden by default) -->
+      <div id="prod-select-panel-${party.replace(/\s+/g,'_')}" style="display:none;">
+        <div class="card" style="border-color:rgba(247,201,72,0.3);">
+          <div class="card-hd">${party} — Products Select Karo</div>
+          <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px;">Jo products is party ko jaate hain unhe tick karo</p>
+          ${allProds.map(p => `
+            <label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+              <input type="checkbox" id="chk-${p.id}" ${selectedProds[p.id]?'checked':''} 
+                style="width:16px;height:16px;accent-color:var(--accent);">
+              <span style="font-size:0.85rem;">${p.name} <span style="color:var(--muted);font-size:0.75rem;">${p.size}</span></span>
+            </label>`).join('')}
+          <button class="btn btn-yellow btn-block" style="margin-top:14px;" onclick="saveProdSelection('${party}','${distName}','${date}')">✅ Done</button>
+        </div>
       </div>`;
+  }
+
+  function toggleProdSelect(party, distName) {
+    const key = party.replace(/\s+/g,'_');
+    const panel = document.getElementById('prod-select-panel-' + key);
+    if (panel) panel.style.display = panel.style.display==='none' ? 'block' : 'none';
+  }
+
+  function saveProdSelection(party, distName, date) {
+    const allProds = getAllProducts();
+    const selected = {};
+    allProds.forEach(p => {
+      const chk = document.getElementById('chk-' + p.id);
+      if (chk && chk.checked) selected[p.id] = true;
+    });
+    if (!appData.partyProductMap) appData.partyProductMap = {};
+    const selKey = distName.replace(/\s+/g,'_') + '_' + party.replace(/\s+/g,'_');
+    appData.partyProductMap[selKey] = selected;
+    dbRef.update({ partyProductMap: appData.partyProductMap });
+    // Re-render form with new selection
+    selectSubParty(party, distName, date);
   }
 
   function clearSubForm() {
@@ -2078,9 +2126,12 @@
 
   function saveSubPartyDemand(party, distName, date) {
     const allProds = getAllProducts();
+    const selKey = distName.replace(/\s+/g,'_') + '_' + party.replace(/\s+/g,'_');
+    const savedSel = (appData.partyProductMap || {})[selKey] || {};
+    const selectedProds = allProds.filter(p => savedSel[p.id]);
     const items = {};
     let hasAny = false;
-    allProds.forEach(p => {
+    selectedProds.forEach(p => {
       const qty = parseInt(document.getElementById('sq-'+p.id)?.value)||0;
       if (qty>0) { items[p.id]=qty; hasAny=true; }
     });
