@@ -244,10 +244,10 @@
   <button class="nav-tab active" onclick="showTab('dashboard',this)">📊 Dashboard</button>
   <button class="nav-tab" onclick="showTab('demand',this)">📦 Demand</button>
   <button class="nav-tab" onclick="showTab('accounts',this)">💼 Accounts</button>
-  <button class="nav-tab" onclick="showTab('tmu',this)">🏢 TMU Parties</button>
-  <button class="nav-tab" onclick="showTab('tata',this)">🚗 Tata Parties</button>
-  <button class="nav-tab" onclick="showTab('police',this)">🚔 Police Parties</button>
-  <button class="nav-tab" onclick="showTab('mft',this)">🏬 MF Parties</button>
+  <button class="nav-tab" onclick="askTabPassword('tmu',this)">🏢 TMU</button>
+  <button class="nav-tab" onclick="askTabPassword('tata',this)">🚗 Tata</button>
+  <button class="nav-tab" onclick="askTabPassword('police',this)">🚔 Police</button>
+  <button class="nav-tab" onclick="askTabPassword('mft',this)">🏬 MF</button>
   <button class="nav-tab" onclick="showTab('payments',this)">💰 Payments</button>
   <button class="nav-tab" onclick="showTab('invoice',this)">🧾 Invoice</button>
   <button class="nav-tab" onclick="showTab('statement',this)">📋 Statement</button>
@@ -877,6 +877,15 @@
     if (dist && dist.productRates && dist.productRates[pid]) return dist.productRates[pid];
     const saved = appData.products.find(p => String(p.id)===String(pid));
     return saved ? (saved.rate||0) : 0;
+  }
+
+  function getAllProducts() {
+    const merged = DEFAULT_PRODS.map(dp => {
+      const saved = appData.products.find(p => String(p.id)===String(dp.id));
+      return { ...dp, code: saved?.code || dp.code || '', rate: saved?.rate || 0 };
+    });
+    const customs = (appData.products || []).filter(p => p.custom);
+    return [...merged, ...customs];
   }
 
   // CALCULATIONS
@@ -2286,6 +2295,52 @@
   function openRatesForPolice() { const p=document.getElementById('police-inv-party').value; if(!p){alert('Pehle party select karo!');return;} openRatesModal('police',p); }
   function openRatesForMft()    { const p=document.getElementById('mft-inv-party').value; if(!p){alert('Pehle party select karo!');return;} openRatesModal('mft',p); }
 
+  // ===== TAB PASSWORDS =====
+  const TAB_PASSWORDS = {
+    'tmu':    '1234',
+    'tata':   '1234',
+    'police': '1234',
+    'mft':    '1234'
+  };
+  const TAB_NAMES = {
+    'tmu':    '🏢 T.M.U. MORADABAD',
+    'tata':   '🚗 TATA MOTORS',
+    'police': '🚔 POLICE ACADEMY',
+    'mft':    '🏬 M.F. TRADERS'
+  };
+  let pendingTab = null;
+  let pendingTabEl = null;
+
+  function askTabPassword(tabName, el) {
+    pendingTab = tabName;
+    pendingTabEl = el;
+    document.getElementById('pass-modal-title').textContent = '🔒 ' + (TAB_NAMES[tabName]||tabName);
+    document.getElementById('pass-modal-dist').textContent = 'Is section ko kholne ke liye password daalo';
+    document.getElementById('pass-input').value = '';
+    document.getElementById('pass-error').style.display = 'none';
+    document.getElementById('pass-modal').classList.add('open');
+    setTimeout(() => document.getElementById('pass-input').focus(), 200);
+  }
+
+  function verifyTabPassword() {
+    const entered = document.getElementById('pass-input').value;
+    const correct = TAB_PASSWORDS[pendingTab] || '1234';
+    if (entered === correct) {
+      closePassModal();
+      showTab(pendingTab, pendingTabEl);
+    } else {
+      document.getElementById('pass-error').style.display = 'block';
+      document.getElementById('pass-input').value = '';
+      document.getElementById('pass-input').focus();
+    }
+  }
+
+  function closePassModal() {
+    document.getElementById('pass-modal').classList.remove('open');
+    pendingTab = null;
+    pendingTabEl = null;
+  }
+
   // TAB SWITCHER
   function showTab(name, el) {
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -2298,6 +2353,7 @@
   const t0 = new Date();
   document.getElementById('p-date').value = today();
   document.getElementById('dem-date').value = today();
+  document.getElementById('dem-sub-date').value = today();
   document.getElementById('inv-from').value = new Date(t0.getFullYear(),t0.getMonth(),1).toISOString().split('T')[0];
   document.getElementById('inv-to').value = today();
   document.getElementById('st-from').value = new Date(t0.getFullYear(),t0.getMonth(),1).toISOString().split('T')[0];
@@ -2456,6 +2512,22 @@
     alert(`✅ Bill saved! Amount: ₹${total.toLocaleString('en-IN')}`);
   }
 </script>
+<!-- PASSWORD MODAL -->
+<div class="modal-bg" id="pass-modal">
+  <div class="modal" style="max-height:auto;">
+    <div class="modal-hd">
+      <div class="modal-title" id="pass-modal-title">🔒 Password Daalo</div>
+      <button class="btn btn-ghost btn-sm" onclick="closePassModal()">✕</button>
+    </div>
+    <div id="pass-modal-dist" style="font-size:0.78rem;color:var(--muted);margin-bottom:14px;"></div>
+    <input type="password" id="pass-input" placeholder="Password daalo..."
+      style="width:100%;padding:13px 16px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--font);font-size:1rem;margin-bottom:10px;"
+      onkeydown="if(event.key==='Enter') verifyTabPassword()">
+    <div id="pass-error" style="color:var(--red);font-size:0.78rem;margin-bottom:10px;display:none;">❌ Galat password!</div>
+    <button class="btn btn-yellow btn-block" onclick="verifyTabPassword()">🔓 Open</button>
+  </div>
+</div>
+
 <!-- RATES MODAL -->
 <div class="modal-bg" id="rates-modal">
   <div class="modal">
