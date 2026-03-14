@@ -856,19 +856,31 @@
       updateDashboard();
       renderTaxInvoiceHistory();
     });
-    // Live sync
+    // Live sync for non-demand data only
     dbRef.on('value', snap => {
       const val = snap.val();
       if (val) {
-        // Protect demandEntries - never overwrite with empty/null
-        const safeDemand = (val.demandEntries && val.demandEntries.length > 0)
-          ? val.demandEntries
-          : (data.demandEntries || []);
-        data = { ...data, ...val, demandEntries: safeDemand };
+        // Never let products/sales update overwrite demandEntries
+        const savedDemand = data.demandEntries || [];
+        data = { ...data, ...val };
+        // Restore demandEntries if it got wiped
+        if (!data.demandEntries || data.demandEntries.length === 0) {
+          if (savedDemand.length > 0) data.demandEntries = savedDemand;
+        }
         updateDashboard();
         renderProducts();
         renderSales();
         renderCustomers();
+      }
+    });
+
+    // Separate listener for demandEntries - isolated from other updates
+    dbRef.child('demandEntries').on('value', snap => {
+      const val = snap.val();
+      if (val) {
+        // Firebase may return array or object
+        data.demandEntries = Array.isArray(val) ? val : Object.values(val);
+        updateDashboard();
       }
     });
   }
@@ -895,6 +907,19 @@
 
   function loadDataFallback() {
     // Handled by Firebase now
+  }
+
+  // Safe demand save - converts array to object for Firebase reliability
+  function saveDemandEntries() {
+    if (!dbRef) return;
+    // Convert array to keyed object for Firebase (arrays can get corrupted)
+    const demandObj = {};
+    (data.demandEntries||[]).forEach(e => {
+      const key = 'e_' + (e.id || Date.now());
+      demandObj[key] = e;
+    });
+    dbRef.child('demandEntries').set(data.demandEntries)
+      .catch(e => console.log('Demand save error:', e));
   }
 
 
@@ -1421,7 +1446,7 @@
       if (idx >= 0) {
         data.demandEntries[idx] = { ...data.demandEntries[idx], date, distName, items, savedAt: Date.now() };
       }
-      if(dbRef) dbRef.update({demandEntries: data.demandEntries}); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
+      if(dbRef) dbRef.child("demandEntries").set(data.demandEntries); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
       alert(`✅ ${distName} ki demand update ho gayi!`);
     } else {
       const idx = data.demandEntries.findIndex(e => e.date === date && e.distName === distName);
@@ -1431,7 +1456,7 @@
       } else {
         data.demandEntries.push({ id: Date.now(), date, distName, items, savedAt: Date.now() });
       }
-      if(dbRef) dbRef.update({demandEntries: data.demandEntries}); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
+      if(dbRef) dbRef.child("demandEntries").set(data.demandEntries); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
       alert(`✅ ${distName} ki demand save ho gayi!`);
     }
   }
@@ -1499,7 +1524,7 @@
     const label = formatDate(date);
     if (!confirm(`${label} ki saari demands delete karein?`)) return;
     data.demandEntries = (data.demandEntries||[]).filter(e => e.date !== date);
-    if(dbRef) dbRef.update({demandEntries: data.demandEntries});
+    if(dbRef) dbRef.child("demandEntries").set(data.demandEntries);
     renderDemandSummaryPage(date);
   }
 
@@ -1695,7 +1720,7 @@
   function deleteDemandEntry(id) {
     if (!confirm('Ye demand delete karein?')) return;
     data.demandEntries = (data.demandEntries||[]).filter(e => e.id !== id);
-    if(dbRef) dbRef.update({demandEntries: data.demandEntries});
+    if(dbRef) dbRef.child("demandEntries").set(data.demandEntries);
     const _vd = (document.getElementById("demand-view-date")||{}).value || today(); renderDemandSummaryPage(_vd);
   }
 
@@ -1732,7 +1757,7 @@
 
     // Mark demand as added to sales
     entry.addedToSales = true;
-    if(dbRef) dbRef.update({demandEntries: data.demandEntries});
+    if(dbRef) dbRef.child("demandEntries").set(data.demandEntries);
     renderDemandSummaryPage(entry.date);
     alert(`✅ ${entry.distName} ki demand Sales mein add ho gayi!`);
   }
@@ -1741,7 +1766,7 @@
     const entry = (data.demandEntries||[]).find(e => e.id === id);
     if (!entry) return;
     entry.completed = true;
-    if(dbRef) dbRef.update({demandEntries: data.demandEntries});
+    if(dbRef) dbRef.child("demandEntries").set(data.demandEntries);
     const _vd = (document.getElementById("demand-view-date")||{}).value || today(); renderDemandSummaryPage(_vd);
   }
 
