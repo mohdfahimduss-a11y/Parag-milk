@@ -860,7 +860,11 @@
     dbRef.on('value', snap => {
       const val = snap.val();
       if (val) {
-        data = { ...data, ...val };
+        // Protect demandEntries - never overwrite with empty/null
+        const safeDemand = (val.demandEntries && val.demandEntries.length > 0)
+          ? val.demandEntries
+          : (data.demandEntries || []);
+        data = { ...data, ...val, demandEntries: safeDemand };
         updateDashboard();
         renderProducts();
         renderSales();
@@ -957,7 +961,7 @@
     };
     if (!rec.amount) { alert('Please enter amount!'); return; }
     data.sales.unshift(rec);
-    saveData();
+    if(dbRef) dbRef.update({sales: data.sales});
     renderSales();
     updateCustomerList();
     document.getElementById('sale-customer').value = '';
@@ -996,7 +1000,7 @@
     };
     if (!rec.name) { alert('Please enter distributor name!'); return; }
     data.customers.unshift(rec);
-    saveData();
+    if(dbRef) dbRef.update({customers: data.customers});
     renderCustomers();
     updateCustomerList();
     document.getElementById('cust-code').value = '';
@@ -1065,7 +1069,7 @@
     dist.vehicle = document.getElementById('edit-dist-vehicle').value.trim().toUpperCase();
     dist.address = document.getElementById('edit-dist-address').value.trim();
     if (!dist.name) { alert('Naam zaroori hai!'); return; }
-    saveData();
+    if(dbRef) dbRef.update({customers: data.customers});;
     renderCustomers();
     updateCustomerList();
     updateDistList();
@@ -1129,7 +1133,7 @@
         else delete dist.productRates[p.id];
       }
     });
-    saveData();
+    if(dbRef) dbRef.update({customers: data.customers});;
     document.getElementById('dist-rate-panel').style.display = 'none';
     renderCustomers();
     alert('✅ Rates save ho gaye!');
@@ -1144,7 +1148,7 @@
   function delRecord(type, id) {
     if (!confirm('Delete this record?')) return;
     data[type] = data[type].filter(r => String(r.id) !== String(id));
-    saveData();
+    const upd={}; upd[type]=data[type]; if(dbRef) dbRef.update(upd);
     if (type === 'production') renderProduction();
     if (type === 'sales') renderSales();
     if (type === 'customers') renderCustomers();
@@ -1495,7 +1499,7 @@
     const label = formatDate(date);
     if (!confirm(`${label} ki saari demands delete karein?`)) return;
     data.demandEntries = (data.demandEntries||[]).filter(e => e.date !== date);
-    saveData();
+    if(dbRef) dbRef.update({demandEntries: data.demandEntries});
     renderDemandSummaryPage(date);
   }
 
@@ -1728,7 +1732,7 @@
 
     // Mark demand as added to sales
     entry.addedToSales = true;
-    saveData();
+    if(dbRef) dbRef.update({demandEntries: data.demandEntries});
     renderDemandSummaryPage(entry.date);
     alert(`✅ ${entry.distName} ki demand Sales mein add ho gayi!`);
   }
@@ -2159,7 +2163,7 @@ ${slipHTML}
       createdAt: new Date().toISOString()
     };
     data.taxInvoices.unshift(invoiceRecord);
-    saveData();
+    if(dbRef) dbRef.update({taxInvoices: data.taxInvoices});
     renderTaxInvoiceHistory();
 
     // PRINT TAX INVOICE
@@ -3255,7 +3259,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
       if (!confirm(`"${name}" delete karein?`)) return;
     }
     data.products = (data.products||[]).filter(x => String(x.id) !== String(id));
-    saveData();
+    if (dbRef) dbRef.update({ products: data.products });
     renderProducts();
   }
 
@@ -3263,13 +3267,13 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     const p = data.products.find(x => String(x.id) === String(id));
     if (!p) return;
     p.active = p.active === false ? true : false;
-    saveData();
+    if (dbRef) dbRef.update({ products: data.products });
     renderProducts();
   }
 
   function updateQty(id, val) {
     const p = data.products.find(x => String(x.id) === String(id));
-    if (p) { p.qty = parseFloat(val) || 0; saveData(); }
+    if (p) { p.qty = parseFloat(val) || 0; if(dbRef) dbRef.update({products: data.products}); }
   }
 
   function editCustomProduct(id) {
