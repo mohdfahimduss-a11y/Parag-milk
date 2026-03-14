@@ -869,11 +869,23 @@
     });
   }
 
-  function saveData() {
+  function saveData(keysToSave) {
     if (dbRef) {
-      dbRef.set(data).catch(e => console.log('Firebase save error:', e));
+      // Only update specific keys to avoid wiping demandEntries
+      if (keysToSave) {
+        const upd = {};
+        keysToSave.forEach(k => { upd[k] = data[k]; });
+        dbRef.update(upd).catch(e => console.log('Firebase save error:', e));
+      } else {
+        dbRef.update({
+          products: data.products,
+          customers: data.customers,
+          sales: data.sales,
+          routePayments: data.routePayments,
+          taxInvoices: data.taxInvoices,
+        }).catch(e => console.log('Firebase save error:', e));
+      }
     }
-    // Also save locally as backup
     try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
   }
 
@@ -1243,7 +1255,36 @@
     const rateEl = document.getElementById(rowId + '-rate');
     rateEl.textContent = rate ? '₹' + rate : '-';
     rateEl.dataset.ratenum = rate;
-    document.getElementById(rowId + '-kgltr').focus();
+
+    const kgltrInp = document.getElementById(rowId + '-kgltr');
+    const qtyInp   = document.getElementById(rowId + '-qty');
+
+    // Sirf dahi140 ke liye: KG enter karo → PKT auto bane
+    if (pid === 'dahi140') {
+      kgltrInp.placeholder = 'KG daalo';
+      kgltrInp.removeAttribute('readonly');
+      kgltrInp.style.background = 'white';
+      kgltrInp.style.cursor = 'text';
+      qtyInp.placeholder = 'auto';
+      qtyInp.setAttribute('readonly', true);
+      qtyInp.style.background = '#EEF2FF';
+      qtyInp.style.cursor = 'not-allowed';
+      kgltrInp.focus();
+    } else {
+      // Baaki sab: PKT directly enter karo
+      kgltrInp.placeholder = '0';
+      kgltrInp.removeAttribute('readonly');
+      kgltrInp.style.background = 'white';
+      kgltrInp.style.cursor = 'text';
+      qtyInp.placeholder = 'auto';
+      qtyInp.setAttribute('readonly', true);
+      qtyInp.style.background = '#EEF2FF';
+      qtyInp.style.cursor = 'not-allowed';
+      kgltrInp.focus();
+    }
+
+    // Store pid in row for later use
+    document.getElementById(rowId).dataset.pid = pid;
     calcKgLtr(rowId);
   }
 
@@ -1254,8 +1295,10 @@
     const rateEl   = document.getElementById(rowId + '-rate');
     const amountEl = document.getElementById(rowId + '-amount');
     const cratesInp= document.getElementById(rowId + '-crates');
+    const numEl    = document.getElementById(rowId);
     if (!qtyInp || !kgltrInp || !sizeEl) return;
 
+    const pid = numEl ? numEl.dataset.pid : '';
     const kgltr = parseFloat(kgltrInp.value) || 0;
     const sizeText = sizeEl.textContent || '';
     const match = sizeText.match(/([\d.]+)\s*(ML|LTR|KG|GM)/i);
@@ -1269,7 +1312,7 @@
       packets = Math.round(kgltr / packSize);
       qtyInp.value = packets;
 
-      // Auto crate only for Milk category (LTR products) — 12 Ltr = 1 crate
+      // Auto crate only for milk LTR/ML products
       if (cratesInp && (unit === 'ML' || unit === 'LTR')) {
         const crates = Math.floor(kgltr / 12);
         cratesInp.value = crates > 0 ? crates : '';
@@ -1279,9 +1322,10 @@
       if (cratesInp) cratesInp.value = '';
     }
 
-    // Amount = rate × kgltr
+    // Amount calculation
     if (amountEl && rateEl) {
       const rate = parseFloat(rateEl.dataset.ratenum) || 0;
+      // dahi140: rate × KG; others: rate × kgltr (LTR)
       if (rate && kgltr) {
         amountEl.textContent = '₹' + (rate * kgltr).toFixed(2);
       } else {
@@ -1373,7 +1417,7 @@
       if (idx >= 0) {
         data.demandEntries[idx] = { ...data.demandEntries[idx], date, distName, items, savedAt: Date.now() };
       }
-      saveData(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
+      if(dbRef) dbRef.update({demandEntries: data.demandEntries}); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
       alert(`✅ ${distName} ki demand update ho gayi!`);
     } else {
       const idx = data.demandEntries.findIndex(e => e.date === date && e.distName === distName);
@@ -1383,7 +1427,7 @@
       } else {
         data.demandEntries.push({ id: Date.now(), date, distName, items, savedAt: Date.now() });
       }
-      saveData(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
+      if(dbRef) dbRef.update({demandEntries: data.demandEntries}); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
       alert(`✅ ${distName} ki demand save ho gayi!`);
     }
   }
@@ -1647,7 +1691,7 @@
   function deleteDemandEntry(id) {
     if (!confirm('Ye demand delete karein?')) return;
     data.demandEntries = (data.demandEntries||[]).filter(e => e.id !== id);
-    saveData();
+    if(dbRef) dbRef.update({demandEntries: data.demandEntries});
     const _vd = (document.getElementById("demand-view-date")||{}).value || today(); renderDemandSummaryPage(_vd);
   }
 
@@ -1693,7 +1737,7 @@
     const entry = (data.demandEntries||[]).find(e => e.id === id);
     if (!entry) return;
     entry.completed = true;
-    saveData();
+    if(dbRef) dbRef.update({demandEntries: data.demandEntries});
     const _vd = (document.getElementById("demand-view-date")||{}).value || today(); renderDemandSummaryPage(_vd);
   }
 
@@ -1719,8 +1763,8 @@
       { id:'matka5',    name:'DAHI',       size:'5 Kg',  unit:'Kg' },
       { id:'matka15',   name:'DAHI',       size:'15 Kg', unit:'Kg' },
       { id:'chhach300', name:'CHHACH',     size:'300ml', unit:'Pack' },
-      { id:'curd200',   name:'P.CURD',     size:'200gm', unit:'Pack' },
-      { id:'dahi140',   name:'DAHI PACK',  size:'140gm', unit:'Pack' },
+      { id:'curd200',   name:'P.CURD',     size:'200gm', unit:'KG' },
+      { id:'dahi140',   name:'DAHI PACK',  size:'140gm', unit:'KG' },
       { id:'kheer90',   name:'P.KHEER',    size:'90gm',  unit:'Pack' },
       { id:'paneer1kg', name:'PANEER',     size:'1 Kg',  unit:'Kg' },
       { id:'ghee1l',    name:'GHEE',       size:'1 Ltr', unit:'Ltr' },
@@ -1755,7 +1799,9 @@
         let rowCells = COLS.map(col => {
           const itemData = (e.items||{})[col.id];
           const qty = itemData ? (typeof itemData === 'object' ? (itemData.qty||0) : Number(itemData)) : 0;
-          return `<td>${qty > 0 ? qty : ''}</td>`;
+          const matkaKg = {matka5:5, matka15:15};
+          const dispVal = qty > 0 ? (matkaKg[col.id] ? (qty * matkaKg[col.id]) + ' KG' : qty) : '';
+          return `<td>${dispVal}</td>`;
         }).join('');
         // total crates for this entry
         const totalCrates = Object.values(e.items||{}).reduce((s, d) => s + (typeof d==='object' ? (d.crates||0) : 0), 0);
@@ -1774,7 +1820,9 @@
           const q = d ? (typeof d==='object' ? (d.qty||0) : Number(d)) : 0;
           return s + q;
         }, 0);
-        return `<td><strong>${t > 0 ? t : ''}</strong></td>`;
+        const matkaKg = {matka5:5, matka15:15};
+        const dispT = t > 0 ? (matkaKg[col.id] ? (t * matkaKg[col.id]) + ' KG' : t) : '';
+        return `<td><strong>${dispT}</strong></td>`;
       }).join('');
       const totalAllCrates = group.entries.reduce((s, e) =>
         s + Object.values(e.items||{}).reduce((ss, d) => ss + (typeof d==='object' ? (d.crates||0) : 0), 0), 0);
