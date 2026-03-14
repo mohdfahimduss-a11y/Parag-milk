@@ -1378,29 +1378,13 @@
     } else {
       const idx = data.demandEntries.findIndex(e => e.date === date && e.distName === distName);
       if (idx >= 0) {
-        // MERGE: Add new quantities to existing demand
-        const existingItems = data.demandEntries[idx].items || {};
-        Object.entries(items).forEach(([pid, newData]) => {
-          if (existingItems[pid]) {
-            // Add quantities
-            existingItems[pid] = {
-              ...newData,
-              qty: (existingItems[pid].qty || 0) + (newData.qty || 0),
-              kgltr: (parseFloat(existingItems[pid].kgltr) || 0) + (parseFloat(newData.kgltr) || 0),
-              crates: (parseFloat(existingItems[pid].crates) || 0) + (parseFloat(newData.crates) || 0),
-            };
-          } else {
-            existingItems[pid] = newData;
-          }
-        });
-        data.demandEntries[idx] = { ...data.demandEntries[idx], date, distName, items: existingItems, savedAt: Date.now() };
-        saveData(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
-        alert(`✅ ${distName} ki demand add ho gayi! (Total demand update ho gaya)`);
+        if (!confirm(`${distName} ki demand already hai is date ke liye. Update karein?`)) return;
+        data.demandEntries[idx] = { ...data.demandEntries[idx], date, distName, items, savedAt: Date.now() };
       } else {
         data.demandEntries.push({ id: Date.now(), date, distName, items, savedAt: Date.now() });
-        saveData(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
-        alert(`✅ ${distName} ki demand save ho gayi!`);
       }
+      saveData(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
+      alert(`✅ ${distName} ki demand save ho gayi!`);
     }
   }
 
@@ -3129,18 +3113,6 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
   function renderProducts() {
     const tb = document.getElementById('products-table');
     if (!data.products.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No products yet. Set rates above!</td></tr>'; return; }
-
-    // Remove duplicates - keep last saved version of each id
-    const seenIds = new Set();
-    const uniqueProds = [...data.products].reverse().filter(p => {
-      if (seenIds.has(String(p.id))) return false;
-      seenIds.add(String(p.id));
-      return true;
-    }).reverse();
-    if (uniqueProds.length !== data.products.length) {
-      data.products = uniqueProds;
-      saveData();
-    }
 
     // Sort: Default products by code, then custom products at end
     const sorted = [...data.products].sort((a, b) => {
