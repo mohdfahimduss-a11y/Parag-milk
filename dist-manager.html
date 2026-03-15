@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Distributor Manager</title>
+<meta name="theme-color" content="#0f172a">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card2: #273548;
+    --border: #334155;
+    --accent: #22d3ee;
+    --accent2: #0891b2;
+    --green: #4ade80;
+    --red: #f87171;
+    --orange: #fb923c;
+    --yellow: #fbbf24;
+    --text: #f1f5f9;
+    --muted: #64748b;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* LOGIN */
+  #login-screen {
+    position: fixed; inset: 0; z-index: 999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .login-box {
+    width: 320px; padding: 32px 24px; text-align: center;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+  .login-logo {
+    width: 64px; height: 64px; background: var(--accent);
+    border-radius: 16px; margin: 0 auto 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+  }
+  .login-box h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; }
+  .login-box p { color: var(--muted); font-size: 0.8rem; margin-bottom: 24px; }
+  .login-box input {
+    width: 100%; padding: 12px 14px; margin-bottom: 10px;
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 0.9rem;
+  }
+  .login-box input:focus { outline: none; border-color: var(--accent); }
+  .btn-login {
+    width: 100%; padding: 13px; background: var(--accent); color: #000;
+    border: none; border-radius: 10px; font-family: var(--font);
+    font-size: 0.95rem; font-weight: 700; cursor: pointer; margin-top: 4px;
+  }
+  #login-err { color: var(--red); font-size: 0.78rem; margin-top: 8px; }
+
+  /* HEADER */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo { font-size: 0.95rem; font-weight: 800; }
+  .logo span { color: var(--accent); }
+  .logout-btn {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); padding: 5px 12px; border-radius: 8px;
+    font-family: var(--font); font-size: 0.75rem; cursor: pointer;
+  }
+
+  /* NAV */
+  .nav {
+    display: flex; overflow-x: auto; background: var(--card);
+    border-bottom: 1px solid var(--border); padding: 0 8px;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    padding: 11px 14px; background: none; border: none; border-bottom: 2px solid transparent;
+    color: var(--muted); font-family: var(--font); font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; white-space: nowrap; transition: all 0.2s;
+  }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* SECTIONS */
+  .section { display: none; padding: 14px; }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px; margin-bottom: 12px;
+  }
+  .card-hd {
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--muted); margin-bottom: 14px;
+  }
+
+  /* STAT GRID */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .stat-box {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px;
+  }
+  .stat-val { font-size: 1.3rem; font-weight: 800; font-family: var(--mono); }
+  .stat-lbl { font-size: 0.68rem; color: var(--muted); margin-top: 3px; }
+
+  /* BUTTONS */
+  .btn { padding: 10px 16px; border-radius: 10px; border: none; font-family: var(--font); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+  .btn:active { opacity: 0.8; }
+  .btn-cyan { background: var(--accent); color: #000; }
+  .btn-green { background: rgba(74,222,128,0.15); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+  .btn-red { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-sm { padding: 6px 12px; font-size: 0.75rem; border-radius: 8px; }
+  .btn-block { width: 100%; }
+
+  /* FORM */
+  .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .fg { display: flex; flex-direction: column; gap: 5px; }
+  .fg.full { grid-column: 1/-1; }
+  .fg label { font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .fg input, .fg select, .fg textarea {
+    padding: 10px 12px; background: var(--card2); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 0.88rem;
+  }
+  .fg input:focus, .fg select:focus { outline: none; border-color: var(--accent); }
+  .fg select option { background: var(--card); }
+
+  /* TABLE */
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  th { padding: 9px 10px; text-align: left; color: var(--muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+
+  /* BADGE */
+  .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 700; }
+  .bg-green { background: rgba(74,222,128,0.15); color: var(--green); }
+  .bg-red { background: rgba(248,113,113,0.15); color: var(--red); }
+  .bg-cyan { background: rgba(34,211,238,0.15); color: var(--accent); }
+  .bg-orange { background: rgba(251,146,60,0.15); color: var(--orange); }
+  .bg-yellow { background: rgba(251,191,36,0.15); color: var(--yellow); }
+
+  /* MODAL */
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    z-index: 200; display: none; align-items: flex-end;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--card); border-top: 1px solid var(--border);
+    border-radius: 20px 20px 0 0; padding: 20px;
+    width: 100%; max-height: 90vh; overflow-y: auto;
+  }
+  .modal-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .modal-title { font-size: 1rem; font-weight: 700; }
+
+  /* DIST CARD */
+  .dist-card {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px; margin-bottom: 10px; cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .dist-card:active { border-color: var(--accent); }
+  .dist-card.alert { border-color: rgba(248,113,113,0.4); }
+  .out-bar { margin-top: 10px; height: 3px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .out-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+
+  /* INVOICE */
+  .inv-body { background: white; color: #000; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif; }
+
+  .empty { text-align: center; padding: 28px 16px; color: var(--muted); font-size: 0.82rem; }
+  ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-thumb { background: var(--border); }
+</style>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">📦</div>
+    <h1>Distributor Manager</h1>
+    <p>Sales Supervisor Portal</p>
+    <input type="email" id="l-email" placeholder="Email">
+    <input type="password" id="l-pass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-login" onclick="doLogin()">Sign In →</button>
+    <div id="login-err"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Dist <span>Manager</span></div>
+  <button class="logout-btn" onclick="doLogout()">Logout</button>
+</header>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-tab active" onclick="showTab('dashboard',this)">📊 Home</button>
+  <button class="nav-tab" onclick="showTab('demand',this)">📦 Demand</button>
+  <button class="nav-tab" onclick="showTab('payments',this)">💰 Payments</button>
+  <button class="nav-tab" onclick="showTab('billing',this)">🧾 Billing</button>
+  <button class="nav-tab" onclick="showTab('report',this)">📋 Report</button>
+  <button class="nav-tab" onclick="showTab('products',this)">🛒 Products</button>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div class="section active" id="tab-dashboard">
+  <div class="stat-grid">
+    <div class="stat-box">
+      <div class="stat-val" id="d-outstanding" style="color:var(--red);">₹0</div>
+      <div class="stat-lbl">Total Outstanding</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="d-today" style="color:var(--accent);">₹0</div>
+      <div class="stat-lbl">Today Demand</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="d-month-col" style="color:var(--green);">₹0</div>
+      <div class="stat-lbl">This Month Collection</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="d-month-bill" style="color:var(--yellow);">₹0</div>
+      <div class="stat-lbl">This Month Billed</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">🏢 Distributors</div>
+    <div id="dist-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">🔴 Outstanding Alerts</div>
+    <div id="alert-list"></div>
+  </div>
+</div>
+
+<!-- ===== DEMAND ===== -->
+<div class="section" id="tab-demand">
+  <div class="card">
+    <div class="card-hd">📦 Add Demand</div>
+    <div class="frow">
+      <div class="fg full">
+        <label>Distributor</label>
+        <select id="dem-dist">
+          <option value="">-- Select --</option>
+          <option>MF TRADERS</option>
+          <option>TMU</option>
+          <option>TATA MOTORS</option>
+          <option>POLICE ACADEMY</option>
+          <option>MEERUT-RUDRAPUR</option>
+        </select>
+      </div>
+      <div class="fg full">
+        <label>Date</label>
+        <input type="date" id="dem-date">
+      </div>
+    </div>
+    <div id="dem-products-grid" style="margin-bottom:12px;"></div>
+    <button class="btn btn-cyan btn-block" onclick="saveDemand()">💾 Save Demand</button>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-hd" style="margin:0;">📋 Recent Demands</div>
+      <select id="dem-filter" onchange="renderDemandHistory()" style="padding:5px 8px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.75rem;font-family:var(--font);">
+        <option value="">All</option>
+        <option>MF TRADERS</option><option>TMU</option><option>TATA MOTORS</option>
+        <option>POLICE ACADEMY</option><option>MEERUT-RUDRAPUR</option>
+      </select>
+    </div>
+    <div id="demand-history"></div>
+  </div>
+</div>
+
+<!-- ===== PAYMENTS ===== -->
+<div class="section" id="tab-payments">
+  <div class="card">
+    <div class="card-hd">💰 Add Payment</div>
+    <div class="frow">
+      <div class="fg full">
+        <label>Distributor</label>
+        <select id="pay-dist">
+          <option value="">-- Select --</option>
+          <option>MF TRADERS</option><option>TMU</option><option>TATA MOTORS</option>
+          <option>POLICE ACADEMY</option><option>MEERUT-RUDRAPUR</option>
+        </select>
+      </div>
+      <div class="fg"><label>Amount ₹</label><input type="number" id="pay-amt" placeholder="0"></div>
+      <div class="fg"><label>Date</label><input type="date" id="pay-date"></div>
+      <div class="fg full">
+        <label>Mode</label>
+        <select id="pay-mode">
+          <option>Cash</option><option>NEFT</option><option>UPI</option>
+        </select>
+      </div>
+      <div class="fg full"><label>Note</label><input type="text" id="pay-note" placeholder="Optional"></div>
+    </div>
+    <button class="btn btn-cyan btn-block" onclick="savePayment()">💾 Save Payment</button>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-hd" style="margin:0;">📋 Payment History</div>
+      <select id="pay-filter" onchange="renderPayHistory()" style="padding:5px 8px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.75rem;font-family:var(--font);">
+        <option value="">All</option>
+        <option>MF TRADERS</option><option>TMU</option><option>TATA MOTORS</option>
+        <option>POLICE ACADEMY</option><option>MEERUT-RUDRAPUR</option>
+      </select>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Distributor</th><th>Amount</th><th>Mode</th><th></th></tr></thead>
+        <tbody id="pay-table"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BILLING ===== -->
+<div class="section" id="tab-billing">
+  <div class="card">
+    <div class="card-hd">🧾 Add Bill</div>
+    <div class="frow">
+      <div class="fg full">
+        <label>Distributor</label>
+        <select id="bill-dist">
+          <option value="">-- Select --</option>
+          <option>MF TRADERS</option><option>TMU</option><option>TATA MOTORS</option>
+          <option>POLICE ACADEMY</option><option>MEERUT-RUDRAPUR</option>
+        </select>
+      </div>
+      <div class="fg"><label>From Date</label><input type="date" id="bill-from"></div>
+      <div class="fg"><label>To Date</label><input type="date" id="bill-to"></div>
+      <div class="fg"><label>Bill Amount ₹</label><input type="number" id="bill-amt" placeholder="0"></div>
+      <div class="fg"><label>Paid Amount ₹</label><input type="number" id="bill-paid" placeholder="0"></div>
+      <div class="fg full"><label>Note</label><input type="text" id="bill-note" placeholder="Optional"></div>
+    </div>
+    <button class="btn btn-cyan btn-block" onclick="saveBill()">💾 Save Bill</button>
+  </div>
+
+  <!-- Invoice Generator -->
+  <div class="card">
+    <div class="card-hd">🖨️ Generate Invoice</div>
+    <div class="frow">
+      <div class="fg full">
+        <label>Distributor</label>
+        <select id="inv-dist">
+          <option value="">-- Select --</option>
+          <option>MF TRADERS</option><option>TMU</option><option>TATA MOTORS</option>
+          <option>POLICE ACADEMY</option><option>MEERUT-RUDRAPUR</option>
+        </select>
+      </div>
+      <div class="fg"><label>From</label><input type="date" id="inv-from"></div>
+      <div class="fg"><label>To</label><input type="date" id="inv-to"></div>
+    </div>
+    <button class="btn btn-cyan btn-block" onclick="generateInvoice()">🧾 Generate</button>
+  </div>
+  <div id="invoice-preview"></div>
+
+  <!-- Bill History -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-hd" style="margin:0;">📋 Bill History</div>
+      <select id="bill-filter" onchange="renderBillHistory()" style="padding:5px 8px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.75rem;font-family:var(--font);">
+        <option value="">All</option>
+        <option>MF TRADERS</option><option>TMU</option><option>TATA MOTORS</option>
+        <option>POLICE ACADEMY</option><option>MEERUT-RUDRAPUR</option>
+      </select>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Dist</th><th>Period</th><th>Bill</th><th>Paid</th><th>Bal</th><th></th></tr></thead>
+        <tbody id="bill-table"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== REPORT ===== -->
+<div class="section" id="tab-report">
+  <div class="card">
+    <div class="card-hd">📋 Monthly Report</div>
+    <div class="frow">
+      <div class="fg full">
+        <label>Month</label>
+        <input type="month" id="rep-month">
+      </div>
+      <div class="fg full">
+        <label>Distributor</label>
+        <select id="rep-dist">
+          <option value="">All Distributors</option>
+          <option>MF TRADERS</option><option>TMU</option><option>TATA MOTORS</option>
+          <option>POLICE ACADEMY</option><option>MEERUT-RUDRAPUR</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-cyan" style="flex:1;" onclick="generateReport()">📊 Generate</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportReportExcel()">📥 Excel</button>
+    </div>
+  </div>
+  <div id="report-body"></div>
+</div>
+
+<!-- ===== PRODUCTS ===== -->
+<div class="section" id="tab-products">
+  <div class="card">
+    <div class="card-hd">➕ Add Product</div>
+    <div class="frow">
+      <div class="fg full"><label>Product Name</label><input type="text" id="prod-name" placeholder="e.g. FCM"></div>
+      <div class="fg"><label>Size/Unit</label><input type="text" id="prod-size" placeholder="e.g. 500 ML"></div>
+      <div class="fg"><label>Rate ₹</label><input type="number" id="prod-rate" placeholder="0"></div>
+    </div>
+    <button class="btn btn-cyan btn-block" onclick="addProduct()">➕ Add Product</button>
+  </div>
+  <div class="card">
+    <div class="card-hd">📦 Product List</div>
+    <div id="product-list"></div>
+  </div>
+</div>
+
+<!-- DIST DETAIL MODAL -->
+<div class="modal-bg" id="dist-modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title" id="modal-dist-name"></div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+  // ===== FIREBASE CONFIG =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyC6I01bVVQvR0ChtcvWoH6unciAR9cbGtY",
+    authDomain: "parag-milk-af613.firebaseapp.com",
+    databaseURL: "https://parag-milk-af613-default-rtdb.firebaseio.com",
+    projectId: "parag-milk-af613",
+    storageBucket: "parag-milk-af613.appspot.com",
+    messagingSenderId: "857815889992",
+    appId: "1:857815889992:web:distmanager"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db   = firebase.database();
+  let dbRef  = null;
+
+  const DISTS = ['MF TRADERS','TMU','TATA MOTORS','POLICE ACADEMY','MEERUT-RUDRAPUR'];
+
+  const DEFAULT_PRODUCTS = [
+    { id:'fcm500',  name:'FCM',         size:'500 ML', rate:0 },
+    { id:'fcm1l',   name:'FCM',         size:'1 LTR',  rate:0 },
+    { id:'fcm6l',   name:'FCM',         size:'6 LTR',  rate:0 },
+    { id:'std500',  name:'STD',         size:'500 ML', rate:0 },
+    { id:'std1l',   name:'STD',         size:'1 LTR',  rate:0 },
+    { id:'ton500',  name:'TONED',       size:'500 ML', rate:0 },
+    { id:'ton6l',   name:'TONED',       size:'6 LTR',  rate:0 },
+    { id:'cow',     name:'COW MILK',    size:'',       rate:0 },
+    { id:'dtm170',  name:'DTM',         size:'170 ML', rate:0 },
+    { id:'fcm135',  name:'FCM',         size:'135 ML', rate:0 },
+    { id:'chach300',name:'CHACH',       size:'300 ML', rate:0 },
+    { id:'chach400',name:'CHACH',       size:'400 ML', rate:0 },
+    { id:'curd140', name:'CURD POUCH',  size:'140 GM', rate:0 },
+    { id:'curd5',   name:'CURD',        size:'5 KG',   rate:0 },
+    { id:'curd15',  name:'CURD',        size:'15 KG',  rate:0 },
+    { id:'pan1kg',  name:'PANEER LITE', size:'1 KG',   rate:0 },
+    { id:'pan200',  name:'PANEER FCM',  size:'200 GM', rate:0 },
+  ];
+
+  let appData = {
+    products: [],
+    demandEntries: [],
+    payments: [],
+    bills: [],
+  };
+
+  // AUTH
+  auth.onAuthStateChanged(u => {
+    if (u) {
+      document.getElementById('login-screen').style.display = 'none';
+      dbRef = db.ref('distManager');
+      loadData();
+    } else {
+      document.getElementById('login-screen').style.display = 'flex';
+    }
+  });
+
+  function doLogin() {
+    const e = document.getElementById('l-email').value.trim();
+    const p = document.getElementById('l-pass').value;
+    if (!e||!p) { showErr('Email aur password daalo!'); return; }
+    auth.signInWithEmailAndPassword(e, p).catch(() => showErr('Galat email ya password!'));
+  }
+  function doLogout() { auth.signOut(); }
+  function showErr(m) { document.getElementById('login-err').textContent = m; }
+
+  function loadData() {
+    dbRef.on('value', snap => {
+      const val = snap.val() || {};
+      appData.products      = val.products      || [];
+      appData.payments      = val.payments      || [];
+      appData.bills         = val.bills         || [];
+      // Protect demandEntries
+      const inc = val.demandEntries;
+      const incoming = Array.isArray(inc) ? inc : (inc ? Object.values(inc) : []);
+      appData.demandEntries = incoming.length > 0 ? incoming : (appData.demandEntries || []);
+      renderAll();
+    });
+
+    // Separate listener for demandEntries
+    dbRef.child('demandEntries').on('value', snap => {
+      const val = snap.val();
+      if (val) {
+        appData.demandEntries = Array.isArray(val) ? val : Object.values(val);
+        renderDashboard();
+        renderDemandHistory();
+      }
+    });
+  }
+
+  function getAllProducts() {
+    const custom = (appData.products || []).filter(p => p.custom);
+    return [...DEFAULT_PRODUCTS.map(dp => {
+      const saved = (appData.products||[]).find(p => p.id === dp.id);
+      return { ...dp, rate: saved ? (saved.rate||0) : 0 };
+    }), ...custom];
+  }
+
+  function today() { return new Date().toISOString().split('T')[0]; }
+  function thisMonth() { return new Date().toISOString().substring(0,7); }
+  function fmtDate(d) {
+    if (!d) return '';
+    return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  }
+  function fmtMoney(n) { return '₹' + Math.round(n||0).toLocaleString('en-IN'); }
+
+  function renderAll() {
+    renderDashboard();
+    renderDemandProductGrid();
+    renderDemandHistory();
+    renderPayHistory();
+    renderBillHistory();
+    renderProductList();
+  }
+
+  // ===== DASHBOARD =====
+  function calcDemandTotal(dist, from, to) {
+    return (appData.demandEntries||[])
+      .filter(e => (!dist||e.dist===dist) && (!from||e.date>=from) && (!to||e.date<=to))
+      .reduce((s,e) => {
+        return s + getAllProducts().reduce((ps,p) => {
+          const qty = (e.items||{})[p.id] || 0;
+          return ps + qty * p.rate;
+        }, 0);
+      }, 0);
+  }
+
+  function calcPaid(dist, from, to) {
+    return (appData.payments||[])
+      .filter(p => (!dist||p.dist===dist) && (!from||p.date>=from) && (!to||p.date<=to))
+      .reduce((s,p) => s+(p.amount||0), 0);
+  }
+
+  function calcBilled(dist, from, to) {
+    return (appData.bills||[])
+      .filter(b => (!dist||b.dist===dist) && (!from||b.from>=from) && (!to||b.to<=to))
+      .reduce((s,b) => s+(b.billAmt||0), 0);
+  }
+
+  function calcOutstanding(dist) {
+    const billed = (appData.bills||[]).filter(b=>!dist||b.dist===dist).reduce((s,b)=>s+(b.billAmt||0),0);
+    const paid   = (appData.bills||[]).filter(b=>!dist||b.dist===dist).reduce((s,b)=>s+(b.paidAmt||0),0);
+    return billed - paid;
+  }
+
+  function renderDashboard() {
+    const t  = today();
+    const m  = thisMonth();
+    const m1 = m+'-01', m2 = m+'-31';
+
+    const totalOut    = DISTS.reduce((s,d) => s+calcOutstanding(d), 0);
+    const todayDem    = calcDemandTotal('', t, t);
+    const monthCol    = calcPaid('', m1, m2);
+    const monthBill   = calcBilled('', m1, m2);
+
+    document.getElementById('d-outstanding').textContent = fmtMoney(totalOut);
+    document.getElementById('d-today').textContent       = fmtMoney(todayDem);
+    document.getElementById('d-month-col').textContent   = fmtMoney(monthCol);
+    document.getElementById('d-month-bill').textContent  = fmtMoney(monthBill);
+
+    // Dist list
+    const el = document.getElementById('dist-list');
+    el.innerHTML = DISTS.map(d => {
+      const out = calcOutstanding(d);
+      const billed = (appData.bills||[]).filter(b=>b.dist===d).reduce((s,b)=>s+(b.billAmt||0),0);
+      const paid   = (appData.bills||[]).filter(b=>b.dist===d).reduce((s,b)=>s+(b.paidAmt||0),0);
+      const pct    = billed > 0 ? Math.min(100,(paid/billed)*100) : 0;
+      return `
+        <div class="dist-card ${out>0?'alert':''}" onclick="openDistModal('${d}')">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-weight:700;font-size:0.9rem;">${d}</div>
+            <span class="badge ${out>0?'bg-red':out<0?'bg-cyan':'bg-green'}">
+              ${out>0?fmtMoney(out)+' due':out<0?'Advance '+fmtMoney(Math.abs(out)):'✓ Clear'}
+            </span>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:8px;">
+            <div style="font-size:0.72rem;color:var(--muted);">Billed: <strong style="color:var(--text);">${fmtMoney(billed)}</strong></div>
+            <div style="font-size:0.72rem;color:var(--muted);">Paid: <strong style="color:var(--green);">${fmtMoney(paid)}</strong></div>
+          </div>
+          <div class="out-bar"><div class="out-fill" style="width:${pct}%;background:${pct>=100?'var(--green)':pct>60?'var(--accent)':'var(--red)'}"></div></div>
+        </div>`;
+    }).join('');
+
+    // Alerts
+    const alertEl = document.getElementById('alert-list');
+    const alerts = DISTS.map(d=>({d,out:calcOutstanding(d)})).filter(x=>x.out>0).sort((a,b)=>b.out-a.out);
+    alertEl.innerHTML = alerts.length ? alerts.map(x=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="font-weight:600;font-size:0.85rem;">${x.d}</div>
+        <div style="font-family:var(--mono);color:var(--red);font-weight:700;">${fmtMoney(x.out)}</div>
+      </div>`).join('') : '<div class="empty">✅ Sab clear!</div>';
+  }
+
+  // ===== DIST MODAL =====
+  function openDistModal(dist) {
+    document.getElementById('modal-dist-name').textContent = dist;
+    const out    = calcOutstanding(dist);
+    const billed = (appData.bills||[]).filter(b=>b.dist===dist).reduce((s,b)=>s+(b.billAmt||0),0);
+    const paid   = (appData.bills||[]).filter(b=>b.dist===dist).reduce((s,b)=>s+(b.paidAmt||0),0);
+    const recentPays = [...(appData.payments||[])].filter(p=>p.dist===dist).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,3);
+    const recentDems = [...(appData.demandEntries||[])].filter(e=>e.dist===dist).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,3);
+
+    document.getElementById('modal-body').innerHTML = `
+      <div class="stat-grid" style="margin-bottom:14px;">
+        <div class="stat-box"><div class="stat-val" style="color:var(--yellow);">${fmtMoney(billed)}</div><div class="stat-lbl">Total Billed</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--green);">${fmtMoney(paid)}</div><div class="stat-lbl">Total Paid</div></div>
+      </div>
+      <div style="text-align:center;padding:14px;border-radius:12px;background:${out>0?'rgba(248,113,113,0.08)':'rgba(74,222,128,0.08)'};border:1px solid ${out>0?'rgba(248,113,113,0.2)':'rgba(74,222,128,0.2)'};margin-bottom:16px;">
+        <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px;">OUTSTANDING</div>
+        <div style="font-size:1.6rem;font-weight:800;font-family:var(--mono);color:${out>0?'var(--red)':'var(--green)'};">${out>0?fmtMoney(out):'Clear ✓'}</div>
+      </div>
+
+      <div style="font-size:0.68rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px;">Recent Demands</div>
+      ${recentDems.length ? recentDems.map(e=>`
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.82rem;">
+          <span>${fmtDate(e.date)}</span>
+          <span style="color:var(--accent);">${Object.values(e.items||{}).reduce((s,v)=>s+v,0)} units</span>
+        </div>`).join('') : '<div class="empty" style="padding:12px;">No demands</div>'}
+
+      <div style="font-size:0.68rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin:14px 0 8px;">Recent Payments</div>
+      ${recentPays.length ? recentPays.map(p=>`
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.82rem;">
+          <div><div>${fmtDate(p.date)}</div><div style="font-size:0.7rem;color:var(--muted);">${p.mode||''}</div></div>
+          <span style="color:var(--green);font-family:var(--mono);font-weight:700;">+${fmtMoney(p.amount)}</span>
+        </div>`).join('') : '<div class="empty" style="padding:12px;">No payments</div>'}`;
+
+    document.getElementById('dist-modal').classList.add('open');
+  }
+  function closeModal() { document.getElementById('dist-modal').classList.remove('open'); }
+
+  // ===== DEMAND =====
+  function renderDemandProductGrid() {
+    const prods = getAllProducts();
+    const el = document.getElementById('dem-products-grid');
+    el.innerHTML = prods.map(p => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:0.85rem;font-weight:600;">${p.name} <span style="color:var(--muted);font-size:0.75rem;">${p.size}</span></div>
+          ${p.rate ? `<div style="font-size:0.7rem;color:var(--accent);">₹${p.rate}</div>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button onclick="adjQ('dq-${p.id}',-1)"
+            style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:1rem;cursor:pointer;">−</button>
+          <input type="number" id="dq-${p.id}" value="0" min="0"
+            style="width:54px;text-align:center;padding:5px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:0.9rem;">
+          <button onclick="adjQ('dq-${p.id}',1)"
+            style="width:30px;height:30px;border-radius:50%;border:1px solid var(--accent);background:rgba(34,211,238,0.1);color:var(--accent);font-size:1rem;cursor:pointer;">+</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function adjQ(id, d) {
+    const el = document.getElementById(id);
+    if (el) el.value = Math.max(0, (parseInt(el.value)||0)+d);
+  }
+
+  function saveDemand() {
+    const dist = document.getElementById('dem-dist').value;
+    const date = document.getElementById('dem-date').value || today();
+    if (!dist) { alert('Distributor select karo!'); return; }
+    const prods = getAllProducts();
+    const items = {};
+    let hasAny = false;
+    prods.forEach(p => {
+      const qty = parseInt(document.getElementById('dq-'+p.id)?.value)||0;
+      if (qty>0) { items[p.id]=qty; hasAny=true; }
+    });
+    if (!hasAny) { alert('Koi quantity nahi!'); return; }
+    // Remove existing entry for same dist+date
+    appData.demandEntries = (appData.demandEntries||[]).filter(e=>!(e.dist===dist&&e.date===date));
+    appData.demandEntries.push({ id:Date.now(), dist, date, items });
+    dbRef.child('demandEntries').set(appData.demandEntries);
+    // Reset
+    prods.forEach(p => { const el=document.getElementById('dq-'+p.id); if(el) el.value=0; });
+    alert(`✅ ${dist} ki demand saved!`);
+  }
+
+  function renderDemandHistory() {
+    const filter = document.getElementById('dem-filter')?.value||'';
+    const el = document.getElementById('demand-history');
+    if (!el) return;
+    let list = [...(appData.demandEntries||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    if (filter) list = list.filter(e=>e.dist===filter);
+    list = list.slice(0,20);
+    if (!list.length) { el.innerHTML='<div class="empty">Koi demand nahi</div>'; return; }
+    el.innerHTML = list.map(e => {
+      const total = Object.values(e.items||{}).reduce((s,v)=>s+v,0);
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-weight:700;font-size:0.88rem;">${e.dist}</div>
+            <div style="font-size:0.72rem;color:var(--muted);">${fmtDate(e.date)} · ${total} units</div>
+          </div>
+          <button class="btn btn-red btn-sm" onclick="deleteDemand(${e.id})">✕</button>
+        </div>`;
+    }).join('');
+  }
+
+  function deleteDemand(id) {
+    if (!confirm('Delete karein?')) return;
+    appData.demandEntries = (appData.demandEntries||[]).filter(e=>e.id!==id);
+    dbRef.child('demandEntries').set(appData.demandEntries);
+  }
+
+  // ===== PAYMENTS =====
+  function savePayment() {
+    const dist   = document.getElementById('pay-dist').value;
+    const amount = parseFloat(document.getElementById('pay-amt').value)||0;
+    const date   = document.getElementById('pay-date').value || today();
+    const mode   = document.getElementById('pay-mode').value;
+    const note   = document.getElementById('pay-note').value.trim();
+    if (!dist) { alert('Distributor select karo!'); return; }
+    if (!amount) { alert('Amount daalo!'); return; }
+    if (!appData.payments) appData.payments=[];
+    appData.payments.push({ id:Date.now(), dist, amount, date, mode, note });
+    dbRef.update({ payments: appData.payments });
+    document.getElementById('pay-amt').value='';
+    document.getElementById('pay-note').value='';
+    alert(`✅ ${fmtMoney(amount)} payment saved!`);
+  }
+
+  function renderPayHistory() {
+    const filter = document.getElementById('pay-filter')?.value||'';
+    const tb = document.getElementById('pay-table');
+    if (!tb) return;
+    let list = [...(appData.payments||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    if (filter) list = list.filter(p=>p.dist===filter);
+    if (!list.length) { tb.innerHTML='<tr><td colspan="5" class="empty">No payments</td></tr>'; return; }
+    tb.innerHTML = list.map(p=>`<tr>
+      <td style="font-size:0.75rem;">${fmtDate(p.date)}</td>
+      <td style="font-weight:600;font-size:0.8rem;">${p.dist}</td>
+      <td style="color:var(--green);font-family:var(--mono);">${fmtMoney(p.amount)}</td>
+      <td><span class="badge bg-cyan">${p.mode||'-'}</span></td>
+      <td><button class="btn btn-red btn-sm" onclick="deletePayment(${p.id})">✕</button></td>
+    </tr>`).join('');
+  }
+
+  function deletePayment(id) {
+    if (!confirm('Delete karein?')) return;
+    appData.payments = (appData.payments||[]).filter(p=>p.id!==id);
+    dbRef.update({ payments: appData.payments });
+  }
+
+  // ===== BILLING =====
+  function saveBill() {
+    const dist   = document.getElementById('bill-dist').value;
+    const from   = document.getElementById('bill-from').value;
+    const to     = document.getElementById('bill-to').value;
+    const billAmt= parseFloat(document.getElementById('bill-amt').value)||0;
+    const paidAmt= parseFloat(document.getElementById('bill-paid').value)||0;
+    const note   = document.getElementById('bill-note').value.trim();
+    if (!dist) { alert('Distributor select karo!'); return; }
+    if (!from||!to) { alert('Dates daalo!'); return; }
+    if (!billAmt) { alert('Bill amount daalo!'); return; }
+    if (!appData.bills) appData.bills=[];
+    appData.bills.push({ id:Date.now(), dist, from, to, billAmt, paidAmt, note, createdAt:today() });
+    dbRef.update({ bills: appData.bills });
+    document.getElementById('bill-amt').value='';
+    document.getElementById('bill-paid').value='';
+    document.getElementById('bill-note').value='';
+    alert('✅ Bill saved!');
+  }
+
+  function renderBillHistory() {
+    const filter = document.getElementById('bill-filter')?.value||'';
+    const tb = document.getElementById('bill-table');
+    if (!tb) return;
+    let list = [...(appData.bills||[])].sort((a,b)=>(b.from||'').localeCompare(a.from||''));
+    if (filter) list = list.filter(b=>b.dist===filter);
+    if (!list.length) { tb.innerHTML='<tr><td colspan="6" class="empty">No bills</td></tr>'; return; }
+    tb.innerHTML = list.map(b => {
+      const bal = (b.billAmt||0)-(b.paidAmt||0);
+      return `<tr>
+        <td style="font-weight:700;font-size:0.78rem;">${b.dist}</td>
+        <td style="font-size:0.72rem;color:var(--muted);">${fmtDate(b.from)}–${fmtDate(b.to)}</td>
+        <td style="font-family:var(--mono);color:var(--yellow);">${fmtMoney(b.billAmt||0)}</td>
+        <td style="font-family:var(--mono);color:var(--green);">${fmtMoney(b.paidAmt||0)}</td>
+        <td style="font-family:var(--mono);font-weight:700;color:${bal>0?'var(--red)':'var(--green)'};">${bal>0?fmtMoney(bal):'✓'}</td>
+        <td><button class="btn btn-red btn-sm" onclick="deleteBill(${b.id})">✕</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function deleteBill(id) {
+    if (!confirm('Delete karein?')) return;
+    appData.bills = (appData.bills||[]).filter(b=>b.id!==id);
+    dbRef.update({ bills: appData.bills });
+  }
+
+  function generateInvoice() {
+    const dist = document.getElementById('inv-dist').value;
+    const from = document.getElementById('inv-from').value;
+    const to   = document.getElementById('inv-to').value;
+    if (!dist||!from||!to) { alert('Sab fill karo!'); return; }
+    const bills = (appData.bills||[]).filter(b=>b.dist===dist && b.from>=from && b.to<=to);
+    if (!bills.length) { alert('Is period mein koi bill nahi!'); return; }
+    const totalBill = bills.reduce((s,b)=>s+(b.billAmt||0),0);
+    const totalPaid = bills.reduce((s,b)=>s+(b.paidAmt||0),0);
+    const balance   = totalBill - totalPaid;
+    const invNo = 'INV-' + Date.now().toString().slice(-6);
+    document.getElementById('invoice-preview').innerHTML = `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+          <div class="card-hd" style="margin:0;">Invoice Preview</div>
+          <button class="btn btn-ghost btn-sm" onclick="printInvoice()">🖨️ Print</button>
+        </div>
+        <div class="inv-body" id="inv-print-area">
+          <div style="display:flex;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #000;">
+            <div><div style="font-size:1.1rem;font-weight:900;">DISTRIBUTOR MANAGER</div><div style="font-size:0.7rem;color:#555;">Invoice</div></div>
+            <div style="text-align:right;"><div style="font-weight:700;">${invNo}</div><div style="font-size:0.72rem;color:#555;">${fmtDate(from)} – ${fmtDate(to)}</div></div>
+          </div>
+          <div style="margin-bottom:14px;"><div style="font-size:0.68rem;color:#888;font-weight:700;">BILL TO</div><div style="font-size:1rem;font-weight:900;">${dist}</div></div>
+          <table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:12px;">
+            <thead><tr style="background:#1a1a1a;color:white;"><th style="padding:7px;text-align:left;">Period</th><th style="padding:7px;text-align:right;">Bill</th><th style="padding:7px;text-align:right;">Paid</th><th style="padding:7px;text-align:right;">Balance</th></tr></thead>
+            <tbody>${bills.map((b,i)=>`<tr style="background:${i%2?'#f9f9f9':'#fff'};">
+              <td style="padding:6px 7px;">${fmtDate(b.from)} – ${fmtDate(b.to)}${b.note?' · '+b.note:''}</td>
+              <td style="padding:6px 7px;text-align:right;">₹${(b.billAmt||0).toLocaleString('en-IN')}</td>
+              <td style="padding:6px 7px;text-align:right;color:#22c55e;">₹${(b.paidAmt||0).toLocaleString('en-IN')}</td>
+              <td style="padding:6px 7px;text-align:right;font-weight:700;color:${((b.billAmt||0)-(b.paidAmt||0))>0?'#ef4444':'#22c55e'};">₹${Math.abs((b.billAmt||0)-(b.paidAmt||0)).toLocaleString('en-IN')}</td>
+            </tr>`).join('')}</tbody>
+          </table>
+          <div style="border-top:2px solid #000;padding-top:10px;">
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px;"><span>Total Billed</span><span style="font-weight:700;">₹${totalBill.toLocaleString('en-IN')}</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px;color:#22c55e;"><span>Total Paid</span><span style="font-weight:700;">-₹${totalPaid.toLocaleString('en-IN')}</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:900;border-top:1px solid #000;padding-top:8px;margin-top:4px;"><span>Balance Due</span><span style="color:${balance>0?'#ef4444':'#22c55e'};">₹${Math.abs(balance).toLocaleString('en-IN')} ${balance<=0?'(Clear)':''}</span></div>
+          </div>
+          <div style="margin-top:14px;font-size:0.7rem;color:#888;border-top:1px solid #ddd;padding-top:8px;display:flex;justify-content:space-between;"><span>Date: ${fmtDate(today())}</span><span>Distributor Manager</span></div>
+        </div>
+      </div>`;
+  }
+
+  function printInvoice() {
+    const c = document.getElementById('inv-print-area')?.innerHTML;
+    if (!c) return;
+    const w = window.open('','_blank');
+    w.document.write(`<html><head><title>Invoice</title><style>body{font-family:Arial,sans-serif;padding:20px;}</style></head><body>${c}<script>window.print();<\/script></body></html>`);
+    w.document.close();
+  }
+
+  // ===== REPORT =====
+  function generateReport() {
+    const month = document.getElementById('rep-month').value;
+    const dist  = document.getElementById('rep-dist').value;
+    if (!month) { alert('Month select karo!'); return; }
+    const from = month+'-01', to = month+'-31';
+    const dists = dist ? [dist] : DISTS;
+    let grandBill=0, grandPaid=0, grandOut=0;
+
+    const rows = dists.map(d => {
+      const bills  = (appData.bills||[]).filter(b=>b.dist===d&&b.from>=from&&b.to<=to);
+      const billed = bills.reduce((s,b)=>s+(b.billAmt||0),0);
+      const paid   = bills.reduce((s,b)=>s+(b.paidAmt||0),0);
+      const out    = calcOutstanding(d);
+      grandBill+=billed; grandPaid+=paid; grandOut+=out;
+      return { d, billed, paid, bal:billed-paid, out };
+    });
+
+    document.getElementById('report-body').innerHTML = `
+      <div class="card">
+        <div style="font-weight:800;font-size:0.9rem;margin-bottom:14px;">${month} Report</div>
+        <div class="stat-grid" style="margin-bottom:14px;">
+          <div class="stat-box"><div class="stat-val" style="color:var(--yellow);font-size:1rem;">${fmtMoney(grandBill)}</div><div class="stat-lbl">Total Billed</div></div>
+          <div class="stat-box"><div class="stat-val" style="color:var(--green);font-size:1rem;">${fmtMoney(grandPaid)}</div><div class="stat-lbl">Total Paid</div></div>
+        </div>
+        ${rows.map(r => r.billed===0&&r.out===0?'' : `
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-weight:800;">${r.d}</div>
+              <span class="badge ${r.out>0?'bg-red':'bg-green'}">${r.out>0?fmtMoney(r.out)+' due':'✓ Clear'}</span>
+            </div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;">
+              <div style="font-size:0.75rem;color:var(--muted);">Billed: <strong style="color:var(--yellow);">${fmtMoney(r.billed)}</strong></div>
+              <div style="font-size:0.75rem;color:var(--muted);">Paid: <strong style="color:var(--green);">${fmtMoney(r.paid)}</strong></div>
+              <div style="font-size:0.75rem;color:var(--muted);">Month Bal: <strong style="color:${r.bal>0?'var(--red)':'var(--green)'};">${fmtMoney(r.bal)}</strong></div>
+            </div>
+          </div>`).join('')}
+      </div>`;
+  }
+
+  function exportReportExcel() {
+    const month = document.getElementById('rep-month').value;
+    if (!month) { alert('Month select karo!'); return; }
+    const from = month+'-01', to = month+'-31';
+    const wb = XLSX.utils.book_new();
+    const rows = [['Distributor','Billed','Paid','Month Balance','Total Outstanding']];
+    DISTS.forEach(d => {
+      const bills  = (appData.bills||[]).filter(b=>b.dist===d&&b.from>=from&&b.to<=to);
+      const billed = bills.reduce((s,b)=>s+(b.billAmt||0),0);
+      const paid   = bills.reduce((s,b)=>s+(b.paidAmt||0),0);
+      const out    = calcOutstanding(d);
+      rows.push([d, billed, paid, billed-paid, out]);
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), month);
+    XLSX.writeFile(wb, `Report_${month}.xlsx`);
+  }
+
+  // ===== PRODUCTS =====
+  function addProduct() {
+    const name = document.getElementById('prod-name').value.trim().toUpperCase();
+    const size = document.getElementById('prod-size').value.trim().toUpperCase();
+    const rate = parseFloat(document.getElementById('prod-rate').value)||0;
+    if (!name) { alert('Product name daalo!'); return; }
+    if (!appData.products) appData.products=[];
+    const id = 'custom_' + Date.now();
+    appData.products.push({ id, name, size, rate, custom:true });
+    dbRef.update({ products: appData.products });
+    document.getElementById('prod-name').value='';
+    document.getElementById('prod-size').value='';
+    document.getElementById('prod-rate').value='';
+    alert('✅ Product added!');
+  }
+
+  function updateProductRate(id, val) {
+    const prods = appData.products;
+    const existing = prods.find(p=>p.id===id);
+    if (existing) { existing.rate = parseFloat(val)||0; }
+    else { prods.push({ id, rate: parseFloat(val)||0 }); }
+    dbRef.update({ products: prods });
+  }
+
+  function deleteCustomProduct(id) {
+    if (!confirm('Delete karein?')) return;
+    appData.products = (appData.products||[]).filter(p=>p.id!==id);
+    dbRef.update({ products: appData.products });
+  }
+
+  function renderProductList() {
+    const el = document.getElementById('product-list');
+    if (!el) return;
+    const all = getAllProducts();
+    el.innerHTML = all.map(p => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:0.85rem;font-weight:600;">${p.name} <span style="color:var(--muted);font-size:0.75rem;">${p.size}</span></div>
+          ${p.custom ? '<span class="badge bg-cyan" style="font-size:0.62rem;">Custom</span>' : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" value="${p.rate||''}" placeholder="Rate ₹"
+            onchange="updateProductRate('${p.id}',this.value)"
+            style="width:72px;padding:5px 7px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:0.82rem;text-align:right;">
+          ${p.custom ? `<button class="btn btn-red btn-sm" onclick="deleteCustomProduct('${p.id}')">✕</button>` : ''}
+        </div>
+      </div>`).join('');
+  }
+
+  // ===== TAB =====
+  function showTab(name, el) {
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.getElementById('tab-'+name).classList.add('active');
+    if (el) el.classList.add('active');
+  }
+
+  // INIT
+  document.getElementById('dem-date').value = today();
+  document.getElementById('pay-date').value = today();
+  document.getElementById('rep-month').value = thisMonth();
+  const t0 = new Date();
+  document.getElementById('bill-from').value = new Date(t0.getFullYear(),t0.getMonth(),1).toISOString().split('T')[0];
+  document.getElementById('bill-to').value = today();
+  document.getElementById('inv-from').value = new Date(t0.getFullYear(),t0.getMonth(),1).toISOString().split('T')[0];
+  document.getElementById('inv-to').value = today();
+</script>
+</body>
+</html>
