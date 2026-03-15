@@ -6,7 +6,7 @@
 <title>Distributor Manager</title>
 <meta name="theme-color" content="#0f172a">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
 
   :root {
     --bg: #0f172a;
@@ -14,133 +14,134 @@
     --card2: #273548;
     --border: #334155;
     --accent: #22d3ee;
-    --accent2: #0891b2;
     --green: #4ade80;
     --red: #f87171;
     --orange: #fb923c;
     --yellow: #fbbf24;
     --text: #f1f5f9;
-    --muted: #64748b;
+    --muted: #94a3b8;
     --font: 'DM Sans', sans-serif;
     --mono: 'DM Mono', monospace;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; font-size: 16px; }
 
   /* LOGIN */
   #login-screen {
     position: fixed; inset: 0; z-index: 999;
     background: var(--bg);
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
   }
   .login-box {
-    width: 320px; padding: 32px 24px; text-align: center;
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 20px;
+    width: 100%; max-width: 360px; padding: 36px 24px; text-align: center;
+    background: var(--card); border: 1px solid var(--border); border-radius: 24px;
   }
   .login-logo {
-    width: 64px; height: 64px; background: var(--accent);
-    border-radius: 16px; margin: 0 auto 20px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.8rem;
+    width: 72px; height: 72px; background: var(--accent);
+    border-radius: 20px; margin: 0 auto 20px;
+    display: flex; align-items: center; justify-content: center; font-size: 2rem;
   }
-  .login-box h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; }
-  .login-box p { color: var(--muted); font-size: 0.8rem; margin-bottom: 24px; }
+  .login-box h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 6px; }
+  .login-box p { color: var(--muted); font-size: 0.95rem; margin-bottom: 28px; }
   .login-box input {
-    width: 100%; padding: 12px 14px; margin-bottom: 10px;
-    background: var(--card2); border: 1px solid var(--border);
-    border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 0.9rem;
+    width: 100%; padding: 15px 16px; margin-bottom: 12px;
+    background: var(--card2); border: 1.5px solid var(--border);
+    border-radius: 12px; color: var(--text); font-family: var(--font); font-size: 1rem;
   }
   .login-box input:focus { outline: none; border-color: var(--accent); }
   .btn-login {
-    width: 100%; padding: 13px; background: var(--accent); color: #000;
-    border: none; border-radius: 10px; font-family: var(--font);
-    font-size: 0.95rem; font-weight: 700; cursor: pointer; margin-top: 4px;
+    width: 100%; padding: 16px; background: var(--accent); color: #000;
+    border: none; border-radius: 12px; font-family: var(--font);
+    font-size: 1.05rem; font-weight: 800; cursor: pointer; margin-top: 4px;
   }
-  #login-err { color: var(--red); font-size: 0.78rem; margin-top: 8px; }
+  #login-err { color: var(--red); font-size: 0.88rem; margin-top: 10px; }
 
   /* HEADER */
   header {
     position: sticky; top: 0; z-index: 100;
     background: var(--card); border-bottom: 1px solid var(--border);
-    padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; display: flex; align-items: center; justify-content: space-between;
   }
-  .logo { font-size: 0.95rem; font-weight: 800; }
+  .logo { font-size: 1.1rem; font-weight: 800; }
   .logo span { color: var(--accent); }
   .logout-btn {
     background: transparent; border: 1px solid var(--border);
-    color: var(--muted); padding: 5px 12px; border-radius: 8px;
-    font-family: var(--font); font-size: 0.75rem; cursor: pointer;
+    color: var(--muted); padding: 8px 16px; border-radius: 10px;
+    font-family: var(--font); font-size: 0.88rem; cursor: pointer;
   }
 
   /* NAV */
   .nav {
     display: flex; overflow-x: auto; background: var(--card);
-    border-bottom: 1px solid var(--border); padding: 0 8px;
+    border-bottom: 1px solid var(--border); padding: 0 10px;
   }
   .nav::-webkit-scrollbar { display: none; }
   .nav-tab {
-    padding: 11px 14px; background: none; border: none; border-bottom: 2px solid transparent;
-    color: var(--muted); font-family: var(--font); font-size: 0.8rem; font-weight: 600;
+    padding: 14px 16px; background: none; border: none; border-bottom: 3px solid transparent;
+    color: var(--muted); font-family: var(--font); font-size: 0.92rem; font-weight: 700;
     cursor: pointer; white-space: nowrap; transition: all 0.2s;
   }
   .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
   /* SECTIONS */
-  .section { display: none; padding: 14px; }
+  .section { display: none; padding: 16px; }
   .section.active { display: block; }
 
   /* CARDS */
   .card {
     background: var(--card); border: 1px solid var(--border);
-    border-radius: 14px; padding: 16px; margin-bottom: 12px;
+    border-radius: 16px; padding: 18px; margin-bottom: 14px;
   }
   .card-hd {
-    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1.5px; color: var(--muted); margin-bottom: 14px;
+    font-size: 0.78rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--muted); margin-bottom: 16px;
   }
 
   /* STAT GRID */
-  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
   .stat-box {
     background: var(--card2); border: 1px solid var(--border);
-    border-radius: 12px; padding: 14px;
+    border-radius: 14px; padding: 16px;
   }
-  .stat-val { font-size: 1.3rem; font-weight: 800; font-family: var(--mono); }
-  .stat-lbl { font-size: 0.68rem; color: var(--muted); margin-top: 3px; }
+  .stat-val { font-size: 1.5rem; font-weight: 800; font-family: var(--mono); }
+  .stat-lbl { font-size: 0.78rem; color: var(--muted); margin-top: 4px; font-weight: 600; }
 
   /* BUTTONS */
-  .btn { padding: 10px 16px; border-radius: 10px; border: none; font-family: var(--font); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
-  .btn:active { opacity: 0.8; }
+  .btn {
+    padding: 14px 18px; border-radius: 12px; border: none;
+    font-family: var(--font); font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn:active { opacity: 0.75; transform: scale(0.98); }
   .btn-cyan { background: var(--accent); color: #000; }
-  .btn-green { background: rgba(74,222,128,0.15); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
-  .btn-red { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
-  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-  .btn-sm { padding: 6px 12px; font-size: 0.75rem; border-radius: 8px; }
+  .btn-green { background: rgba(74,222,128,0.15); color: var(--green); border: 1.5px solid rgba(74,222,128,0.3); }
+  .btn-red { background: rgba(248,113,113,0.15); color: var(--red); border: 1.5px solid rgba(248,113,113,0.3); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1.5px solid var(--border); }
+  .btn-sm { padding: 9px 14px; font-size: 0.85rem; border-radius: 10px; }
   .btn-block { width: 100%; }
 
   /* FORM */
-  .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-  .fg { display: flex; flex-direction: column; gap: 5px; }
+  .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .fg { display: flex; flex-direction: column; gap: 6px; }
   .fg.full { grid-column: 1/-1; }
-  .fg label { font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .fg label { font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
   .fg input, .fg select, .fg textarea {
-    padding: 10px 12px; background: var(--card2); border: 1px solid var(--border);
-    border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 0.88rem;
+    padding: 13px 14px; background: var(--card2); border: 1.5px solid var(--border);
+    border-radius: 12px; color: var(--text); font-family: var(--font); font-size: 1rem;
   }
   .fg input:focus, .fg select:focus { outline: none; border-color: var(--accent); }
   .fg select option { background: var(--card); }
 
   /* TABLE */
   .tbl-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-  th { padding: 9px 10px; text-align: left; color: var(--muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--border); }
-  td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th { padding: 11px 10px; text-align: left; color: var(--muted); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; border-bottom: 1.5px solid var(--border); }
+  td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; font-size: 0.9rem; }
   tr:last-child td { border-bottom: none; }
 
   /* BADGE */
-  .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 700; }
+  .badge { display: inline-block; padding: 5px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 800; }
   .bg-green { background: rgba(74,222,128,0.15); color: var(--green); }
   .bg-red { background: rgba(248,113,113,0.15); color: var(--red); }
   .bg-cyan { background: rgba(34,211,238,0.15); color: var(--accent); }
@@ -149,33 +150,59 @@
 
   /* MODAL */
   .modal-bg {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    position: fixed; inset: 0; background: rgba(0,0,0,0.88);
     z-index: 200; display: none; align-items: flex-end;
   }
   .modal-bg.open { display: flex; }
   .modal {
     background: var(--card); border-top: 1px solid var(--border);
-    border-radius: 20px 20px 0 0; padding: 20px;
+    border-radius: 24px 24px 0 0; padding: 24px;
     width: 100%; max-height: 90vh; overflow-y: auto;
   }
-  .modal-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  .modal-title { font-size: 1rem; font-weight: 700; }
+  .modal-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .modal-title { font-size: 1.1rem; font-weight: 800; }
 
   /* DIST CARD */
   .dist-card {
-    background: var(--card2); border: 1px solid var(--border);
-    border-radius: 14px; padding: 14px; margin-bottom: 10px; cursor: pointer;
+    background: var(--card2); border: 1.5px solid var(--border);
+    border-radius: 16px; padding: 16px; margin-bottom: 12px; cursor: pointer;
     transition: border-color 0.2s;
   }
-  .dist-card:active { border-color: var(--accent); }
-  .dist-card.alert { border-color: rgba(248,113,113,0.4); }
-  .out-bar { margin-top: 10px; height: 3px; background: var(--border); border-radius: 3px; overflow: hidden; }
-  .out-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .dist-card:active { border-color: var(--accent); transform: scale(0.99); }
+  .dist-card.alert { border-color: rgba(248,113,113,0.5); }
+  .dist-name { font-size: 1rem; font-weight: 800; }
+  .dist-meta { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
+  .out-bar { margin-top: 10px; height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .out-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+
+  /* PRODUCT ROW in demand */
+  .prod-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+  }
+  .prod-name { font-size: 0.95rem; font-weight: 700; }
+  .prod-size { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+  .prod-rate { font-size: 0.82rem; color: var(--accent); font-family: var(--mono); margin-top: 2px; }
+  .qty-ctrl { display: flex; align-items: center; gap: 10px; }
+  .qty-btn {
+    width: 38px; height: 38px; border-radius: 50%; font-size: 1.3rem;
+    font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    border: none; transition: transform 0.1s;
+  }
+  .qty-btn:active { transform: scale(0.9); }
+  .qty-btn-minus { background: var(--card); border: 1.5px solid var(--border); color: var(--text); }
+  .qty-btn-plus { background: rgba(34,211,238,0.15); border: 1.5px solid var(--accent); color: var(--accent); }
+  .qty-input {
+    width: 60px; text-align: center; padding: 8px 4px;
+    background: var(--card2); border: 1.5px solid var(--border);
+    border-radius: 10px; color: var(--accent); font-family: var(--mono);
+    font-size: 1rem; font-weight: 700;
+  }
 
   /* INVOICE */
-  .inv-body { background: white; color: #000; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif; }
+  .inv-body { background: white; color: #000; padding: 20px; border-radius: 12px; font-family: Arial, sans-serif; }
 
-  .empty { text-align: center; padding: 28px 16px; color: var(--muted); font-size: 0.82rem; }
+  .empty { text-align: center; padding: 32px 16px; color: var(--muted); font-size: 0.95rem; }
   ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-thumb { background: var(--border); }
 </style>
 
@@ -213,6 +240,7 @@
   <button class="nav-tab" onclick="showTab('payments',this)">💰 Payments</button>
   <button class="nav-tab" onclick="showTab('billing',this)">🧾 Billing</button>
   <button class="nav-tab" onclick="showTab('report',this)">📋 Report</button>
+  <button class="nav-tab" onclick="showTab('rates',this)">💲 Rates</button>
   <button class="nav-tab" onclick="showTab('products',this)">🛒 Products</button>
 </div>
 
@@ -255,7 +283,7 @@
     <div class="frow">
       <div class="fg full">
         <label>Distributor</label>
-        <select id="dem-dist">
+        <select id="dem-dist" onchange="renderDemandProductGrid()">
           <option value="">-- Select --</option>
           <option>MF TRADERS</option>
           <option>TMU</option>
@@ -337,10 +365,16 @@
     <div class="frow">
       <div class="fg full">
         <label>Distributor</label>
-        <select id="bill-dist">
+        <select id="bill-dist" onchange="updateBillParties()">
           <option value="">-- Select --</option>
           <option>MF TRADERS</option><option>TMU</option><option>TATA MOTORS</option>
           <option>POLICE ACADEMY</option><option>MEERUT-RUDRAPUR</option>
+        </select>
+      </div>
+      <div class="fg full">
+        <label>Party</label>
+        <select id="bill-party">
+          <option value="">-- Select Party --</option>
         </select>
       </div>
       <div class="fg"><label>From Date</label><input type="date" id="bill-from"></div>
@@ -358,10 +392,16 @@
     <div class="frow">
       <div class="fg full">
         <label>Distributor</label>
-        <select id="inv-dist">
+        <select id="inv-dist" onchange="updateInvParties()">
           <option value="">-- Select --</option>
           <option>MF TRADERS</option><option>TMU</option><option>TATA MOTORS</option>
           <option>POLICE ACADEMY</option><option>MEERUT-RUDRAPUR</option>
+        </select>
+      </div>
+      <div class="fg full">
+        <label>Party (optional)</label>
+        <select id="inv-party">
+          <option value="">-- All Parties --</option>
         </select>
       </div>
       <div class="fg"><label>From</label><input type="date" id="inv-from"></div>
@@ -383,7 +423,7 @@
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>Dist</th><th>Period</th><th>Bill</th><th>Paid</th><th>Bal</th><th></th></tr></thead>
+        <thead><tr><th>Dist</th><th>Party</th><th>Period</th><th>Bill</th><th>Paid</th><th>Bal</th><th></th></tr></thead>
         <tbody id="bill-table"></tbody>
       </table>
     </div>
@@ -414,6 +454,26 @@
     </div>
   </div>
   <div id="report-body"></div>
+</div>
+
+<!-- ===== RATES ===== -->
+<div class="section" id="tab-rates">
+  <div class="card">
+    <div class="card-hd">💲 Distributor Wise Rates</div>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:14px;">Har distributor ka alag rate set karo — blank chhodo toh default rate use hoga</p>
+    <div class="fg full" style="margin-bottom:14px;">
+      <label>Distributor Select Karo</label>
+      <select id="rate-dist" onchange="renderRatesForm()">
+        <option value="">-- Select --</option>
+        <option>MF TRADERS</option>
+        <option>TMU</option>
+        <option>TATA MOTORS</option>
+        <option>POLICE ACADEMY</option>
+        <option>MEERUT-RUDRAPUR</option>
+      </select>
+    </div>
+    <div id="rates-form"></div>
+  </div>
 </div>
 
 <!-- ===== PRODUCTS ===== -->
@@ -461,6 +521,14 @@
   let dbRef  = null;
 
   const DISTS = ['MF TRADERS','TMU','TATA MOTORS','POLICE ACADEMY','MEERUT-RUDRAPUR'];
+
+  const PARTIES = {
+    'TMU':            ['MGH','OGH','MBH','NBH','CANTEEN','RAJU'],
+    'TATA MOTORS':    ['SODEXO','JAY MARKETING','BILASPUR ENTERPRISES','AXON','SURAJ'],
+    'POLICE ACADEMY': ['RAMESH','PAC','GOVINDA'],
+    'MF TRADERS':     ['SUMIT','GOVINDA2'],
+    'MEERUT-RUDRAPUR':['CSS','SOD'],
+  };
 
   const DEFAULT_PRODUCTS = [
     { id:'fcm500',  name:'FCM',         size:'500 ML', rate:0 },
@@ -515,6 +583,7 @@
       appData.products      = val.products      || [];
       appData.payments      = val.payments      || [];
       appData.bills         = val.bills         || [];
+      appData.distRates     = val.distRates     || {};
       // Protect demandEntries
       const inc = val.demandEntries;
       const incoming = Array.isArray(inc) ? inc : (inc ? Object.values(inc) : []);
@@ -529,6 +598,47 @@
         appData.demandEntries = Array.isArray(val) ? val : Object.values(val);
         renderDashboard();
         renderDemandHistory();
+      }
+    });
+
+    // Read rates from Parag Milk app (sharedData)
+    db.ref('sharedData/products').once('value', snap => {
+      const val = snap.val();
+      if (val) {
+        const paragRates = Array.isArray(val) ? val : Object.values(val);
+        appData.paragRates = paragRates;
+        // Merge rates into our products
+        mergeRatesFromParag();
+        renderProductList();
+        renderDemandProductGrid();
+      }
+    });
+  }
+
+  function mergeRatesFromParag() {
+    if (!appData.paragRates) return;
+    // Map Parag product IDs to dist-manager product IDs
+    const rateMap = {
+      'fcm500':'fcm500','fcm1l':'fcm1l','fcm6l':'fcm6l',
+      'std500':'std500','std1l':'std1l','std350':'cow',
+      'ton500':'ton500','ton6l':'ton6l',
+      'chhach300':'chach300',
+      'dahi140':'curd140',
+      'matka5':'curd5','matka15':'curd15',
+      'paneer1kg':'pan1kg',
+    };
+    DEFAULT_PRODUCTS.forEach(dp => {
+      // Find matching Parag product
+      const paragId = Object.entries(rateMap).find(([k,v])=>v===dp.id)?.[0];
+      if (!paragId) return;
+      const paragProd = appData.paragRates.find(p=>String(p.id)===paragId);
+      if (!paragProd || !paragProd.rate) return;
+      // Only set if not already saved in our products
+      const existing = appData.products.find(p=>p.id===dp.id);
+      if (!existing || !existing.rate) {
+        const idx = appData.products.findIndex(p=>p.id===dp.id);
+        if (idx>-1) appData.products[idx].rate = paragProd.rate;
+        else appData.products.push({ id:dp.id, rate:paragProd.rate });
       }
     });
   }
@@ -564,8 +674,9 @@
       .filter(e => (!dist||e.dist===dist) && (!from||e.date>=from) && (!to||e.date<=to))
       .reduce((s,e) => {
         return s + getAllProducts().reduce((ps,p) => {
-          const qty = (e.items||{})[p.id] || 0;
-          return ps + qty * p.rate;
+          const qty  = (e.items||{})[p.id] || 0;
+          const rate = getDistRate(e.dist, p.id);
+          return ps + qty * rate;
         }, 0);
       }, 0);
   }
@@ -613,14 +724,14 @@
       return `
         <div class="dist-card ${out>0?'alert':''}" onclick="openDistModal('${d}')">
           <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div style="font-weight:700;font-size:0.9rem;">${d}</div>
+            <div class="dist-name">${d}</div>
             <span class="badge ${out>0?'bg-red':out<0?'bg-cyan':'bg-green'}">
-              ${out>0?fmtMoney(out)+' due':out<0?'Advance '+fmtMoney(Math.abs(out)):'✓ Clear'}
+              ${out>0?fmtMoney(out)+' due':out<0?'Adv '+fmtMoney(Math.abs(out)):'✓ Clear'}
             </span>
           </div>
-          <div style="display:flex;gap:16px;margin-top:8px;">
-            <div style="font-size:0.72rem;color:var(--muted);">Billed: <strong style="color:var(--text);">${fmtMoney(billed)}</strong></div>
-            <div style="font-size:0.72rem;color:var(--muted);">Paid: <strong style="color:var(--green);">${fmtMoney(paid)}</strong></div>
+          <div class="dist-meta" style="display:flex;gap:16px;margin-top:8px;">
+            <span>Billed: <strong style="color:var(--text);">${fmtMoney(billed)}</strong></span>
+            <span>Paid: <strong style="color:var(--green);">${fmtMoney(paid)}</strong></span>
           </div>
           <div class="out-bar"><div class="out-fill" style="width:${pct}%;background:${pct>=100?'var(--green)':pct>60?'var(--accent)':'var(--red)'}"></div></div>
         </div>`;
@@ -645,6 +756,15 @@
     const recentPays = [...(appData.payments||[])].filter(p=>p.dist===dist).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,3);
     const recentDems = [...(appData.demandEntries||[])].filter(e=>e.dist===dist).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,3);
 
+    // Party-wise outstanding
+    const parties = PARTIES[dist] || [];
+    const partyOutstanding = parties.map(p => {
+      const pb = (appData.bills||[]).filter(b=>b.dist===dist&&b.party===p);
+      const tb = pb.reduce((s,b)=>s+(b.billAmt||0),0);
+      const tp = pb.reduce((s,b)=>s+(b.paidAmt||0),0);
+      return { p, bal: tb-tp, billed: tb };
+    }).filter(x=>x.billed>0);
+
     document.getElementById('modal-body').innerHTML = `
       <div class="stat-grid" style="margin-bottom:14px;">
         <div class="stat-box"><div class="stat-val" style="color:var(--yellow);">${fmtMoney(billed)}</div><div class="stat-lbl">Total Billed</div></div>
@@ -655,7 +775,16 @@
         <div style="font-size:1.6rem;font-weight:800;font-family:var(--mono);color:${out>0?'var(--red)':'var(--green)'};">${out>0?fmtMoney(out):'Clear ✓'}</div>
       </div>
 
-      <div style="font-size:0.68rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px;">Recent Demands</div>
+      ${partyOutstanding.length ? `
+        <div style="font-size:0.68rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px;">Party Outstanding</div>
+        ${partyOutstanding.map(x=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div style="font-weight:600;font-size:0.85rem;">${x.p}</div>
+            <span class="badge ${x.bal>0?'bg-red':x.bal<0?'bg-cyan':'bg-green'}">${x.bal>0?fmtMoney(x.bal)+' due':x.bal<0?'Adv':'✓ Clear'}</span>
+          </div>`).join('')}
+      ` : ''}
+
+      <div style="font-size:0.68rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin:14px 0 8px;">Recent Demands</div>
       ${recentDems.length ? recentDems.map(e=>`
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.82rem;">
           <span>${fmtDate(e.date)}</span>
@@ -676,22 +805,24 @@
   // ===== DEMAND =====
   function renderDemandProductGrid() {
     const prods = getAllProducts();
+    const dist  = document.getElementById('dem-dist')?.value || '';
     const el = document.getElementById('dem-products-grid');
-    el.innerHTML = prods.map(p => `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
-        <div>
-          <div style="font-size:0.85rem;font-weight:600;">${p.name} <span style="color:var(--muted);font-size:0.75rem;">${p.size}</span></div>
-          ${p.rate ? `<div style="font-size:0.7rem;color:var(--accent);">₹${p.rate}</div>` : ''}
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <button onclick="adjQ('dq-${p.id}',-1)"
-            style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:1rem;cursor:pointer;">−</button>
-          <input type="number" id="dq-${p.id}" value="0" min="0"
-            style="width:54px;text-align:center;padding:5px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:0.9rem;">
-          <button onclick="adjQ('dq-${p.id}',1)"
-            style="width:30px;height:30px;border-radius:50%;border:1px solid var(--accent);background:rgba(34,211,238,0.1);color:var(--accent);font-size:1rem;cursor:pointer;">+</button>
-        </div>
-      </div>`).join('');
+    el.innerHTML = prods.map(p => {
+      const rate = dist ? getDistRate(dist, p.id) : (p.rate||0);
+      return `
+        <div class="prod-row">
+          <div>
+            <div class="prod-name">${p.name}</div>
+            <div class="prod-size">${p.size}</div>
+            ${rate ? `<div class="prod-rate">₹${rate}</div>` : ''}
+          </div>
+          <div class="qty-ctrl">
+            <button class="qty-btn qty-btn-minus" onclick="adjQ('dq-${p.id}',-1)">−</button>
+            <input type="number" id="dq-${p.id}" value="0" min="0" class="qty-input">
+            <button class="qty-btn qty-btn-plus" onclick="adjQ('dq-${p.id}',1)">+</button>
+          </div>
+        </div>`;
+    }).join('');
   }
 
   function adjQ(id, d) {
@@ -787,18 +918,36 @@
   }
 
   // ===== BILLING =====
+  function updateBillParties() {
+    const dist  = document.getElementById('bill-dist').value;
+    const sel   = document.getElementById('bill-party');
+    const parties = PARTIES[dist] || [];
+    sel.innerHTML = '<option value="">-- Select Party --</option>' +
+      parties.map(p=>`<option>${p}</option>`).join('');
+  }
+
+  function updateInvParties() {
+    const dist  = document.getElementById('inv-dist').value;
+    const sel   = document.getElementById('inv-party');
+    const parties = PARTIES[dist] || [];
+    sel.innerHTML = '<option value="">-- All Parties --</option>' +
+      parties.map(p=>`<option>${p}</option>`).join('');
+  }
+
   function saveBill() {
     const dist   = document.getElementById('bill-dist').value;
+    const party  = document.getElementById('bill-party').value;
     const from   = document.getElementById('bill-from').value;
     const to     = document.getElementById('bill-to').value;
     const billAmt= parseFloat(document.getElementById('bill-amt').value)||0;
     const paidAmt= parseFloat(document.getElementById('bill-paid').value)||0;
     const note   = document.getElementById('bill-note').value.trim();
     if (!dist) { alert('Distributor select karo!'); return; }
+    if (!party) { alert('Party select karo!'); return; }
     if (!from||!to) { alert('Dates daalo!'); return; }
     if (!billAmt) { alert('Bill amount daalo!'); return; }
     if (!appData.bills) appData.bills=[];
-    appData.bills.push({ id:Date.now(), dist, from, to, billAmt, paidAmt, note, createdAt:today() });
+    appData.bills.push({ id:Date.now(), dist, party, from, to, billAmt, paidAmt, note, createdAt:today() });
     dbRef.update({ bills: appData.bills });
     document.getElementById('bill-amt').value='';
     document.getElementById('bill-paid').value='';
@@ -812,11 +961,12 @@
     if (!tb) return;
     let list = [...(appData.bills||[])].sort((a,b)=>(b.from||'').localeCompare(a.from||''));
     if (filter) list = list.filter(b=>b.dist===filter);
-    if (!list.length) { tb.innerHTML='<tr><td colspan="6" class="empty">No bills</td></tr>'; return; }
+    if (!list.length) { tb.innerHTML='<tr><td colspan="7" class="empty">No bills</td></tr>'; return; }
     tb.innerHTML = list.map(b => {
       const bal = (b.billAmt||0)-(b.paidAmt||0);
       return `<tr>
         <td style="font-weight:700;font-size:0.78rem;">${b.dist}</td>
+        <td style="font-size:0.78rem;color:var(--accent);">${b.party||'-'}</td>
         <td style="font-size:0.72rem;color:var(--muted);">${fmtDate(b.from)}–${fmtDate(b.to)}</td>
         <td style="font-family:var(--mono);color:var(--yellow);">${fmtMoney(b.billAmt||0)}</td>
         <td style="font-family:var(--mono);color:var(--green);">${fmtMoney(b.paidAmt||0)}</td>
@@ -833,11 +983,13 @@
   }
 
   function generateInvoice() {
-    const dist = document.getElementById('inv-dist').value;
-    const from = document.getElementById('inv-from').value;
-    const to   = document.getElementById('inv-to').value;
+    const dist  = document.getElementById('inv-dist').value;
+    const party = document.getElementById('inv-party').value;
+    const from  = document.getElementById('inv-from').value;
+    const to    = document.getElementById('inv-to').value;
     if (!dist||!from||!to) { alert('Sab fill karo!'); return; }
-    const bills = (appData.bills||[]).filter(b=>b.dist===dist && b.from>=from && b.to<=to);
+    let bills = (appData.bills||[]).filter(b=>b.dist===dist && b.from>=from && b.to<=to);
+    if (party) bills = bills.filter(b=>b.party===party);
     if (!bills.length) { alert('Is period mein koi bill nahi!'); return; }
     const totalBill = bills.reduce((s,b)=>s+(b.billAmt||0),0);
     const totalPaid = bills.reduce((s,b)=>s+(b.paidAmt||0),0);
@@ -854,10 +1006,21 @@
             <div><div style="font-size:1.1rem;font-weight:900;">DISTRIBUTOR MANAGER</div><div style="font-size:0.7rem;color:#555;">Invoice</div></div>
             <div style="text-align:right;"><div style="font-weight:700;">${invNo}</div><div style="font-size:0.72rem;color:#555;">${fmtDate(from)} – ${fmtDate(to)}</div></div>
           </div>
-          <div style="margin-bottom:14px;"><div style="font-size:0.68rem;color:#888;font-weight:700;">BILL TO</div><div style="font-size:1rem;font-weight:900;">${dist}</div></div>
+          <div style="margin-bottom:14px;">
+            <div style="font-size:0.68rem;color:#888;font-weight:700;">BILL TO</div>
+            <div style="font-size:1rem;font-weight:900;">${party||dist}</div>
+            ${party?`<div style="font-size:0.75rem;color:#555;">Under ${dist}</div>`:''}
+          </div>
           <table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:12px;">
-            <thead><tr style="background:#1a1a1a;color:white;"><th style="padding:7px;text-align:left;">Period</th><th style="padding:7px;text-align:right;">Bill</th><th style="padding:7px;text-align:right;">Paid</th><th style="padding:7px;text-align:right;">Balance</th></tr></thead>
+            <thead><tr style="background:#1a1a1a;color:white;">
+              <th style="padding:7px;text-align:left;">Party</th>
+              <th style="padding:7px;text-align:left;">Period</th>
+              <th style="padding:7px;text-align:right;">Bill</th>
+              <th style="padding:7px;text-align:right;">Paid</th>
+              <th style="padding:7px;text-align:right;">Balance</th>
+            </tr></thead>
             <tbody>${bills.map((b,i)=>`<tr style="background:${i%2?'#f9f9f9':'#fff'};">
+              <td style="padding:6px 7px;">${b.party||'-'}</td>
               <td style="padding:6px 7px;">${fmtDate(b.from)} – ${fmtDate(b.to)}${b.note?' · '+b.note:''}</td>
               <td style="padding:6px 7px;text-align:right;">₹${(b.billAmt||0).toLocaleString('en-IN')}</td>
               <td style="padding:6px 7px;text-align:right;color:#22c55e;">₹${(b.paidAmt||0).toLocaleString('en-IN')}</td>
@@ -867,9 +1030,14 @@
           <div style="border-top:2px solid #000;padding-top:10px;">
             <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px;"><span>Total Billed</span><span style="font-weight:700;">₹${totalBill.toLocaleString('en-IN')}</span></div>
             <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px;color:#22c55e;"><span>Total Paid</span><span style="font-weight:700;">-₹${totalPaid.toLocaleString('en-IN')}</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:900;border-top:1px solid #000;padding-top:8px;margin-top:4px;"><span>Balance Due</span><span style="color:${balance>0?'#ef4444':'#22c55e'};">₹${Math.abs(balance).toLocaleString('en-IN')} ${balance<=0?'(Clear)':''}</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:900;border-top:1px solid #000;padding-top:8px;margin-top:4px;">
+              <span>Balance Due</span>
+              <span style="color:${balance>0?'#ef4444':'#22c55e'};">₹${Math.abs(balance).toLocaleString('en-IN')} ${balance<=0?'(Clear)':''}</span>
+            </div>
           </div>
-          <div style="margin-top:14px;font-size:0.7rem;color:#888;border-top:1px solid #ddd;padding-top:8px;display:flex;justify-content:space-between;"><span>Date: ${fmtDate(today())}</span><span>Distributor Manager</span></div>
+          <div style="margin-top:14px;font-size:0.7rem;color:#888;border-top:1px solid #ddd;padding-top:8px;display:flex;justify-content:space-between;">
+            <span>Date: ${fmtDate(today())}</span><span>Distributor Manager</span>
+          </div>
         </div>
       </div>`;
   }
@@ -986,6 +1154,53 @@
           ${p.custom ? `<button class="btn btn-red btn-sm" onclick="deleteCustomProduct('${p.id}')">✕</button>` : ''}
         </div>
       </div>`).join('');
+  }
+
+  // ===== DISTRIBUTOR RATES =====
+  function renderRatesForm() {
+    const dist = document.getElementById('rate-dist').value;
+    const el   = document.getElementById('rates-form');
+    if (!dist) { el.innerHTML = ''; return; }
+
+    const prods  = getAllProducts();
+    const saved  = (appData.distRates || {})[dist] || {};
+
+    el.innerHTML = `
+      <div style="margin-bottom:14px;">
+        ${prods.map(p => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-size:0.85rem;font-weight:600;">${p.name} <span style="color:var(--muted);font-size:0.75rem;">${p.size}</span></div>
+              <div style="font-size:0.7rem;color:var(--muted);">Default: ${p.rate ? '₹'+p.rate : 'Not set'}</div>
+            </div>
+            <input type="number" id="dr-${p.id}" value="${saved[p.id]||''}" placeholder="${p.rate||'Rate'}"
+              style="width:80px;padding:7px 8px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:0.85rem;text-align:right;">
+          </div>`).join('')}
+      </div>
+      <button class="btn btn-cyan btn-block" onclick="saveDistRates()">💾 Save ${dist} Rates</button>`;
+  }
+
+  function saveDistRates() {
+    const dist = document.getElementById('rate-dist').value;
+    if (!dist) return;
+    const prods  = getAllProducts();
+    const rates  = {};
+    prods.forEach(p => {
+      const val = parseFloat(document.getElementById('dr-'+p.id)?.value);
+      if (val > 0) rates[p.id] = val;
+    });
+    if (!appData.distRates) appData.distRates = {};
+    appData.distRates[dist] = rates;
+    dbRef.update({ distRates: appData.distRates });
+    alert(`✅ ${dist} ke rates save ho gaye!`);
+  }
+
+  function getDistRate(dist, pid) {
+    // Distributor specific rate first, then default product rate
+    const distRate = (appData.distRates || {})[dist]?.[pid];
+    if (distRate) return distRate;
+    const prod = getAllProducts().find(p => p.id === pid);
+    return prod ? (prod.rate || 0) : 0;
   }
 
   // ===== TAB =====
