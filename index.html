@@ -348,14 +348,14 @@
                 <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:#EEF2FF;color:#3949AB;">Pkts (Auto)</th>
                 <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Crates</th>
                 <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:#FFF3E0;color:var(--amber);">Amount ₹</th>
-                <th style="padding:9px 12px;border-bottom:1.5px solid var(--border);"></th>
+                <th style="padding:9px 12px;border-bottom:1.5px solid var(--border);text-align:center;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;">+/−</th>
               </tr>
             </thead>
             <tbody id="demand-entry-grid"></tbody>
             <tfoot>
               <tr>
                 <td colspan="6" style="padding:10px 12px;">
-                  <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);border:1px solid #B0D8C0;" onclick="addDemandRow()">+ Add Product Row</button>
+                  <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);border:1px solid #B0D8C0;" onclick="addDemandRow()">+ Nayi Row</button>
                 </td>
               </tr>
             </tfoot>
@@ -1229,6 +1229,59 @@
     addDemandRow(); // Start with one empty row
   }
 
+  function addDemandRowAfter(rowId) {
+    // Find the tr containing this rowId and insert after it
+    const td = document.getElementById(rowId);
+    if (!td) { addDemandRow(); return; }
+    const tr = td.closest('tr');
+    const grid = document.getElementById('demand-entry-grid');
+    const allProds = getAllProducts();
+    if (!allProds.length) { alert('Pehle Products tab mein products add karein!'); return; }
+    demandRowCount++;
+    const newRowId = 'drow-' + demandRowCount;
+    const options = allProds.map(p => `<option value="${p.id}" data-size="${p.size||''}" data-rate="${p.rate||0}" data-cat="${p.cat}">${p.name} ${p.size||''}</option>`).join('');
+    const newTr = document.createElement('tr');
+    newTr.style.borderBottom = '1px solid #F5EDE0';
+    newTr.innerHTML = `
+      <td id="${newRowId}" style="padding:8px 12px;color:var(--muted);font-size:0.85rem;">${demandRowCount}</td>
+      <td style="padding:8px 10px;">
+        <select onchange="onDemandProductSelect(this, '${newRowId}')"
+          style="width:100%;min-width:140px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font);font-size:0.85rem;background:white;cursor:pointer;">
+          <option value="">-- Select Product --</option>
+          ${options}
+        </select>
+      </td>
+      <td id="${newRowId}-size" style="padding:8px 12px;font-size:0.85rem;color:var(--muted);">-</td>
+      <td id="${newRowId}-rate" style="padding:8px 12px;font-family:var(--mono);font-size:0.85rem;" data-ratenum="0">-</td>
+      <td style="padding:8px 10px;background:#F0FFF4;">
+        <input type="number" id="${newRowId}-kgltr" placeholder="0" min="0" step="0.01" oninput="calcKgLtr('${newRowId}')"
+          style="width:75px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
+      </td>
+      <td style="padding:8px 10px;background:#EEF2FF;">
+        <input type="number" id="${newRowId}-qty" placeholder="auto" min="0" readonly
+          style="width:75px;padding:7px 8px;border:1.5px solid #9FA8DA;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:#EEF2FF;color:#3949AB;cursor:not-allowed;">
+      </td>
+      <td style="padding:8px 10px;">
+        <input type="number" id="${newRowId}-crates" placeholder="0" min="0"
+          style="width:65px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;">
+      </td>
+      <td id="${newRowId}-amount" style="padding:8px 12px;font-family:var(--mono);font-size:0.88rem;font-weight:700;color:var(--amber);background:#FFF3E0;">-</td>
+      <td style="padding:6px 8px;text-align:center;white-space:nowrap;">
+        <button onclick="addDemandRowAfter('${newRowId}')"
+          style="width:28px;height:28px;border-radius:6px;border:1.5px solid #B0D8C0;background:#E8F5EE;color:#2A7A4A;font-size:1.1rem;font-weight:700;cursor:pointer;margin-bottom:3px;display:block;">+</button>
+        <button onclick="removeDemandRow('${newRowId}')"
+          style="width:28px;height:28px;border-radius:6px;border:1.5px solid #FFCDD2;background:#FFEBEE;color:#C62828;font-size:1.1rem;font-weight:700;cursor:pointer;display:block;">−</button>
+      </td>`;
+    // Insert after current row
+    if (tr.nextSibling) {
+      grid.insertBefore(newTr, tr.nextSibling);
+    } else {
+      grid.appendChild(newTr);
+    }
+    // Focus on new row's select
+    newTr.querySelector('select').focus();
+  }
+
   function addDemandRow() {
     const grid = document.getElementById('demand-entry-grid');
     const allProds = getAllProducts();
@@ -1265,8 +1318,11 @@
           style="width:65px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;">
       </td>
       <td id="${rowId}-amount" style="padding:8px 12px;font-family:var(--mono);font-size:0.88rem;font-weight:700;color:var(--amber);background:#FFF3E0;">-</td>
-      <td style="padding:8px 10px;">
-        <button class="btn btn-danger btn-sm" onclick="removeDemandRow('${rowId}')">✕</button>
+      <td style="padding:6px 8px;text-align:center;white-space:nowrap;">
+        <button onclick="addDemandRowAfter('${rowId}')"
+          style="width:28px;height:28px;border-radius:6px;border:1.5px solid #B0D8C0;background:#E8F5EE;color:#2A7A4A;font-size:1.1rem;font-weight:700;cursor:pointer;margin-bottom:3px;display:block;">+</button>
+        <button onclick="removeDemandRow('${rowId}')"
+          style="width:28px;height:28px;border-radius:6px;border:1.5px solid #FFCDD2;background:#FFEBEE;color:#C62828;font-size:1.1rem;font-weight:700;cursor:pointer;display:block;">−</button>
       </td>`;
     grid.appendChild(tr);
   }
