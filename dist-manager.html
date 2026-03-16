@@ -560,7 +560,6 @@
   };
 
   const DEFAULT_PRODUCTS = [
-    { id:'fcm500',   name:'FCM',         size:'500 ML', rate:0, cat:'Milk' },
     { id:'fcm1l',    name:'FCM',         size:'1 LTR',  rate:0, cat:'Milk' },
     { id:'fcm6l',    name:'FCM',         size:'6 LTR',  rate:0, cat:'Milk', calc:'fcm1l×6' },
     { id:'std500',   name:'STD',         size:'500 ML', rate:0, cat:'Milk' },
@@ -571,7 +570,6 @@
     { id:'dtm170',   name:'DTM',         size:'170 ML', rate:0, cat:'Milk' },
     { id:'fcm135',   name:'FCM',         size:'135 ML', rate:0, cat:'Milk' },
     { id:'chach300', name:'CHACH',       size:'300 ML', rate:0, cat:'Milk' },
-    { id:'chach400', name:'CHACH',       size:'400 ML', rate:0, cat:'Milk' },
     { id:'curd_kg',  name:'CURD',        size:'per KG', rate:0, cat:'Milk Products' },
     { id:'curd140',  name:'CURD POUCH',  size:'140 GM', rate:0, cat:'Milk Products', calc:'curd_kg×0.14' },
     { id:'curd5',    name:'CURD',        size:'5 KG',   rate:0, cat:'Milk Products', calc:'curd_kg×5' },
@@ -665,7 +663,7 @@
     if (!appData.paragRates) return;
     // Map Parag product IDs to dist-manager product IDs
     const rateMap = {
-      'fcm500':'fcm500','fcm1l':'fcm1l','fcm6l':'fcm6l',
+      'fcm1l':'fcm1l','fcm6l':'fcm6l',
       'std500':'std500','std1l':'std1l','std350':'cow',
       'ton500':'ton500','ton6l':'ton6l',
       'chhach300':'chach300',
@@ -718,8 +716,8 @@
   // ===== DASHBOARD =====
   function calcDemandTotal(dist, from, to) {
     const sizeInLtr = {
-      'fcm500':0.5,'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
-      'ton500':0.5,'ton6l':6,'cow':1,'chach400':0.4,
+      'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
+      'ton500':0.5,'ton6l':6,'cow':1,
     };
     return (appData.demandEntries||[])
       .filter(e => (!dist||e.dist===dist) && (!from||e.date>=from) && (!to||e.date<=to))
@@ -856,148 +854,148 @@
   function closeModal() { document.getElementById('dist-modal').classList.remove('open'); }
 
   // ===== DEMAND =====
+  const sizeInLtr = {
+    'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
+    'ton500':0.5,'ton6l':6,'cow':1,
+  };
+  let demRowCount = 0;
+
   function renderDemandProductGrid() {
-    const prods = getAllProducts();
-    const dist  = document.getElementById('dem-dist')?.value || '';
     const el = document.getElementById('dem-products-grid');
-
-    // Size in LTR for each milk product
-    const sizeInLtr = {
-      'fcm500':0.5, 'fcm1l':1, 'fcm6l':6,
-      'std500':0.5, 'std1l':1,
-      'ton500':0.5, 'ton6l':6,
-      'cow':1,
-      'chach400':0.4,
-    };
-
-    const milkProds = prods.filter(p => p.cat === 'Milk');
-    const mpProds   = prods.filter(p => p.cat === 'Milk Products');
-
+    demRowCount = 0;
     el.innerHTML = `
-      <!-- MILK SECTION -->
-      <div style="background:rgba(34,211,238,0.06);border:1px solid rgba(34,211,238,0.2);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
-        <div style="font-size:0.75rem;font-weight:800;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">🥛 Milk</div>
-
-        <!-- Header -->
-        <div style="display:grid;grid-template-columns:1fr 40px 80px 60px 72px;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:4px;">
-          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;">Product</div>
-          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;text-align:center;">Type</div>
-          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;text-align:center;">Qty</div>
-          <div style="font-size:0.68rem;font-weight:700;color:var(--accent);text-transform:uppercase;text-align:center;">LTR</div>
-          <div style="font-size:0.68rem;font-weight:700;color:var(--yellow);text-transform:uppercase;text-align:right;">Amount</div>
-        </div>
-
-        ${milkProds.map(p => {
-          const rate = dist ? getDistRate(dist, p.id) : (p.rate||0);
-          const ltrSz = sizeInLtr[p.id] || 0;
-          return `
-            <div style="display:grid;grid-template-columns:1fr 40px 80px 60px 72px;gap:6px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-              <div>
-                <div style="font-size:0.88rem;font-weight:700;">${p.name}</div>
-                <div style="font-size:0.72rem;color:var(--muted);">${p.size}${rate?` · ₹${rate}`:''}</div>
-              </div>
-              <!-- PKT/LTR Toggle -->
-              <div style="text-align:center;">
-                ${ltrSz > 0 ? `<button id="toggle-${p.id}"
-                  data-pid="${p.id}" onclick="toggleMilkModeBtn(this)"
-                  style="font-size:0.7rem;font-weight:800;padding:4px 6px;border-radius:6px;border:1.5px solid var(--accent);background:rgba(34,211,238,0.1);color:var(--accent);cursor:pointer;width:100%;">
-                  PKT
-                </button>` : `<span style="font-size:0.7rem;color:var(--muted);font-weight:700;">PKT</span>`}
-              </div>
-              <!-- Input — store ltrSize and rate as data attrs to avoid float in onclick -->
-              <input type="number" id="dq-${p.id}" value="0" min="0"
-                data-pid="${p.id}"
-                oninput="calcMilkRowEl(this)"
-                style="width:100%;text-align:center;padding:7px 4px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:0.92rem;font-weight:700;">
-              <div id="ltr-${p.id}" style="text-align:center;font-family:var(--mono);font-size:0.88rem;color:var(--accent);font-weight:700;">0</div>
-              <div id="amt-${p.id}" style="text-align:right;font-family:var(--mono);font-size:0.85rem;color:var(--yellow);font-weight:700;">₹0</div>
-            </div>`;
-        }).join('')}
-
-        <!-- Milk Total -->
-        <div style="display:flex;justify-content:space-between;padding:10px 0;margin-top:4px;">
-          <div style="font-size:0.82rem;font-weight:800;color:var(--accent);">Total LTR: <span id="milk-total-ltr">0</span></div>
-          <div style="font-family:var(--mono);font-weight:800;color:var(--yellow);" id="milk-total-amt">₹0</div>
-        </div>
+      <div id="dem-rows"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btn-ghost btn-block" onclick="addDemandRow()" style="border-style:dashed;">
+          ➕ Product Add Karo
+        </button>
       </div>
-
-      <!-- MILK PRODUCTS SECTION -->
-      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
-        <div style="font-size:0.75rem;font-weight:800;text-transform:uppercase;color:var(--yellow);margin-bottom:10px;">🧀 Milk Products</div>
-
-        <!-- Header -->
-        <div style="display:grid;grid-template-columns:1fr 90px 80px;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:4px;">
-          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;">Product</div>
-          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;text-align:center;">Qty</div>
-          <div style="font-size:0.68rem;font-weight:700;color:var(--yellow);text-transform:uppercase;text-align:right;">Amount</div>
-        </div>
-
-        ${mpProds.map(p => {
-          const rate = dist ? getDistRate(dist, p.id) : (p.rate||0);
-          const calcHints = {'curd140':'CURD KG×0.14','curd5':'CURD KG×5','curd15':'CURD KG×15'};
-          return `
-            <div style="display:grid;grid-template-columns:1fr 90px 80px;gap:6px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-              <div>
-                <div class="prod-name">${p.name}</div>
-                <div class="prod-size">${p.size}${calcHints[p.id]?` · <span style="color:var(--yellow);font-size:0.72rem;">${calcHints[p.id]}</span>`:''}</div>
-                ${rate ? `<div class="prod-rate">₹${Number.isInteger(rate)?rate:rate.toFixed(2)}</div>` : ''}
-              </div>
-              <div style="display:flex;align-items:center;gap:4px;">
-                <button onclick="adjMP('dq-mp-${p.id}',-1,${rate},'mp-amt-${p.id}')"
-                  style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem;cursor:pointer;flex-shrink:0;">−</button>
-                <input type="number" id="dq-mp-${p.id}" value="0" min="0"
-                  oninput="calcMPAmt('dq-mp-${p.id}',${rate},'mp-amt-${p.id}')"
-                  style="width:100%;text-align:center;padding:6px 2px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:0.9rem;font-weight:700;">
-                <button onclick="adjMP('dq-mp-${p.id}',1,${rate},'mp-amt-${p.id}')"
-                  style="width:28px;height:28px;border-radius:50%;border:1.5px solid var(--yellow);background:rgba(251,191,36,0.1);color:var(--yellow);font-size:1rem;cursor:pointer;flex-shrink:0;">+</button>
-              </div>
-              <div id="mp-amt-${p.id}" style="text-align:right;font-family:var(--mono);font-size:0.85rem;color:var(--yellow);font-weight:700;">₹0</div>
-            </div>`;
-        }).join('')}
-
-        <!-- MP Total -->
-        <div style="display:flex;justify-content:space-between;padding:10px 0;margin-top:4px;">
-          <div style="font-size:0.82rem;font-weight:800;color:var(--yellow);">Total Amount</div>
-          <div style="font-family:var(--mono);font-weight:800;color:var(--yellow);" id="mp-total-amt">₹0</div>
-        </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+        <div style="font-size:0.85rem;font-weight:800;color:var(--accent);">Total: <span id="dem-total-ltr">0 LTR</span></div>
+        <div style="font-family:var(--mono);font-weight:800;color:var(--yellow);font-size:1rem;" id="dem-total-amt">₹0</div>
       </div>`;
+    addDemandRow(); // Start with one row
   }
 
-  function adjMP(id, delta, rate, amtId) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.value = Math.max(0, (parseInt(el.value)||0) + delta);
-    calcMPAmt(id, rate, amtId);
+  function addDemandRow() {
+    const dist  = document.getElementById('dem-dist')?.value || '';
+    const prods = getAllProducts();
+    const rowId = ++demRowCount;
+    const div   = document.createElement('div');
+    div.id      = 'dem-row-' + rowId;
+    div.style.cssText = 'display:grid;grid-template-columns:1fr 50px 70px 70px 30px;gap:6px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);';
+
+    // Build product options grouped by category
+    const milkOpts = prods.filter(p=>p.cat==='Milk').map(p=>`<option value="${p.id}">${p.name} ${p.size}</option>`).join('');
+    const mpOpts   = prods.filter(p=>p.cat==='Milk Products').map(p=>`<option value="${p.id}">${p.name} ${p.size}</option>`).join('');
+
+    div.innerHTML = `
+      <select onchange="onDemRowProductChange(${rowId})" id="dem-row-prod-${rowId}"
+        style="padding:9px 8px;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--font);font-size:0.85rem;width:100%;">
+        <option value="">-- Product --</option>
+        <optgroup label="🥛 Milk">${milkOpts}</optgroup>
+        <optgroup label="🧀 Milk Products">${mpOpts}</optgroup>
+      </select>
+      <div style="text-align:center;">
+        <button id="dem-row-toggle-${rowId}" data-row="${rowId}" onclick="toggleDemRowMode(this)"
+          style="font-size:0.68rem;font-weight:800;padding:4px 5px;border-radius:6px;border:1.5px solid var(--accent);background:rgba(34,211,238,0.1);color:var(--accent);cursor:pointer;width:100%;display:none;">
+          PKT
+        </button>
+      </div>
+      <input type="number" id="dem-row-qty-${rowId}" value="" min="0" placeholder="Qty"
+        data-row="${rowId}" oninput="calcDemRow(${rowId})"
+        style="text-align:center;padding:9px 4px;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;color:var(--accent);font-family:var(--mono);font-size:0.95rem;font-weight:700;width:100%;">
+      <div id="dem-row-amt-${rowId}" style="text-align:right;font-family:var(--mono);font-size:0.82rem;color:var(--yellow);font-weight:700;">₹0</div>
+      <button onclick="removeDemRow(${rowId})"
+        style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--red);font-size:1rem;cursor:pointer;">✕</button>`;
+
+    document.getElementById('dem-rows').appendChild(div);
   }
 
-  function calcMPAmt(id, rate, amtId) {
-    const qty = parseFloat(document.getElementById(id)?.value)||0;
-    const amt = qty * rate;
-    const el  = document.getElementById(amtId);
-    if (el) el.textContent = '₹' + Math.round(amt).toLocaleString('en-IN');
-    updateMPTotal();
+  function onDemRowProductChange(rowId) {
+    const pid    = document.getElementById('dem-row-prod-'+rowId)?.value;
+    const toggle = document.getElementById('dem-row-toggle-'+rowId);
+    if (!toggle) return;
+    const hasLtr = !!sizeInLtr[pid];
+    toggle.style.display = hasLtr ? 'block' : 'none';
+    calcDemRow(rowId);
   }
 
-  function updateMPTotal() {
+  function toggleDemRowMode(btn) {
+    const rowId = btn.dataset.row;
+    const isLtr = btn.textContent.trim() === 'LTR';
+    btn.textContent = isLtr ? 'PKT' : 'LTR';
+    btn.style.borderColor = isLtr ? 'var(--accent)' : 'var(--green)';
+    btn.style.color       = isLtr ? 'var(--accent)' : 'var(--green)';
+    btn.style.background  = isLtr ? 'rgba(34,211,238,0.1)' : 'rgba(74,222,128,0.1)';
+    const qtyEl = document.getElementById('dem-row-qty-'+rowId);
+    if (qtyEl) { qtyEl.value = ''; qtyEl.placeholder = isLtr ? 'Qty' : 'LTR'; }
+    calcDemRow(rowId);
+  }
+
+  function calcDemRow(rowId) {
+    const pid    = document.getElementById('dem-row-prod-'+rowId)?.value;
+    const dist   = document.getElementById('dem-dist')?.value || '';
+    const val    = parseFloat(document.getElementById('dem-row-qty-'+rowId)?.value) || 0;
+    const toggle = document.getElementById('dem-row-toggle-'+rowId);
+    const isLtr  = toggle?.textContent?.trim() === 'LTR';
+    const ltrSz  = sizeInLtr[pid] || 0;
+    const rate   = pid ? getDistRate(dist, pid) : 0;
+
+    let amt = 0;
+    if (ltrSz) {
+      const ltr = isLtr ? val : Math.round(val * ltrSz * 1000)/1000;
+      amt = ltr * rate;
+    } else {
+      amt = val * rate;
+    }
+
+    const amtEl = document.getElementById('dem-row-amt-'+rowId);
+    if (amtEl) amtEl.textContent = amt > 0 ? '₹' + Math.round(amt).toLocaleString('en-IN') : '₹0';
+    updateDemTotal();
+  }
+
+  function updateDemTotal() {
     const dist = document.getElementById('dem-dist')?.value || '';
-    const mpProds = getAllProducts().filter(p => p.cat === 'Milk Products');
-    let total = 0;
-    mpProds.forEach(p => {
-      const qty  = parseFloat(document.getElementById('dq-mp-'+p.id)?.value)||0;
-      const rate = dist ? getDistRate(dist, p.id) : (p.rate||0);
-      total += qty * rate;
+    let totalLtr = 0, totalAmt = 0;
+    const rows = document.querySelectorAll('[id^="dem-row-"]:not([id*="prod"]):not([id*="qty"]):not([id*="amt"]):not([id*="toggle"])');
+
+    document.querySelectorAll('[id^="dem-row-qty-"]').forEach(inp => {
+      const rowId = inp.id.replace('dem-row-qty-','');
+      const pid   = document.getElementById('dem-row-prod-'+rowId)?.value;
+      if (!pid) return;
+      const val   = parseFloat(inp.value)||0;
+      const toggle= document.getElementById('dem-row-toggle-'+rowId);
+      const isLtr = toggle?.textContent?.trim() === 'LTR';
+      const ltrSz = sizeInLtr[pid]||0;
+      const rate  = getDistRate(dist, pid);
+      const ltr   = ltrSz ? (isLtr ? val : Math.round(val*ltrSz*1000)/1000) : 0;
+      totalLtr   += ltr;
+      totalAmt   += ltrSz ? ltr*rate : val*rate;
     });
-    const el = document.getElementById('mp-total-amt');
-    if (el) el.textContent = '₹' + Math.round(total).toLocaleString('en-IN');
+
+    const ltrEl = document.getElementById('dem-total-ltr');
+    const amtEl = document.getElementById('dem-total-amt');
+    if (ltrEl) ltrEl.textContent = (Math.round(totalLtr*100)/100||0) + ' LTR';
+    if (amtEl) amtEl.textContent = '₹' + Math.round(totalAmt).toLocaleString('en-IN');
   }
+
+  function removeDemRow(rowId) {
+    const el = document.getElementById('dem-row-'+rowId);
+    if (el) el.remove();
+    updateDemTotal();
+  }
+
+  }
+
 
   // Wrapper — reads ltrSize and rate fresh from current state (no float injection)
   function calcMilkRowEl(inp) {
     const pid  = inp.dataset.pid;
     const dist = document.getElementById('dem-dist')?.value || '';
     const sizeInLtr = {
-      'fcm500':0.5,'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
-      'ton500':0.5,'ton6l':6,'cow':1,'chach400':0.4,
+      'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
+      'ton500':0.5,'ton6l':6,'cow':1,
     };
     const ltrSize = sizeInLtr[pid] || 0;
     const rate    = getDistRate(dist, pid);
@@ -1008,8 +1006,8 @@
     const pid  = btn.dataset.pid;
     const dist = document.getElementById('dem-dist')?.value || '';
     const sizeInLtr = {
-      'fcm500':0.5,'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
-      'ton500':0.5,'ton6l':6,'cow':1,'chach400':0.4,
+      'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
+      'ton500':0.5,'ton6l':6,'cow':1,
     };
     const ltrSize = sizeInLtr[pid] || 0;
     const rate    = getDistRate(dist, pid);
@@ -1060,11 +1058,11 @@
   function updateMilkTotals() {
     const dist  = document.getElementById('dem-dist')?.value || '';
     const sizeInLtr = {
-      'fcm500':0.5,'fcm1l':1,'fcm6l':6,
+      'fcm1l':1,'fcm6l':6,
       'std500':0.5,'std1l':1,
       'ton500':0.5,'ton6l':6,
       'cow':1,
-      'chach400':0.4,
+      
     };
     let totalLtr = 0, totalAmt = 0;
     Object.entries(sizeInLtr).forEach(([pid, ltrSize]) => {
@@ -1093,50 +1091,37 @@
     const dist = document.getElementById('dem-dist').value;
     const date = document.getElementById('dem-date').value || today();
     if (!dist) { alert('Distributor select karo!'); return; }
-    const prods = getAllProducts();
-    const sizeInLtr = {
-      'fcm500':0.5,'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
-      'ton500':0.5,'ton6l':6,'cow':1,
-      'chach400':0.4,
-    };
+
     const items = {};
-    let hasAny = false;
-    prods.forEach(p => {
-      const val = parseFloat(document.getElementById('dq-'+p.id)?.value)||0;
-      if (val > 0) {
-        // If LTR mode — convert back to pkt for storage
-        const isLtr = milkModes[p.id] === 'ltr';
-        const ltrSize = sizeInLtr[p.id];
-        const qty = (isLtr && ltrSize) ? Math.round(val / ltrSize) : val;
-        items[p.id] = qty;
-        hasAny = true;
-      }
+    let hasAny  = false;
+
+    // Read all rows
+    document.querySelectorAll('[id^="dem-row-qty-"]').forEach(inp => {
+      const rowId = inp.id.replace('dem-row-qty-','');
+      const pid   = document.getElementById('dem-row-prod-'+rowId)?.value;
+      const val   = parseFloat(inp.value)||0;
+      if (!pid || val <= 0) return;
+
+      const toggle = document.getElementById('dem-row-toggle-'+rowId);
+      const isLtr  = toggle?.textContent?.trim() === 'LTR';
+      const ltrSz  = sizeInLtr[pid] || 0;
+
+      // Store as PKT always
+      let qty = val;
+      if (isLtr && ltrSz) qty = Math.round(val / ltrSz);
+
+      items[pid] = (items[pid]||0) + qty;
+      hasAny = true;
     });
-    // Milk products — use dq-mp- prefix
-    getAllProducts().filter(p=>p.cat==='Milk Products').forEach(p => {
-      const val = parseFloat(document.getElementById('dq-mp-'+p.id)?.value)||0;
-      if (val > 0) { items[p.id] = val; hasAny = true; }
-    });
+
+    if (!hasAny) { alert('Koi quantity nahi!'); return; }
+
     appData.demandEntries = (appData.demandEntries||[]).filter(e=>!(e.dist===dist&&e.date===date));
     appData.demandEntries.push({ id:Date.now(), dist, date, items });
     dbRef.child('demandEntries').set(appData.demandEntries);
-    // Reset
-    prods.forEach(p => {
-      const el=document.getElementById('dq-'+p.id);
-      if(el) el.value=0;
-      const ltrEl=document.getElementById('ltr-'+p.id);
-      const amtEl=document.getElementById('amt-'+p.id);
-      if(ltrEl) ltrEl.textContent='0';
-      if(amtEl) amtEl.textContent='₹0';
-    });
-    document.getElementById('milk-total-ltr').textContent='0';
-    document.getElementById('milk-total-amt').textContent='₹0';
-    // Reset MP inputs
-    getAllProducts().filter(p=>p.cat==='Milk Products').forEach(p => {
-      const el=document.getElementById('dq-mp-'+p.id); if(el) el.value=0;
-      const ae=document.getElementById('mp-amt-'+p.id); if(ae) ae.textContent='₹0';
-    });
-    const mpTot=document.getElementById('mp-total-amt'); if(mpTot) mpTot.textContent='₹0';
+
+    // Reset — re-render fresh grid
+    renderDemandProductGrid();
     alert(`✅ ${dist} ki demand saved!`);
   }
 
@@ -1162,8 +1147,8 @@
 
     // Per distributor summary
     const sizeInLtr = {
-      'fcm500':0.5,'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
-      'ton500':0.5,'ton6l':6,'cow':1,'chach400':0.4,
+      'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
+      'ton500':0.5,'ton6l':6,'cow':1,
     };
 
     const distRows = entries.map(e => {
@@ -1293,44 +1278,30 @@
     const entry = (appData.demandEntries||[]).find(e=>e.id===id);
     if (!entry) return;
 
-    // Set distributor and date
     document.getElementById('dem-dist').value = entry.dist;
     document.getElementById('dem-date').value = entry.date;
-
-    // Re-render product grid for this distributor
     renderDemandProductGrid();
 
-    // Wait for render then fill values
     setTimeout(() => {
-      const sizeInLtr = {
-        'fcm500':0.5,'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
-        'ton500':0.5,'ton6l':6,'cow':1,
-      };
+      // Clear default empty row
+      document.getElementById('dem-rows').innerHTML = '';
+      demRowCount = 0;
 
-      // Fill milk products
-      getAllProducts().filter(p=>p.cat==='Milk').forEach(p => {
-        const qty = entry.items?.[p.id] || 0;
-        const el  = document.getElementById('dq-'+p.id);
-        if (el && qty > 0) {
-          el.value = qty;
-          const rate    = getDistRate(entry.dist, p.id);
-          const ltrSize = sizeInLtr[p.id] || 0;
-          calcMilkRow(p.id, ltrSize, rate);
+      // Add a row for each product in entry
+      Object.entries(entry.items||{}).forEach(([pid, qty]) => {
+        if (!qty) return;
+        addDemandRow();
+        const rowId = demRowCount;
+        const sel   = document.getElementById('dem-row-prod-'+rowId);
+        if (sel) {
+          sel.value = pid;
+          onDemRowProductChange(rowId);
+          setTimeout(() => {
+            const qtyEl = document.getElementById('dem-row-qty-'+rowId);
+            if (qtyEl) { qtyEl.value = qty; calcDemRow(rowId); }
+          }, 50);
         }
       });
-
-      // Fill milk products category
-      getAllProducts().filter(p=>p.cat==='Milk Products').forEach(p => {
-        const qty = entry.items?.[p.id] || 0;
-        const el  = document.getElementById('dq-mp-'+p.id);
-        if (el && qty > 0) {
-          el.value = qty;
-          const rate = getDistRate(entry.dist, p.id);
-          calcMPAmt('dq-mp-'+p.id, rate, 'mp-amt-'+p.id);
-        }
-      });
-
-      // Scroll to top
       window.scrollTo({top:0, behavior:'smooth'});
     }, 100);
   }
