@@ -837,6 +837,24 @@
 
 
   // Date helpers
+  function saveData(keysToSave) {
+    if (dbRef) {
+      if (keysToSave) {
+        const upd = {};
+        keysToSave.forEach(k => { upd[k] = data[k]; });
+        dbRef.update(upd).catch(e => console.log('Save error:', e));
+      } else {
+        dbRef.update({
+          products: data.products,
+          customers: data.customers,
+          sales: data.sales,
+          taxInvoices: data.taxInvoices,
+        }).catch(e => console.log('Save error:', e));
+      }
+    }
+    try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
+  }
+
   function today() { return new Date().toISOString().split('T')[0]; }
   function formatDate(d) {
     if (!d) return '';
