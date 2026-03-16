@@ -503,6 +503,13 @@
       <div class="fg full"><label>Product Name</label><input type="text" id="prod-name" placeholder="e.g. FCM"></div>
       <div class="fg"><label>Size/Unit</label><input type="text" id="prod-size" placeholder="e.g. 500 ML"></div>
       <div class="fg"><label>Rate ₹</label><input type="number" id="prod-rate" placeholder="0"></div>
+      <div class="fg full">
+        <label>Category</label>
+        <select id="prod-cat">
+          <option value="Milk">🥛 Milk</option>
+          <option value="Milk Products">🧀 Milk Products</option>
+        </select>
+      </div>
     </div>
     <button class="btn btn-cyan btn-block" onclick="addProduct()">➕ Add Product</button>
   </div>
@@ -1347,10 +1354,11 @@
     const name = document.getElementById('prod-name').value.trim().toUpperCase();
     const size = document.getElementById('prod-size').value.trim().toUpperCase();
     const rate = parseFloat(document.getElementById('prod-rate').value)||0;
+    const cat  = document.getElementById('prod-cat').value;
     if (!name) { alert('Product name daalo!'); return; }
     if (!appData.products) appData.products=[];
     const id = 'custom_' + Date.now();
-    appData.products.push({ id, name, size, rate, custom:true });
+    appData.products.push({ id, name, size, rate, cat, custom:true });
     dbRef.update({ products: appData.products });
     document.getElementById('prod-name').value='';
     document.getElementById('prod-size').value='';
