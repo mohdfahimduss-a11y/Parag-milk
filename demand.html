@@ -128,8 +128,6 @@
     <p style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">Apna distributor code daalo — sirf aapki demand dikhegi</p>
     <label>Distributor Code</label>
     <input type="text" id="login-code" placeholder="e.g. 0177, D001" style="text-transform:uppercase;">
-    <label>Vehicle Number</label>
-    <input type="text" id="login-vehicle" placeholder="e.g. UP32 AB 1234" style="text-transform:uppercase;">
     <button onclick="verifyCode()" style="width:100%;padding:13px;background:var(--brown);color:white;border:none;border-radius:10px;font-size:1rem;font-weight:800;cursor:pointer;">🔓 Login</button>
     <p id="login-error" style="color:var(--red);font-size:0.82rem;text-align:center;margin-top:8px;display:none;"></p>
   </div>
@@ -296,13 +294,11 @@
   }, 5000);
 
   function verifyCode() {
-    const code = document.getElementById('login-code').value.trim().toUpperCase();
-    const vehicle = document.getElementById('login-vehicle').value.trim().toUpperCase();
+    const code  = document.getElementById('login-code').value.trim().toUpperCase();
     const errEl = document.getElementById('login-error');
 
     if (!code) { errEl.textContent = 'Code daalo!'; errEl.style.display = 'block'; return; }
 
-    // Find distributor by code
     const dist = (appData.customers || []).find(c =>
       c.code && c.code.toString().toUpperCase() === code
     );
@@ -313,21 +309,15 @@
       return;
     }
 
-    // Login successful
     currentDist = dist;
     errEl.style.display = 'none';
     document.getElementById('login-step').style.display = 'none';
     document.getElementById('demand-form').style.display = 'block';
 
-    // Set info bar
     document.getElementById('logged-dist-name').textContent = '🏪 ' + dist.name;
-    document.getElementById('logged-dist-info').textContent = 'Code: ' + dist.code + (vehicle ? ' | Vehicle: ' + vehicle : '');
-
-    // Set date and vehicle
+    document.getElementById('logged-dist-info').textContent = 'Code: ' + dist.code;
     document.getElementById('d-date').value = today();
-    if (vehicle) document.getElementById('d-vehicle').value = vehicle;
 
-    // Load products
     loadProducts(dist.name);
   }
 
@@ -336,7 +326,6 @@
     document.getElementById('demand-form').style.display = 'none';
     document.getElementById('login-step').style.display = 'block';
     document.getElementById('login-code').value = '';
-    document.getElementById('login-vehicle').value = '';
     document.getElementById('view-demand-screen').style.display = 'none';
     document.getElementById('success-screen').style.display = 'none';
   }
