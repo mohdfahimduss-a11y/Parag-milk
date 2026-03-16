@@ -1008,7 +1008,7 @@
     const ltrEl = document.getElementById('ltr-'+pid);
     const amtEl = document.getElementById('amt-'+pid);
 
-    // Products with no ltrSize (like fcm135) — rate per pkt
+    // Products with no ltrSize — rate per pkt
     if (!ltrSize || ltrSize === 0) {
       if (ltrEl) ltrEl.textContent = '—';
       if (amtEl) amtEl.textContent = '₹' + Math.round(val * rate).toLocaleString('en-IN');
@@ -1016,7 +1016,8 @@
       return;
     }
 
-    const ltr = isLtr ? val : val * ltrSize;
+    // Round ltr to avoid floating point garbage (e.g. 0.40000000000001)
+    const ltr = Math.round((isLtr ? val : val * ltrSize) * 1000) / 1000;
     const amt = ltr * rate;
     if (ltrEl) ltrEl.textContent = ltr % 1 === 0 ? ltr : ltr.toFixed(2);
     if (amtEl) amtEl.textContent = '₹' + Math.round(amt).toLocaleString('en-IN');
@@ -1034,13 +1035,16 @@
     };
     let totalLtr = 0, totalAmt = 0;
     Object.entries(sizeInLtr).forEach(([pid, ltrSize]) => {
-      const val  = parseFloat(document.getElementById('dq-'+pid)?.value) || 0;
+      const val   = parseFloat(document.getElementById('dq-'+pid)?.value) || 0;
       const isLtr = milkModes[pid] === 'ltr';
-      const ltr  = isLtr ? val : val * ltrSize;
-      const rate = dist ? getDistRate(dist, pid) : (getAllProducts().find(p=>p.id===pid)?.rate||0);
+      // Round to avoid floating point garbage
+      const ltr   = Math.round((isLtr ? val : val * ltrSize) * 1000) / 1000;
+      const rate  = dist ? getDistRate(dist, pid) : (getAllProducts().find(p=>p.id===pid)?.rate||0);
       totalLtr += ltr;
       totalAmt += ltr * rate;
     });
+    // Round totals too
+    totalLtr = Math.round(totalLtr * 1000) / 1000;
     const ltrEl = document.getElementById('milk-total-ltr');
     const amtEl = document.getElementById('milk-total-amt');
     if (ltrEl) ltrEl.textContent = totalLtr % 1 === 0 ? totalLtr : totalLtr.toFixed(2);
