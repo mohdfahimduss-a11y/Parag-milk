@@ -912,7 +912,7 @@
               <div>
                 <div class="prod-name">${p.name}</div>
                 <div class="prod-size">${p.size}${calcHints[p.id]?` · <span style="color:var(--yellow);font-size:0.72rem;">${calcHints[p.id]}</span>`:''}</div>
-                ${rate ? `<div class="prod-rate">₹${rate%1===0?rate:rate.toFixed(2)}</div>` : ''}
+                ${rate ? `<div class="prod-rate">₹${Number.isInteger(rate) ? rate : rate.toFixed(2)}</div>` : ''}
               </div>
               <div class="qty-ctrl">
                 <button class="qty-btn qty-btn-minus" onclick="adjQ('dq-${p.id}',-1)">−</button>
@@ -1457,37 +1457,23 @@
   }
 
   function getDistRate(dist, pid) {
-    // Helper: get base rate (dist specific or default)
     function baseRate(id) {
       const dr = (appData.distRates||{})[dist]?.[id];
       if (dr) return dr;
       return getAllProducts().find(p=>p.id===id)?.rate || 0;
     }
 
+    let rate = 0;
     switch(pid) {
-      // FCM 6 LTR = FCM 1 LTR rate × 6
-      case 'fcm6l':
-        return baseRate('fcm1l') * 6;
-
-      // Toned 6 LTR = Toned 500ml rate × 12
-      case 'ton6l':
-        return baseRate('ton500') * 12;
-
-      // Curd 5 KG = Curd KG rate × 5
-      case 'curd5':
-        return baseRate('curd_kg') * 5;
-
-      // Curd 15 KG = Curd KG rate × 15
-      case 'curd15':
-        return baseRate('curd_kg') * 15;
-
-      // Curd 140gm = Curd KG rate × 0.14
-      case 'curd140':
-        return baseRate('curd_kg') * 0.14;
-
-      default:
-        return baseRate(pid);
+      case 'fcm6l':  rate = baseRate('fcm1l') * 6; break;
+      case 'ton6l':  rate = baseRate('ton500') * 12; break;
+      case 'curd5':  rate = baseRate('curd_kg') * 5; break;
+      case 'curd15': rate = baseRate('curd_kg') * 15; break;
+      case 'curd140':rate = baseRate('curd_kg') * 0.14; break;
+      default:       rate = baseRate(pid); break;
     }
+    // Round to max 2 decimal places
+    return Math.round(rate * 100) / 100;
   }
 
   // ===== TAB =====
