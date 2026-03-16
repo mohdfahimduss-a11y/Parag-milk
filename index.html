@@ -357,8 +357,14 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Quantity (L/Kg)</label>
-          <input type="number" id="sale-qty" placeholder="0.0" step="0.1" min="0">
+          <label>Quantity — <span id="sale-qty-label" style="color:var(--amber);">L/Kg/Pkt</span></label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button id="sale-unit-toggle" onclick="toggleSaleUnit()"
+              style="padding:8px 12px;border-radius:8px;border:1.5px solid var(--amber);background:#FFF3E0;color:var(--amber);font-size:0.82rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+              PKT
+            </button>
+            <input type="number" id="sale-qty" placeholder="0.0" step="0.1" min="0" style="flex:1;">
+          </div>
         </div>
         <div class="form-group">
           <label>Rate (₹ per L/Kg)</label>
@@ -592,17 +598,19 @@
         </div>
         <div class="form-group">
           <label>Size / Volume</label>
-          <input type="text" id="new-prod-size" placeholder="e.g. 500ml, 1Ltr, 1Kg">
+          <input type="text" id="new-prod-size" placeholder="e.g. 500ml, 1Ltr, 1Kg" oninput="updateNewProdToggle()">
         </div>
-        <div class="form-group">
-          <label>Rate (₹)</label>
-          <input type="number" id="new-prod-rate" placeholder="0" min="0">
+        <div class="form-group full">
+          <label>Rate (₹) — <span id="new-prod-unit-lbl" style="color:var(--amber);font-weight:800;">PKT</span></label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button id="new-prod-toggle" onclick="toggleNewProdUnit()"
+              style="padding:10px 14px;border-radius:8px;border:1.5px solid var(--amber);background:#FFF3E0;color:var(--amber);font-size:0.85rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+              PKT
+            </button>
+            <input type="number" id="new-prod-rate" placeholder="0" min="0" style="flex:1;">
+          </div>
         </div>
-        <div class="form-group">
-          <label>Stock Quantity</label>
-          <input type="number" id="new-prod-qty" placeholder="0" min="0">
-        </div>
-        <div class="form-group">
+        <div class="form-group full">
           <label>Category</label>
           <select id="new-prod-cat">
             <option>Milk</option>
@@ -880,6 +888,24 @@
   document.getElementById('todayDate').textContent = now.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
   // Auto-calculate sale amount
+  let saleUnitMode = 'pkt'; // 'pkt', 'ltr', 'kg'
+  function toggleSaleUnit() {
+    const btn = document.getElementById('sale-unit-toggle');
+    const modes = ['PKT','LTR','KG'];
+    const cur = btn.textContent.trim();
+    const next = modes[(modes.indexOf(cur)+1) % modes.length];
+    btn.textContent = next;
+    saleUnitMode = next.toLowerCase();
+    const isLtr = next === 'LTR';
+    const isKg  = next === 'KG';
+    btn.style.background  = (isLtr||isKg) ? '#E8F5E9' : '#FFF3E0';
+    btn.style.color       = (isLtr||isKg) ? 'var(--green)' : 'var(--amber)';
+    btn.style.borderColor = (isLtr||isKg) ? '#A5D6A7' : 'var(--amber)';
+    document.getElementById('sale-qty').placeholder = next === 'PKT' ? '0' : next + ' daalo';
+    document.getElementById('sale-qty-label').textContent = next;
+    calcSale();
+  }
+
   document.getElementById('sale-qty').addEventListener('input', calcSale);
   document.getElementById('sale-rate').addEventListener('input', calcSale);
   function calcSale() {
@@ -3208,24 +3234,36 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
   function addCustomProduct() {
     const name = document.getElementById('new-prod-name').value.trim();
     const size = document.getElementById('new-prod-size').value.trim();
-    const rate = parseFloat(document.getElementById('new-prod-rate').value) || 0;
     const cat  = document.getElementById('new-prod-cat').value;
-    const qty  = parseFloat(document.getElementById('new-prod-qty').value) || 0;
-    if (!name) { alert('Please enter product name!'); return; }
-    if (!rate) { alert('Please enter rate!'); return; }
+    if (!name) { alert('Product name daalo!'); return; }
 
-    // Auto assign next code
+    let rateVal = parseFloat(document.getElementById('new-prod-rate').value) || 0;
+    if (!rateVal) { alert('Rate daalo!'); return; }
+
+    // Convert LTR/KG rate to per-pkt
+    if (newProdUnitMode !== 'pkt' && size) {
+      const match = size.toUpperCase().match(/([\d.]+)\s*(ML|LTR|KG|GM)/);
+      if (match) {
+        let sz = parseFloat(match[1]);
+        const unit = match[2];
+        if (unit === 'ML') sz = sz / 1000;
+        if (unit === 'GM') sz = sz / 1000;
+        rateVal = Math.round(rateVal * sz * 100) / 100;
+      }
+    }
+
     const allCodes = data.products.map(p => p.code).filter(c => c && c.startsWith('P'));
-    const maxNum = allCodes.reduce((max, c) => { const n = parseInt(c.slice(1)); return n > max ? n : max; }, 18);
-    const newCode = 'P' + String(maxNum + 1).padStart(2, '0');
+    const maxNum   = allCodes.reduce((max, c) => { const n = parseInt(c.slice(1)); return n > max ? n : max; }, 18);
+    const newCode  = 'P' + String(maxNum + 1).padStart(2, '0');
 
-    data.products.push({ id: Date.now(), code: newCode, name, size, cat, rate, qty, custom: true });
+    data.products.push({ id: Date.now(), code: newCode, name, size, cat, rate: rateVal, custom: true });
     saveData();
     renderProducts();
     document.getElementById('new-prod-name').value = '';
     document.getElementById('new-prod-size').value = '';
     document.getElementById('new-prod-rate').value = '';
-    document.getElementById('new-prod-qty').value = '';
+    newProdUnitMode = 'pkt';
+    updateNewProdToggle();
   }
 
   function renderProducts() {
@@ -3280,8 +3318,21 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
           <input id="ep-name" value="${p.name}" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;"></div>
         <div><label style="font-size:0.75rem;font-weight:700;color:var(--muted);">SIZE</label>
           <input id="ep-size" value="${p.size||''}" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;"></div>
-        <div><label style="font-size:0.75rem;font-weight:700;color:var(--muted);">RATE (₹)</label>
-          <input id="ep-rate" type="number" value="${p.rate||0}" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;"></div>
+        <div>
+          <label style="font-size:0.75rem;font-weight:700;color:var(--muted);">RATE (₹)</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            ${(()=>{
+              const sLtr = {'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,'ton500':0.5,'ton6l':6,'cow':1};
+              const sKg  = {'curd5':5,'curd15':15,'curd140':0.14,'curd_kg':1,'pan1kg':1};
+              const unit = sLtr[p.id] ? 'LTR' : sKg[p.id] ? 'KG' : null;
+              return unit ? `<button id="ep-rate-toggle" data-unit="${unit}" data-size="${sLtr[p.id]||sKg[p.id]}"
+                onclick="toggleEpRate(this)"
+                style="padding:8px 10px;border-radius:8px;border:1.5px solid var(--amber);background:#FFF3E0;color:var(--amber);font-size:0.78rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">PKT</button>` : '';
+            })()}
+            <input id="ep-rate" type="number" value="${p.rate||0}" placeholder="Rate"
+              style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;">
+          </div>
+        </div>
         <div><label style="font-size:0.75rem;font-weight:700;color:var(--muted);">CATEGORY</label>
           <select id="ep-cat" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;">
             ${['Milk','Milk Products'].map(c=>`<option ${c===p.cat?'selected':''}>${c}</option>`).join('')}
@@ -3294,13 +3345,72 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     panel.style.display = 'block';
   }
 
+  let newProdUnitMode = 'pkt';
+
+  function updateNewProdToggle() {
+    const size = (document.getElementById('new-prod-size')?.value || '').toUpperCase();
+    const btn  = document.getElementById('new-prod-toggle');
+    const lbl  = document.getElementById('new-prod-unit-lbl');
+    if (!btn) return;
+    const hasLtr = size.includes('LTR') || size.includes('ML');
+    const hasKg  = size.includes('KG') || size.includes('GM');
+    // Reset to PKT when size changes
+    newProdUnitMode = 'pkt';
+    btn.textContent = 'PKT';
+    btn.style.background  = '#FFF3E0';
+    btn.style.color       = 'var(--amber)';
+    btn.style.borderColor = 'var(--amber)';
+    if (lbl) lbl.textContent = 'PKT';
+    // Show/hide toggle based on size
+    btn.style.display = (hasLtr || hasKg) ? 'block' : 'none';
+  }
+
+  function toggleNewProdUnit() {
+    const size = (document.getElementById('new-prod-size')?.value || '').toUpperCase();
+    const btn  = document.getElementById('new-prod-toggle');
+    const lbl  = document.getElementById('new-prod-unit-lbl');
+    const hasLtr = size.includes('LTR') || size.includes('ML');
+    const hasKg  = size.includes('KG') || size.includes('GM');
+    const unit = hasLtr ? 'LTR' : hasKg ? 'KG' : null;
+    if (!unit) return;
+    const isPkt = btn.textContent.trim() === 'PKT';
+    newProdUnitMode = isPkt ? unit.toLowerCase() : 'pkt';
+    btn.textContent = isPkt ? unit : 'PKT';
+    btn.style.background  = isPkt ? '#E8F5E9' : '#FFF3E0';
+    btn.style.color       = isPkt ? 'var(--green)' : 'var(--amber)';
+    btn.style.borderColor = isPkt ? '#A5D6A7' : 'var(--amber)';
+    if (lbl) lbl.textContent = isPkt ? unit : 'PKT';
+    const inp = document.getElementById('new-prod-rate');
+    if (inp) { inp.value = ''; inp.placeholder = isPkt ? unit+' rate' : '0'; }
+  }
+
+  function toggleEpRate(btn) {
+    const unit    = btn.dataset.unit;
+    const isPkt   = btn.textContent.trim() === 'PKT';
+    btn.textContent  = isPkt ? unit : 'PKT';
+    btn.style.background   = isPkt ? '#E8F5E9' : '#FFF3E0';
+    btn.style.color        = isPkt ? 'var(--green)' : 'var(--amber)';
+    btn.style.borderColor  = isPkt ? '#A5D6A7' : 'var(--amber)';
+    const inp = document.getElementById('ep-rate');
+    if (inp) { inp.value = ''; inp.placeholder = isPkt ? unit+' rate' : 'Rate'; }
+  }
+
   function saveEditProduct() {
     const p = data.products.find(x => String(x.id) === String(editingProductId));
     if (!p) return;
     p.name = document.getElementById('ep-name').value.trim() || p.name;
     p.size = document.getElementById('ep-size').value.trim();
-    p.rate = parseFloat(document.getElementById('ep-rate').value) || 0;
     p.cat  = document.getElementById('ep-cat').value;
+
+    let rateVal = parseFloat(document.getElementById('ep-rate').value) || 0;
+    // Convert if toggle is in LTR/KG mode
+    const toggle = document.getElementById('ep-rate-toggle');
+    if (toggle && toggle.textContent.trim() !== 'PKT' && rateVal > 0) {
+      const sz = parseFloat(toggle.dataset.size) || 1;
+      rateVal = Math.round(rateVal * sz * 100) / 100;
+    }
+    p.rate = rateVal;
+
     saveData();
     renderProducts();
     closeEditProduct();
