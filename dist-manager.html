@@ -308,6 +308,18 @@
     <button class="btn btn-cyan btn-block" onclick="saveDemand()">💾 Save Demand</button>
   </div>
 
+  <!-- Summary Card -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-hd" style="margin:0;">📊 Demand Summary</div>
+      <div style="display:flex;gap:8px;">
+        <input type="date" id="sum-date" onchange="renderDemandSummary()" style="padding:6px 10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:0.82rem;">
+        <button class="btn btn-ghost btn-sm" onclick="exportDemandExcel()">📥 Excel</button>
+      </div>
+    </div>
+    <div id="demand-summary"></div>
+  </div>
+
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div class="card-hd" style="margin:0;">📋 Recent Demands</div>
@@ -526,6 +538,7 @@
   if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
   }
+  const db = firebase.database();
   const APP_PASSWORD = 'parag123';
   let dbRef = null;
 
@@ -685,6 +698,7 @@
     renderDashboard();
     renderDemandProductGrid();
     renderDemandHistory();
+    renderDemandSummary();
     renderPayHistory();
     renderBillHistory();
     renderProductList();
@@ -871,6 +885,116 @@
     // Reset
     prods.forEach(p => { const el=document.getElementById('dq-'+p.id); if(el) el.value=0; });
     alert(`✅ ${dist} ki demand saved!`);
+  }
+
+  function renderDemandSummary() {
+    const date = document.getElementById('sum-date')?.value || today();
+    const el   = document.getElementById('demand-summary');
+    if (!el) return;
+
+    const entries = (appData.demandEntries||[]).filter(e => e.date === date);
+    if (!entries.length) {
+      el.innerHTML = `<div class="empty">${fmtDate(date)} ki koi demand nahi</div>`;
+      return;
+    }
+
+    const prods = getAllProducts();
+    // Aggregate all products across all distributors for this date
+    const totals = {};
+    entries.forEach(e => {
+      Object.entries(e.items||{}).forEach(([pid, qty]) => {
+        totals[pid] = (totals[pid]||0) + qty;
+      });
+    });
+
+    // Per distributor summary
+    const distRows = entries.map(e => {
+      const totalQty = Object.values(e.items||{}).reduce((s,v)=>s+v,0);
+      const totalAmt = prods.reduce((s,p) => {
+        const qty = (e.items||{})[p.id]||0;
+        return s + qty * getDistRate(e.dist, p.id);
+      }, 0);
+      return { dist: e.dist, qty: totalQty, amt: totalAmt };
+    });
+
+    el.innerHTML = `
+      <!-- Distributor wise -->
+      <div style="margin-bottom:14px;">
+        ${distRows.map(r => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-weight:700;font-size:0.95rem;">${r.dist}</div>
+              <div style="font-size:0.8rem;color:var(--muted);">${r.qty} units</div>
+            </div>
+            <div style="font-family:var(--mono);font-weight:800;color:var(--accent);font-size:1rem;">${fmtMoney(r.amt)}</div>
+          </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;padding:12px 0;margin-top:4px;">
+          <div style="font-weight:800;font-size:0.95rem;">Total</div>
+          <div style="font-family:var(--mono);font-weight:800;color:var(--green);font-size:1rem;">
+            ${fmtMoney(distRows.reduce((s,r)=>s+r.amt,0))}
+          </div>
+        </div>
+      </div>
+
+      <!-- Product wise totals -->
+      <div style="font-size:0.75rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Product Wise Total</div>
+      ${prods.filter(p => totals[p.id] > 0).map(p => `
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+          <div>
+            <span style="font-size:0.88rem;font-weight:600;">${p.name}</span>
+            <span style="font-size:0.78rem;color:var(--muted);margin-left:6px;">${p.size}</span>
+          </div>
+          <span style="font-family:var(--mono);font-weight:700;color:var(--accent);">${totals[p.id]}</span>
+        </div>`).join('')}`;
+  }
+
+  function exportDemandExcel() {
+    const date = document.getElementById('sum-date')?.value || today();
+    const entries = (appData.demandEntries||[]).filter(e => e.date === date);
+    if (!entries.length) { alert('Is date ki koi demand nahi!'); return; }
+
+    const prods = getAllProducts().filter(p => {
+      return entries.some(e => (e.items||{})[p.id] > 0);
+    });
+
+    const wb = XLSX.utils.book_new();
+    const rows = [];
+
+    // Header
+    rows.push(['DEMAND SUMMARY — ' + fmtDate(date)]);
+    rows.push([]);
+    rows.push(['Distributor', ...prods.map(p => p.name + (p.size?' '+p.size:'')), 'Total Qty', 'Total Amount']);
+
+    // Data rows
+    const colTotals = {};
+    prods.forEach(p => colTotals[p.id] = 0);
+    let grandQty = 0, grandAmt = 0;
+
+    entries.forEach(e => {
+      const row = [e.dist];
+      let rowQty = 0, rowAmt = 0;
+      prods.forEach(p => {
+        const qty = (e.items||{})[p.id] || 0;
+        const amt = qty * getDistRate(e.dist, p.id);
+        row.push(qty || '');
+        colTotals[p.id] += qty;
+        rowQty += qty;
+        rowAmt += amt;
+      });
+      row.push(rowQty, rowAmt);
+      grandQty += rowQty;
+      grandAmt += rowAmt;
+      rows.push(row);
+    });
+
+    // Total row
+    rows.push([]);
+    rows.push(['TOTAL', ...prods.map(p => colTotals[p.id]||''), grandQty, grandAmt]);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{ wch: 22 }, ...prods.map(() => ({ wch: 10 })), { wch: 10 }, { wch: 14 }];
+    XLSX.utils.book_append_sheet(wb, ws, fmtDate(date));
+    XLSX.writeFile(wb, `Demand_${date}.xlsx`);
   }
 
   function renderDemandHistory() {
@@ -1235,6 +1359,7 @@
 
   // INIT
   document.getElementById('dem-date').value = today();
+  document.getElementById('sum-date').value = today();
   document.getElementById('pay-date').value = today();
   document.getElementById('rep-month').value = thisMonth();
   const t0 = new Date();
