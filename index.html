@@ -779,19 +779,30 @@
       const val = snap.val();
       if (val) {
         data = { ...data, ...val };
-        // Firebase returns null for empty arrays - fix
-        if (!Array.isArray(data.products)) data.products = [];
-        if (!Array.isArray(data.sales)) data.sales = [];
-        if (!Array.isArray(data.demandEntries)) data.demandEntries = [];
-        if (!Array.isArray(data.taxInvoices)) data.taxInvoices = [];
-        // Firebase object → array for products
-        if (data.products && !Array.isArray(data.products)) {
-          data.products = Object.values(data.products);
-        }
       }
-      if (!data.customers || data.customers.length === 0) {
+
+      // Fix null/object arrays from Firebase
+      if (!Array.isArray(data.products)) data.products = [];
+      if (!Array.isArray(data.sales)) data.sales = [];
+      if (!Array.isArray(data.demandEntries)) data.demandEntries = [];
+      if (!Array.isArray(data.taxInvoices)) data.taxInvoices = [];
+
+      // Always ensure customers exist
+      if (!data.customers || !data.customers.length) {
         data.customers = DEFAULT_CUSTOMERS;
         saveData();
+      }
+
+      // Add missing DEFAULT_PRODUCTS (never delete user's products)
+      let updated = false;
+      DEFAULT_PRODUCTS.forEach(dp => {
+        if (!data.products.find(p => String(p.id) === String(dp.id))) {
+          data.products.push({ ...dp, rate: 0 });
+          updated = true;
+        }
+      });
+      if (updated) {
+        if (dbRef) dbRef.update({ products: data.products });
       }
 
       renderSales();
@@ -801,57 +812,10 @@
       updateDistList();
       updateDashboard();
       renderTaxInvoiceHistory();
+    }).catch(e => {
+      console.log('Firebase load error:', e);
+      renderProducts();
     });
-    // Live sync for non-demand data only
-    dbRef.on('value', snap => {
-      const val = snap.val();
-      if (val) {
-        const savedDemand = data.demandEntries || [];
-        data = { ...data, ...val };
-        // Fix null arrays from Firebase
-        if (!Array.isArray(data.products)) data.products = [];
-        if (!Array.isArray(data.sales)) data.sales = [];
-        if (!Array.isArray(data.taxInvoices)) data.taxInvoices = [];
-        // Restore demandEntries if it got wiped
-        if (!data.demandEntries || data.demandEntries.length === 0) {
-          if (savedDemand.length > 0) data.demandEntries = savedDemand;
-        }
-        updateDashboard();
-        renderProducts();
-        renderSales();
-        renderCustomers();
-      }
-    });
-
-    // Separate listener for demandEntries - isolated from other updates
-    dbRef.child('demandEntries').on('value', snap => {
-      const val = snap.val();
-      if (val) {
-        // Firebase may return array or object
-        data.demandEntries = Array.isArray(val) ? val : Object.values(val);
-        updateDashboard();
-      }
-    });
-  }
-
-  function saveData(keysToSave) {
-    if (dbRef) {
-      // Only update specific keys to avoid wiping demandEntries
-      if (keysToSave) {
-        const upd = {};
-        keysToSave.forEach(k => { upd[k] = data[k]; });
-        dbRef.update(upd).catch(e => console.log('Firebase save error:', e));
-      } else {
-        dbRef.update({
-          products: data.products,
-          customers: data.customers,
-          sales: data.sales,
-          routePayments: data.routePayments,
-          taxInvoices: data.taxInvoices,
-        }).catch(e => console.log('Firebase save error:', e));
-      }
-    }
-    try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
   }
 
   function loadDataFallback() {
