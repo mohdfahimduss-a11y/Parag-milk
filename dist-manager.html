@@ -916,24 +916,71 @@
       <!-- MILK PRODUCTS SECTION -->
       <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
         <div style="font-size:0.75rem;font-weight:800;text-transform:uppercase;color:var(--yellow);margin-bottom:10px;">🧀 Milk Products</div>
+
+        <!-- Header -->
+        <div style="display:grid;grid-template-columns:1fr 90px 80px;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;">Product</div>
+          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;text-align:center;">Qty</div>
+          <div style="font-size:0.68rem;font-weight:700;color:var(--yellow);text-transform:uppercase;text-align:right;">Amount</div>
+        </div>
+
         ${mpProds.map(p => {
           const rate = dist ? getDistRate(dist, p.id) : (p.rate||0);
           const calcHints = {'curd140':'CURD KG×0.14','curd5':'CURD KG×5','curd15':'CURD KG×15'};
           return `
-            <div class="prod-row">
+            <div style="display:grid;grid-template-columns:1fr 90px 80px;gap:6px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
               <div>
                 <div class="prod-name">${p.name}</div>
                 <div class="prod-size">${p.size}${calcHints[p.id]?` · <span style="color:var(--yellow);font-size:0.72rem;">${calcHints[p.id]}</span>`:''}</div>
-                ${rate ? `<div class="prod-rate">₹${Number.isInteger(rate) ? rate : rate.toFixed(2)}</div>` : ''}
+                ${rate ? `<div class="prod-rate">₹${Number.isInteger(rate)?rate:rate.toFixed(2)}</div>` : ''}
               </div>
-              <div class="qty-ctrl">
-                <button class="qty-btn qty-btn-minus" onclick="adjQ('dq-${p.id}',-1)">−</button>
-                <input type="number" id="dq-${p.id}" value="0" min="0" class="qty-input">
-                <button class="qty-btn qty-btn-plus" onclick="adjQ('dq-${p.id}',1)">+</button>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <button onclick="adjMP('dq-mp-${p.id}',-1,${rate},'mp-amt-${p.id}')"
+                  style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem;cursor:pointer;flex-shrink:0;">−</button>
+                <input type="number" id="dq-mp-${p.id}" value="0" min="0"
+                  oninput="calcMPAmt('dq-mp-${p.id}',${rate},'mp-amt-${p.id}')"
+                  style="width:100%;text-align:center;padding:6px 2px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:0.9rem;font-weight:700;">
+                <button onclick="adjMP('dq-mp-${p.id}',1,${rate},'mp-amt-${p.id}')"
+                  style="width:28px;height:28px;border-radius:50%;border:1.5px solid var(--yellow);background:rgba(251,191,36,0.1);color:var(--yellow);font-size:1rem;cursor:pointer;flex-shrink:0;">+</button>
               </div>
+              <div id="mp-amt-${p.id}" style="text-align:right;font-family:var(--mono);font-size:0.85rem;color:var(--yellow);font-weight:700;">₹0</div>
             </div>`;
         }).join('')}
+
+        <!-- MP Total -->
+        <div style="display:flex;justify-content:space-between;padding:10px 0;margin-top:4px;">
+          <div style="font-size:0.82rem;font-weight:800;color:var(--yellow);">Total Amount</div>
+          <div style="font-family:var(--mono);font-weight:800;color:var(--yellow);" id="mp-total-amt">₹0</div>
+        </div>
       </div>`;
+  }
+
+  function adjMP(id, delta, rate, amtId) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = Math.max(0, (parseInt(el.value)||0) + delta);
+    calcMPAmt(id, rate, amtId);
+  }
+
+  function calcMPAmt(id, rate, amtId) {
+    const qty = parseFloat(document.getElementById(id)?.value)||0;
+    const amt = qty * rate;
+    const el  = document.getElementById(amtId);
+    if (el) el.textContent = '₹' + Math.round(amt).toLocaleString('en-IN');
+    updateMPTotal();
+  }
+
+  function updateMPTotal() {
+    const dist = document.getElementById('dem-dist')?.value || '';
+    const mpProds = getAllProducts().filter(p => p.cat === 'Milk Products');
+    let total = 0;
+    mpProds.forEach(p => {
+      const qty  = parseFloat(document.getElementById('dq-mp-'+p.id)?.value)||0;
+      const rate = dist ? getDistRate(dist, p.id) : (p.rate||0);
+      total += qty * rate;
+    });
+    const el = document.getElementById('mp-total-amt');
+    if (el) el.textContent = '₹' + Math.round(total).toLocaleString('en-IN');
   }
 
   // Track PKT/LTR mode per product
@@ -1028,7 +1075,11 @@
         hasAny = true;
       }
     });
-    if (!hasAny) { alert('Koi quantity nahi!'); return; }
+    // Milk products — use dq-mp- prefix
+    getAllProducts().filter(p=>p.cat==='Milk Products').forEach(p => {
+      const val = parseFloat(document.getElementById('dq-mp-'+p.id)?.value)||0;
+      if (val > 0) { items[p.id] = val; hasAny = true; }
+    });
     appData.demandEntries = (appData.demandEntries||[]).filter(e=>!(e.dist===dist&&e.date===date));
     appData.demandEntries.push({ id:Date.now(), dist, date, items });
     dbRef.child('demandEntries').set(appData.demandEntries);
@@ -1043,6 +1094,12 @@
     });
     document.getElementById('milk-total-ltr').textContent='0';
     document.getElementById('milk-total-amt').textContent='₹0';
+    // Reset MP inputs
+    getAllProducts().filter(p=>p.cat==='Milk Products').forEach(p => {
+      const el=document.getElementById('dq-mp-'+p.id); if(el) el.value=0;
+      const ae=document.getElementById('mp-amt-'+p.id); if(ae) ae.textContent='₹0';
+    });
+    const mpTot=document.getElementById('mp-total-amt'); if(mpTot) mpTot.textContent='₹0';
     alert(`✅ ${dist} ki demand saved!`);
   }
 
