@@ -870,9 +870,10 @@
         <div style="font-size:0.75rem;font-weight:800;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">🥛 Milk</div>
 
         <!-- Header -->
-        <div style="display:grid;grid-template-columns:1fr 60px 60px 72px;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+        <div style="display:grid;grid-template-columns:1fr 40px 80px 60px 72px;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:4px;">
           <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;">Product</div>
-          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;text-align:center;">Pkt</div>
+          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;text-align:center;">Type</div>
+          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;text-align:center;">Qty</div>
           <div style="font-size:0.68rem;font-weight:700;color:var(--accent);text-transform:uppercase;text-align:center;">LTR</div>
           <div style="font-size:0.68rem;font-weight:700;color:var(--yellow);text-transform:uppercase;text-align:right;">Amount</div>
         </div>
@@ -881,11 +882,19 @@
           const rate = dist ? getDistRate(dist, p.id) : (p.rate||0);
           const ltrSize = sizeInLtr[p.id] || 1;
           return `
-            <div style="display:grid;grid-template-columns:1fr 60px 60px 72px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+            <div style="display:grid;grid-template-columns:1fr 40px 80px 60px 72px;gap:6px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
               <div>
                 <div style="font-size:0.88rem;font-weight:700;">${p.name}</div>
-                <div style="font-size:0.72rem;color:var(--muted);">${p.size}${rate?` · ₹${rate}/ltr`:''}</div>
+                <div style="font-size:0.72rem;color:var(--muted);">${p.size}${rate?` · ₹${rate}`:''}</div>
               </div>
+              <!-- PKT/LTR Toggle -->
+              <div style="text-align:center;">
+                <button id="toggle-${p.id}" onclick="toggleMilkMode('${p.id}',${ltrSize},${rate})"
+                  style="font-size:0.7rem;font-weight:800;padding:4px 6px;border-radius:6px;border:1.5px solid var(--accent);background:rgba(34,211,238,0.1);color:var(--accent);cursor:pointer;width:100%;">
+                  PKT
+                </button>
+              </div>
+              <!-- Input -->
               <input type="number" id="dq-${p.id}" value="0" min="0"
                 oninput="calcMilkRow('${p.id}',${ltrSize},${rate})"
                 style="width:100%;text-align:center;padding:7px 4px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:0.92rem;font-weight:700;">
@@ -924,10 +933,31 @@
       </div>`;
   }
 
+  // Track PKT/LTR mode per product
+  const milkModes = {}; // pid -> 'pkt' or 'ltr'
+
+  function toggleMilkMode(pid, ltrSize, rate) {
+    milkModes[pid] = (milkModes[pid] === 'ltr') ? 'pkt' : 'ltr';
+    const btn = document.getElementById('toggle-'+pid);
+    const inp = document.getElementById('dq-'+pid);
+    if (!btn || !inp) return;
+    const isLtr = milkModes[pid] === 'ltr';
+    btn.textContent = isLtr ? 'LTR' : 'PKT';
+    btn.style.background = isLtr ? 'rgba(74,222,128,0.1)' : 'rgba(34,211,238,0.1)';
+    btn.style.borderColor = isLtr ? 'var(--green)' : 'var(--accent)';
+    btn.style.color = isLtr ? 'var(--green)' : 'var(--accent)';
+    inp.value = 0;
+    document.getElementById('ltr-'+pid).textContent = '0';
+    document.getElementById('amt-'+pid).textContent = '₹0';
+    updateMilkTotals();
+  }
+
   function calcMilkRow(pid, ltrSize, rate) {
-    const pkt = parseFloat(document.getElementById('dq-'+pid)?.value) || 0;
-    const ltr = pkt * ltrSize;
-    const amt = ltr * rate;
+    const val  = parseFloat(document.getElementById('dq-'+pid)?.value) || 0;
+    const isLtr = milkModes[pid] === 'ltr';
+    // If LTR mode: input IS litres; if PKT mode: convert pkt→ltr
+    const ltr  = isLtr ? val : val * ltrSize;
+    const amt  = ltr * rate;
     const ltrEl = document.getElementById('ltr-'+pid);
     const amtEl = document.getElementById('amt-'+pid);
     if (ltrEl) ltrEl.textContent = ltr % 1 === 0 ? ltr : ltr.toFixed(2);
@@ -946,10 +976,12 @@
     };
     let totalLtr = 0, totalAmt = 0;
     Object.entries(sizeInLtr).forEach(([pid, ltrSize]) => {
-      const pkt  = parseFloat(document.getElementById('dq-'+pid)?.value) || 0;
+      const val  = parseFloat(document.getElementById('dq-'+pid)?.value) || 0;
+      const isLtr = milkModes[pid] === 'ltr';
+      const ltr  = isLtr ? val : val * ltrSize;
       const rate = dist ? getDistRate(dist, pid) : (getAllProducts().find(p=>p.id===pid)?.rate||0);
-      totalLtr += pkt * ltrSize;
-      totalAmt += pkt * ltrSize * rate;
+      totalLtr += ltr;
+      totalAmt += ltr * rate;
     });
     const ltrEl = document.getElementById('milk-total-ltr');
     const amtEl = document.getElementById('milk-total-amt');
@@ -967,19 +999,39 @@
     const date = document.getElementById('dem-date').value || today();
     if (!dist) { alert('Distributor select karo!'); return; }
     const prods = getAllProducts();
+    const sizeInLtr = {
+      'fcm500':0.5,'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
+      'ton500':0.5,'ton6l':6,'cow':1,'dtm170':0.17,'fcm135':0.135,
+      'chach300':0.3,'chach400':0.4,
+    };
     const items = {};
     let hasAny = false;
     prods.forEach(p => {
-      const qty = parseInt(document.getElementById('dq-'+p.id)?.value)||0;
-      if (qty>0) { items[p.id]=qty; hasAny=true; }
+      const val = parseFloat(document.getElementById('dq-'+p.id)?.value)||0;
+      if (val > 0) {
+        // If LTR mode — convert back to pkt for storage
+        const isLtr = milkModes[p.id] === 'ltr';
+        const ltrSize = sizeInLtr[p.id];
+        const qty = (isLtr && ltrSize) ? Math.round(val / ltrSize) : val;
+        items[p.id] = qty;
+        hasAny = true;
+      }
     });
     if (!hasAny) { alert('Koi quantity nahi!'); return; }
-    // Remove existing entry for same dist+date
     appData.demandEntries = (appData.demandEntries||[]).filter(e=>!(e.dist===dist&&e.date===date));
     appData.demandEntries.push({ id:Date.now(), dist, date, items });
     dbRef.child('demandEntries').set(appData.demandEntries);
     // Reset
-    prods.forEach(p => { const el=document.getElementById('dq-'+p.id); if(el) el.value=0; });
+    prods.forEach(p => {
+      const el=document.getElementById('dq-'+p.id);
+      if(el) el.value=0;
+      const ltrEl=document.getElementById('ltr-'+p.id);
+      const amtEl=document.getElementById('amt-'+p.id);
+      if(ltrEl) ltrEl.textContent='0';
+      if(amtEl) amtEl.textContent='₹0';
+    });
+    document.getElementById('milk-total-ltr').textContent='0';
+    document.getElementById('milk-total-amt').textContent='₹0';
     alert(`✅ ${dist} ki demand saved!`);
   }
 
