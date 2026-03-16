@@ -883,7 +883,7 @@
 
         ${milkProds.map(p => {
           const rate = dist ? getDistRate(dist, p.id) : (p.rate||0);
-          const ltrSize = sizeInLtr[p.id] || 1;
+          const ltrSz = sizeInLtr[p.id] || 0;
           return `
             <div style="display:grid;grid-template-columns:1fr 40px 80px 60px 72px;gap:6px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
               <div>
@@ -892,14 +892,16 @@
               </div>
               <!-- PKT/LTR Toggle -->
               <div style="text-align:center;">
-                ${ltrSize > 0 ? `<button id="toggle-${p.id}" onclick="toggleMilkMode('${p.id}',${ltrSize},${rate})"
+                ${ltrSz > 0 ? `<button id="toggle-${p.id}"
+                  data-pid="${p.id}" onclick="toggleMilkModeBtn(this)"
                   style="font-size:0.7rem;font-weight:800;padding:4px 6px;border-radius:6px;border:1.5px solid var(--accent);background:rgba(34,211,238,0.1);color:var(--accent);cursor:pointer;width:100%;">
                   PKT
                 </button>` : `<span style="font-size:0.7rem;color:var(--muted);font-weight:700;">PKT</span>`}
               </div>
-              <!-- Input -->
+              <!-- Input — store ltrSize and rate as data attrs to avoid float in onclick -->
               <input type="number" id="dq-${p.id}" value="0" min="0"
-                oninput="calcMilkRow('${p.id}',${ltrSize},${rate})"
+                data-pid="${p.id}"
+                oninput="calcMilkRowEl(this)"
                 style="width:100%;text-align:center;padding:7px 4px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:0.92rem;font-weight:700;">
               <div id="ltr-${p.id}" style="text-align:center;font-family:var(--mono);font-size:0.88rem;color:var(--accent);font-weight:700;">0</div>
               <div id="amt-${p.id}" style="text-align:right;font-family:var(--mono);font-size:0.85rem;color:var(--yellow);font-weight:700;">₹0</div>
@@ -981,6 +983,31 @@
     });
     const el = document.getElementById('mp-total-amt');
     if (el) el.textContent = '₹' + Math.round(total).toLocaleString('en-IN');
+  }
+
+  // Wrapper — reads ltrSize and rate fresh from current state (no float injection)
+  function calcMilkRowEl(inp) {
+    const pid  = inp.dataset.pid;
+    const dist = document.getElementById('dem-dist')?.value || '';
+    const sizeInLtr = {
+      'fcm500':0.5,'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
+      'ton500':0.5,'ton6l':6,'cow':1,'chach400':0.4,
+    };
+    const ltrSize = sizeInLtr[pid] || 0;
+    const rate    = getDistRate(dist, pid);
+    calcMilkRow(pid, ltrSize, rate);
+  }
+
+  function toggleMilkModeBtn(btn) {
+    const pid  = btn.dataset.pid;
+    const dist = document.getElementById('dem-dist')?.value || '';
+    const sizeInLtr = {
+      'fcm500':0.5,'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
+      'ton500':0.5,'ton6l':6,'cow':1,'chach400':0.4,
+    };
+    const ltrSize = sizeInLtr[pid] || 0;
+    const rate    = getDistRate(dist, pid);
+    toggleMilkMode(pid, ltrSize, rate);
   }
 
   // Track PKT/LTR mode per product
