@@ -717,13 +717,19 @@
 
   // ===== DASHBOARD =====
   function calcDemandTotal(dist, from, to) {
+    const sizeInLtr = {
+      'fcm500':0.5,'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
+      'ton500':0.5,'ton6l':6,'cow':1,'chach400':0.4,
+    };
     return (appData.demandEntries||[])
       .filter(e => (!dist||e.dist===dist) && (!from||e.date>=from) && (!to||e.date<=to))
       .reduce((s,e) => {
         return s + getAllProducts().reduce((ps,p) => {
           const qty  = (e.items||{})[p.id] || 0;
           const rate = getDistRate(e.dist, p.id);
-          return ps + qty * rate;
+          const ltr  = sizeInLtr[p.id];
+          const amt  = ltr ? qty * ltr * rate : qty * rate;
+          return ps + amt;
         }, 0);
       }, 0);
   }
@@ -1155,11 +1161,21 @@
     });
 
     // Per distributor summary
+    const sizeInLtr = {
+      'fcm500':0.5,'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
+      'ton500':0.5,'ton6l':6,'cow':1,'chach400':0.4,
+    };
+
     const distRows = entries.map(e => {
       const totalQty = Object.values(e.items||{}).reduce((s,v)=>s+v,0);
       const totalAmt = prods.reduce((s,p) => {
-        const qty = (e.items||{})[p.id]||0;
-        return s + qty * getDistRate(e.dist, p.id);
+        const qty  = (e.items||{})[p.id]||0;
+        const rate = getDistRate(e.dist, p.id);
+        const ltr  = sizeInLtr[p.id];
+        // Milk products with ltrSize: amount = qty × ltrSize × rate
+        // PKT-only products (no ltrSize): amount = qty × rate
+        const amt  = ltr ? qty * ltr * rate : qty * rate;
+        return s + amt;
       }, 0);
       return { dist: e.dist, qty: totalQty, amt: totalAmt };
     });
@@ -1185,14 +1201,19 @@
 
       <!-- Product wise totals -->
       <div style="font-size:0.75rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Product Wise Total</div>
-      ${prods.filter(p => totals[p.id] > 0).map(p => `
+      ${prods.filter(p => totals[p.id] > 0).map(p => {
+        const ltr = sizeInLtr[p.id];
+        const totalLtr = ltr ? Math.round(totals[p.id] * ltr * 1000)/1000 : null;
+        return `
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
           <div>
             <span style="font-size:0.88rem;font-weight:600;">${p.name}</span>
             <span style="font-size:0.78rem;color:var(--muted);margin-left:6px;">${p.size}</span>
           </div>
-          <span style="font-family:var(--mono);font-weight:700;color:var(--accent);">${totals[p.id]}</span>
-        </div>`).join('')}`;
+          <div style="text-align:right;">
+            <div style="font-family:var(--mono);font-weight:700;color:var(--accent);">${totals[p.id]} pkt${totalLtr ? ' · '+totalLtr+' LTR' : ''}</div>
+          </div>
+        </div>`}).join('')}`;
   }
 
   function exportDemandExcel() {
