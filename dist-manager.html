@@ -2,9 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Distributor Manager</title>
+<meta name="application-name" content="Distributor Manager">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dist Manager">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0f172a">
+<meta name="description" content="Distributor Manager - Sales Supervisor App">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
 
@@ -206,24 +212,24 @@
   .empty { text-align: center; padding: 32px 16px; color: var(--muted); font-size: 0.95rem; }
   ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-thumb { background: var(--border); }
 </style>
+</head>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-</head>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
 <body>
+
 
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">📦</div>
     <h1>Distributor Manager</h1>
-    <p>Sales Supervisor Portal</p>
-    <input type="email" id="l-email" placeholder="Email">
+    <p>Password daalo</p>
     <input type="password" id="l-pass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="btn-login" onclick="doLogin()">Sign In →</button>
+    <button class="btn-login" onclick="doLogin()">Enter →</button>
     <div id="login-err"></div>
   </div>
 </div>
@@ -505,8 +511,9 @@
   </div>
 </div>
 
+
 <script>
-  // ===== FIREBASE CONFIG =====
+    // ===== FIREBASE CONFIG =====
   const firebaseConfig = {
     apiKey: "AIzaSyC6I01bVVQvR0ChtcvWoH6unciAR9cbGtY",
     authDomain: "parag-milk-af613.firebaseapp.com",
@@ -516,10 +523,11 @@
     messagingSenderId: "972291445809",
     appId: "1:972291445809:web:bec6ee42bd03f10dbf7110"
   };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db   = firebase.database();
-  let dbRef  = null;
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  const APP_PASSWORD = 'parag123';
+  let dbRef = null;
 
   const DISTS = ['MF TRADERS','TMU','TATA MOTORS','POLICE ACADEMY','MEERUT-RUDRAPUR'];
 
@@ -558,24 +566,37 @@
     bills: [],
   };
 
-  // AUTH
-  auth.onAuthStateChanged(u => {
-    if (u) {
+  // Simple login - no Firebase auth needed
+  function initApp() {
+    const saved = sessionStorage.getItem('dm_auth');
+    if (saved === 'ok') {
+      document.getElementById('login-screen').style.display = 'none';
+      dbRef = db.ref('distManager');
+      loadData();
+    }
+    // login screen already visible via CSS default
+  }
+
+  initApp();
+
+  function doLogin() {
+    const p = document.getElementById('l-pass').value;
+    if (!p) { showErr('Password daalo!'); return; }
+    if (p === APP_PASSWORD) {
+      sessionStorage.setItem('dm_auth', 'ok');
       document.getElementById('login-screen').style.display = 'none';
       dbRef = db.ref('distManager');
       loadData();
     } else {
-      document.getElementById('login-screen').style.display = 'flex';
+      showErr('Galat password!');
     }
-  });
-
-  function doLogin() {
-    const e = document.getElementById('l-email').value.trim();
-    const p = document.getElementById('l-pass').value;
-    if (!e||!p) { showErr('Email aur password daalo!'); return; }
-    auth.signInWithEmailAndPassword(e, p).catch(() => showErr('Galat email ya password!'));
   }
-  function doLogout() { auth.signOut(); }
+
+  function doLogout() {
+    sessionStorage.removeItem('dm_auth');
+    location.reload();
+  }
+
   function showErr(m) { document.getElementById('login-err').textContent = m; }
 
   function loadData() {
@@ -1221,6 +1242,7 @@
   document.getElementById('bill-to').value = today();
   document.getElementById('inv-from').value = new Date(t0.getFullYear(),t0.getMonth(),1).toISOString().split('T')[0];
   document.getElementById('inv-to').value = today();
+
 </script>
 </body>
 </html>
