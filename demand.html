@@ -341,39 +341,69 @@
     document.getElementById('success-screen').style.display = 'none';
   }
 
-  // LTR size map for milk products
+  // LTR/KG size map - check by both ID and name+size
   const demSizeInLtr = {
     'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
     'ton500':0.5,'ton6l':6,'cow':1,
   };
-  // KG map for milk products
   const demSizeInKg = {
     'curd5':5,'curd15':15,'curd140':0.14,
     'curd_kg':1,'pan1kg':1,
   };
-  const demModes = {}; // pid -> 'pkt','ltr','kg'
+  const demModes = {};
 
   function getDemUnit(pid) {
-    if (demSizeInLtr[pid]) return 'ltr';
-    if (demSizeInKg[pid]) return 'kg';
+    const id = String(pid).toLowerCase();
+    // Check LTR products by ID or name pattern
+    if (demSizeInLtr[id]) return 'ltr';
+    if (demSizeInKg[id]) return 'kg';
+    // Also check by product name+size in allProds
+    const prod = allProds.find(p => String(p.id) === String(pid));
+    if (prod) {
+      const size = (prod.size||'').toUpperCase();
+      const name = (prod.name||'').toUpperCase();
+      if (size.includes('LTR') || size.includes('ML')) {
+        // Milk liquid products
+        if (name.includes('FCM') || name.includes('STD') || name.includes('TONED') || name.includes('COW')) return 'ltr';
+      }
+      if (size.includes('KG') && (name.includes('CURD') || name.includes('PANEER'))) return 'kg';
+    }
+    return null;
+  }
+
+  function getLtrKgSize(pid) {
+    const id = String(pid).toLowerCase();
+    if (demSizeInLtr[id]) return { unit:'ltr', size: demSizeInLtr[id] };
+    if (demSizeInKg[id]) return { unit:'kg', size: demSizeInKg[id] };
+    const prod = allProds.find(p => String(p.id) === String(pid));
+    if (prod) {
+      const size = (prod.size||'').toUpperCase();
+      const match = size.match(/([\d.]+)\s*(ML|LTR|KG)/);
+      if (match) {
+        let sz = parseFloat(match[1]);
+        if (match[2] === 'ML') return { unit:'ltr', size: sz/1000 };
+        if (match[2] === 'LTR') return { unit:'ltr', size: sz };
+        if (match[2] === 'KG') return { unit:'kg', size: sz };
+      }
+    }
     return null;
   }
 
   function toggleDemMode(pid) {
-    const unit = getDemUnit(pid);
-    if (!unit) return;
+    const info = getLtrKgSize(pid);
+    if (!info) return;
     const cur = demModes[pid] || 'pkt';
-    demModes[pid] = cur === 'pkt' ? unit : 'pkt';
+    demModes[pid] = cur === 'pkt' ? info.unit : 'pkt';
     const btn = document.getElementById('dem-toggle-'+pid);
     const inp = document.getElementById('qty-'+pid);
     const isUnit = demModes[pid] !== 'pkt';
     if (btn) {
-      btn.textContent = isUnit ? (unit==='ltr'?'LTR':'KG') : 'PKT';
+      btn.textContent = isUnit ? info.unit.toUpperCase() : 'PKT';
       btn.style.background = isUnit ? '#E8F5E9' : '#FFF3E0';
       btn.style.color = isUnit ? '#2A7A4A' : '#C97A2A';
       btn.style.borderColor = isUnit ? '#A5D6A7' : '#FFCC80';
     }
-    if (inp) { inp.value = ''; inp.placeholder = isUnit ? (unit==='ltr'?'LTR':'KG') : '0'; }
+    if (inp) { inp.value = ''; inp.placeholder = isUnit ? info.unit.toUpperCase() : '0'; }
   }
 
   function loadProducts(distName) {
@@ -387,17 +417,17 @@
 
     prodList.innerHTML = allProds.map(p => {
       const distRate = dist && dist.productRates && dist.productRates[p.id] ? dist.productRates[p.id] : (p.rate || '');
-      const unit = getDemUnit(p.id);
+      const info = getLtrKgSize(p.id);
       return `<div class="prod-row">
         <div class="prod-info">
           <div class="prod-name">${p.name} <span class="badge">${p.size || ''}</span></div>
           ${distRate ? `<div class="prod-size">Rate: ₹${distRate}</div>` : ''}
         </div>
-        ${unit ? `<button id="dem-toggle-${p.id}" onclick="toggleDemMode('${p.id}')"
-          style="padding:6px 10px;border-radius:8px;border:1.5px solid #FFCC80;background:#FFF3E0;color:#C97A2A;font-size:0.75rem;font-weight:800;cursor:pointer;white-space:nowrap;">
+        ${info ? `<button id="dem-toggle-${p.id}" onclick="toggleDemMode('${p.id}')"
+          style="padding:6px 10px;border-radius:8px;border:1.5px solid #FFCC80;background:#FFF3E0;color:#C97A2A;font-size:0.75rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">
           PKT
         </button>` : ''}
-        <input type="number" class="qty-input" id="qty-${p.id}" placeholder="0" min="0" style="${unit?'width:70px;':''}">
+        <input type="number" class="qty-input" id="qty-${p.id}" placeholder="0" min="0" style="${info?'width:70px;':''}">
       </div>`;
     }).join('');
   }
@@ -417,12 +447,10 @@
       if (inp) {
         const val = parseFloat(inp.value) || 0;
         if (val > 0) {
-          const mode   = demModes[p.id] || 'pkt';
-          const ltrSz  = demSizeInLtr[p.id];
-          const kgSz   = demSizeInKg[p.id];
+          const mode  = demModes[p.id] || 'pkt';
+          const info  = getLtrKgSize(p.id);
           let qty = val;
-          if (mode === 'ltr' && ltrSz) qty = Math.round(val / ltrSz);
-          else if (mode === 'kg' && kgSz) qty = Math.round(val / kgSz);
+          if (mode !== 'pkt' && info) qty = Math.round(val / info.size);
           items[p.id] = qty;
         }
       }
@@ -534,13 +562,15 @@
           }).join('');
 
           const isToday = e.date === today();
+          const selectedDate = document.getElementById('d-date')?.value || today();
+          const canEdit = e.date === selectedDate;
           return `<div style="border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
               <div>
                 <strong style="color:var(--brown);">${e.date}</strong>
                 ${isToday ? '<span style="background:#2A7A4A;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:6px;">Aaj</span>' : ''}
               </div>
-              ${isToday ? `<button onclick="editDemand('${e.distName}','${e.date}')" style="background:var(--orange);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;cursor:pointer;">✏️ Edit</button>` : ''}
+              ${canEdit ? `<button onclick="editDemand('${e.distName}','${e.date}')" style="background:var(--orange);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;cursor:pointer;">✏️ Edit</button>` : ''}
             </div>
             ${e.deposit ? `<div style="background:#E8F5E9;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:0.85rem;font-weight:700;color:#2A7A4A;">💰 Deposit: ₹${e.deposit.toLocaleString('en-IN')}</div>` : ''}
             ${items}
@@ -562,14 +592,17 @@
     document.getElementById('view-demand-screen').style.display = 'none';
     // Set form values
     document.getElementById('d-date').value = date;
-    document.getElementById('d-dist').value = distName;
-    // Load products with existing values
+    // Load products
     loadProducts(distName);
     document.getElementById('products-card').style.display = 'block';
 
-    // Fill existing quantities
+    // Fill existing quantities and deposit
     const entry = (appData.demandEntries || []).find(e => e.date === date && e.distName === distName);
     if (entry) {
+      // Fill deposit
+      const depInp = document.getElementById('d-deposit');
+      if (depInp) depInp.value = entry.deposit || '';
+
       setTimeout(() => {
         Object.entries(entry.items || {}).forEach(([pid, qty]) => {
           const inp = document.getElementById('qty-' + pid);
