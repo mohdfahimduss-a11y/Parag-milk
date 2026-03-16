@@ -777,7 +777,18 @@
   function loadDataFromFirebase() {
     dbRef.once('value').then(snap => {
       const val = snap.val();
-      if (val) data = { ...data, ...val };
+      if (val) {
+        data = { ...data, ...val };
+        // Firebase returns null for empty arrays - fix
+        if (!Array.isArray(data.products)) data.products = [];
+        if (!Array.isArray(data.sales)) data.sales = [];
+        if (!Array.isArray(data.demandEntries)) data.demandEntries = [];
+        if (!Array.isArray(data.taxInvoices)) data.taxInvoices = [];
+        // Firebase object → array for products
+        if (data.products && !Array.isArray(data.products)) {
+          data.products = Object.values(data.products);
+        }
+      }
       if (!data.customers || data.customers.length === 0) {
         data.customers = DEFAULT_CUSTOMERS;
         saveData();
@@ -795,9 +806,12 @@
     dbRef.on('value', snap => {
       const val = snap.val();
       if (val) {
-        // Never let products/sales update overwrite demandEntries
         const savedDemand = data.demandEntries || [];
         data = { ...data, ...val };
+        // Fix null arrays from Firebase
+        if (!Array.isArray(data.products)) data.products = [];
+        if (!Array.isArray(data.sales)) data.sales = [];
+        if (!Array.isArray(data.taxInvoices)) data.taxInvoices = [];
         // Restore demandEntries if it got wiped
         if (!data.demandEntries || data.demandEntries.length === 0) {
           if (savedDemand.length > 0) data.demandEntries = savedDemand;
@@ -3196,24 +3210,24 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
 
   // DEFAULT PRODUCTS
   const DEFAULT_PRODUCTS = [
-    { id: 'fcm500',    code: 'P01', name: 'F.C.M.',      size: '500 ML',   cat: 'Milk' },
-    { id: 'fcm1l',     code: 'P02', name: 'F.C.M.',      size: '01 LTR',   cat: 'Milk' },
-    { id: 'fcm6l',     code: 'P03', name: 'F.C.M.',      size: '06 LTR',   cat: 'Milk' },
-    { id: 'std350',    code: 'P04', name: 'COW MILK',    size: '350 ML',   cat: 'Milk' },
-    { id: 'std500',    code: 'P05', name: 'STD MILK',    size: '500 ML',   cat: 'Milk' },
-    { id: 'std1l',     code: 'P06', name: 'STD MILK',    size: '01 LTR',   cat: 'Milk' },
-    { id: 'ton500',    code: 'P07', name: 'TONED',       size: '500 ML',   cat: 'Milk' },
-    { id: 'ton1l',     code: 'P08', name: 'TONED',       size: '01 LTR',   cat: 'Milk' },
-    { id: 'ton6l',     code: 'P09', name: 'TONED',       size: '06 LTR',   cat: 'Milk' },
-    { id: 'matka5',    code: 'P10', name: 'MATKA',       size: '5 KG',     cat: 'Milk' },
-    { id: 'chhach300', code: 'P11', name: 'CHHACH',      size: '300 ML',   cat: 'Milk' },
-    { id: 'matka15',   code: 'P12', name: 'DAHI MATKA',  size: '15 KG',    cat: 'Milk Products' },
-    { id: 'curd200',   code: 'P13', name: 'P. CURD',     size: '200 GM',   cat: 'Milk Products' },
-    { id: 'dahi140',   code: 'P14', name: 'DAHI P.PACK', size: '140 GM',   cat: 'Milk Products' },
-    { id: 'kheer90',   code: 'P15', name: 'P. KHEER',    size: '90 GM',    cat: 'Milk Products' },
-    { id: 'paneer1kg', code: 'P16', name: 'PANEER LITE', size: '01 KG',    cat: 'Milk Products' },
-    { id: 'ghee1l',    code: 'P17', name: 'GHEE',        size: '01 LTR',   cat: 'Milk Products' },
-    { id: 'butter500', code: 'P18', name: 'BUTTER',      size: '500 GM',   cat: 'Milk Products' },
+    // FCM
+    { id:'fcm500',   code:'P01', name:'FCM',          size:'500 ML',  cat:'Milk' },
+    { id:'fcm1l',    code:'P02', name:'FCM',          size:'1 LTR',   cat:'Milk' },
+    { id:'fcm6l',    code:'P03', name:'FCM',          size:'6 LTR',   cat:'Milk' },
+    { id:'fcm200',   code:'P04', name:'FCM',          size:'200 ML',  cat:'Milk' },
+    { id:'fcm135',   code:'P05', name:'FCM',          size:'135 ML',  cat:'Milk' },
+    // STD
+    { id:'std500',   code:'P06', name:'STD',          size:'500 ML',  cat:'Milk' },
+    { id:'std1l',    code:'P07', name:'STD',          size:'1 LTR',   cat:'Milk' },
+    // TONED
+    { id:'ton500',   code:'P08', name:'TONED',        size:'500 ML',  cat:'Milk' },
+    { id:'ton1l',    code:'P09', name:'TONED',        size:'1 LTR',   cat:'Milk' },
+    { id:'ton6l',    code:'P10', name:'TONED',        size:'6 LTR',   cat:'Milk' },
+    // Others
+    { id:'dtm500',   code:'P11', name:'DTM',          size:'500 ML',  cat:'Milk' },
+    { id:'dtm150',   code:'P12', name:'DTM',          size:'150 ML',  cat:'Milk' },
+    { id:'cow',      code:'P13', name:'COW MILK',     size:'',        cat:'Milk' },
+    { id:'regular',  code:'P14', name:'REGULAR MILK', size:'',        cat:'Milk' },
   ];
 
   const catColors = { 'Milk':'badge-green', 'Milk Products':'badge-amber' };
@@ -3238,8 +3252,11 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
       }
     }
 
-    const allCodes = data.products.map(p => p.code).filter(c => c && c.startsWith('P'));
-    const maxNum   = allCodes.reduce((max, c) => { const n = parseInt(c.slice(1)); return n > max ? n : max; }, 18);
+    // Ensure products array exists
+    if (!Array.isArray(data.products)) data.products = [];
+
+    const allCodes = data.products.map(p => p.code).filter(c => c && String(c).startsWith('P'));
+    const maxNum   = allCodes.reduce((max, c) => { const n = parseInt(String(c).slice(1)); return n > max ? n : max; }, 0);
     const newCode  = 'P' + String(maxNum + 1).padStart(2, '0');
 
     data.products.push({ id: Date.now(), code: newCode, name, size, cat, rate: rateVal, custom: true });
@@ -3250,7 +3267,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     document.getElementById('new-prod-rate').value = '';
     newProdUnitMode = 'pkt';
     updateNewProdToggle();
-    alert('✅ Product add ho gaya!');
+    alert('✅ ' + name + ' add ho gaya!');
   }
 
   function clearAllProducts() {
@@ -3343,20 +3360,19 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
   let newProdUnitMode = 'pkt';
 
   function updateNewProdToggle() {
-    const size = (document.getElementById('new-prod-size')?.value || '').toUpperCase();
-    const btn  = document.getElementById('new-prod-toggle');
-    const lbl  = document.getElementById('new-prod-unit-lbl');
+    const sizeEl = document.getElementById('new-prod-size');
+    const btn    = document.getElementById('new-prod-toggle');
+    const lbl    = document.getElementById('new-prod-unit-lbl');
     if (!btn) return;
+    const size   = (sizeEl?.value || '').toUpperCase();
     const hasLtr = size.includes('LTR') || size.includes('ML');
     const hasKg  = size.includes('KG') || size.includes('GM');
-    // Reset to PKT when size changes
     newProdUnitMode = 'pkt';
-    btn.textContent = 'PKT';
+    btn.textContent       = 'PKT';
     btn.style.background  = '#FFF3E0';
     btn.style.color       = 'var(--amber)';
     btn.style.borderColor = 'var(--amber)';
     if (lbl) lbl.textContent = 'PKT';
-    // Show/hide toggle based on size
     btn.style.display = (hasLtr || hasKg) ? 'block' : 'none';
   }
 
