@@ -3196,6 +3196,8 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
 
   const catColors = { 'Milk':'badge-green', 'Milk Products':'badge-amber' };
 
+  let newProdUnitMode = 'pkt'; // must be before addCustomProduct
+
   function addCustomProduct() {
     const name = document.getElementById('new-prod-name').value.trim();
     const size = document.getElementById('new-prod-size').value.trim();
@@ -3320,8 +3322,6 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
       </div>`;
     panel.style.display = 'block';
   }
-
-  let newProdUnitMode = 'pkt';
 
   function updateNewProdToggle() {
     const sizeEl = document.getElementById('new-prod-size');
