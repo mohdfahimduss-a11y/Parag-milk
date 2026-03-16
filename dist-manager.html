@@ -553,23 +553,24 @@
   };
 
   const DEFAULT_PRODUCTS = [
-    { id:'fcm500',  name:'FCM',         size:'500 ML', rate:0 },
-    { id:'fcm1l',   name:'FCM',         size:'1 LTR',  rate:0 },
-    { id:'fcm6l',   name:'FCM',         size:'6 LTR',  rate:0 },
-    { id:'std500',  name:'STD',         size:'500 ML', rate:0 },
-    { id:'std1l',   name:'STD',         size:'1 LTR',  rate:0 },
-    { id:'ton500',  name:'TONED',       size:'500 ML', rate:0 },
-    { id:'ton6l',   name:'TONED',       size:'6 LTR',  rate:0 },
-    { id:'cow',     name:'COW MILK',    size:'',       rate:0 },
-    { id:'dtm170',  name:'DTM',         size:'170 ML', rate:0 },
-    { id:'fcm135',  name:'FCM',         size:'135 ML', rate:0 },
-    { id:'chach300',name:'CHACH',       size:'300 ML', rate:0 },
-    { id:'chach400',name:'CHACH',       size:'400 ML', rate:0 },
-    { id:'curd140', name:'CURD POUCH',  size:'140 GM', rate:0 },
-    { id:'curd5',   name:'CURD',        size:'5 KG',   rate:0 },
-    { id:'curd15',  name:'CURD',        size:'15 KG',  rate:0 },
-    { id:'pan1kg',  name:'PANEER LITE', size:'1 KG',   rate:0 },
-    { id:'pan200',  name:'PANEER FCM',  size:'200 GM', rate:0 },
+    { id:'fcm500',   name:'FCM',         size:'500 ML', rate:0, cat:'Milk' },
+    { id:'fcm1l',    name:'FCM',         size:'1 LTR',  rate:0, cat:'Milk' },
+    { id:'fcm6l',    name:'FCM',         size:'6 LTR',  rate:0, cat:'Milk', calc:'fcm1l×6' },
+    { id:'std500',   name:'STD',         size:'500 ML', rate:0, cat:'Milk' },
+    { id:'std1l',    name:'STD',         size:'1 LTR',  rate:0, cat:'Milk' },
+    { id:'ton500',   name:'TONED',       size:'500 ML', rate:0, cat:'Milk' },
+    { id:'ton6l',    name:'TONED',       size:'6 LTR',  rate:0, cat:'Milk', calc:'ton500×12' },
+    { id:'cow',      name:'COW MILK',    size:'',       rate:0, cat:'Milk' },
+    { id:'dtm170',   name:'DTM',         size:'170 ML', rate:0, cat:'Milk' },
+    { id:'fcm135',   name:'FCM',         size:'135 ML', rate:0, cat:'Milk' },
+    { id:'chach300', name:'CHACH',       size:'300 ML', rate:0, cat:'Milk' },
+    { id:'chach400', name:'CHACH',       size:'400 ML', rate:0, cat:'Milk' },
+    { id:'curd_kg',  name:'CURD',        size:'per KG', rate:0, cat:'Milk Products' },
+    { id:'curd140',  name:'CURD POUCH',  size:'140 GM', rate:0, cat:'Milk Products', calc:'curd_kg×0.14' },
+    { id:'curd5',    name:'CURD',        size:'5 KG',   rate:0, cat:'Milk Products', calc:'curd_kg×5' },
+    { id:'curd15',   name:'CURD',        size:'15 KG',  rate:0, cat:'Milk Products', calc:'curd_kg×15' },
+    { id:'pan1kg',   name:'PANEER LITE', size:'1 KG',   rate:0, cat:'Milk Products' },
+    { id:'pan200',   name:'PANEER FCM',  size:'200 GM', rate:0, cat:'Milk Products' },
   ];
 
   let appData = {
@@ -843,22 +844,110 @@
     const prods = getAllProducts();
     const dist  = document.getElementById('dem-dist')?.value || '';
     const el = document.getElementById('dem-products-grid');
-    el.innerHTML = prods.map(p => {
-      const rate = dist ? getDistRate(dist, p.id) : (p.rate||0);
-      return `
-        <div class="prod-row">
-          <div>
-            <div class="prod-name">${p.name}</div>
-            <div class="prod-size">${p.size}</div>
-            ${rate ? `<div class="prod-rate">₹${rate}</div>` : ''}
-          </div>
-          <div class="qty-ctrl">
-            <button class="qty-btn qty-btn-minus" onclick="adjQ('dq-${p.id}',-1)">−</button>
-            <input type="number" id="dq-${p.id}" value="0" min="0" class="qty-input">
-            <button class="qty-btn qty-btn-plus" onclick="adjQ('dq-${p.id}',1)">+</button>
-          </div>
-        </div>`;
-    }).join('');
+
+    // Size in LTR for each milk product
+    const sizeInLtr = {
+      'fcm500':0.5, 'fcm1l':1, 'fcm6l':6,
+      'std500':0.5, 'std1l':1,
+      'ton500':0.5, 'ton6l':6,
+      'cow':1, 'dtm170':0.17, 'fcm135':0.135,
+      'chach300':0.3, 'chach400':0.4,
+    };
+
+    const milkProds = prods.filter(p => p.cat === 'Milk');
+    const mpProds   = prods.filter(p => p.cat === 'Milk Products');
+
+    el.innerHTML = `
+      <!-- MILK SECTION -->
+      <div style="background:rgba(34,211,238,0.06);border:1px solid rgba(34,211,238,0.2);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+        <div style="font-size:0.75rem;font-weight:800;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">🥛 Milk</div>
+
+        <!-- Header -->
+        <div style="display:grid;grid-template-columns:1fr 60px 60px 72px;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;">Product</div>
+          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;text-align:center;">Pkt</div>
+          <div style="font-size:0.68rem;font-weight:700;color:var(--accent);text-transform:uppercase;text-align:center;">LTR</div>
+          <div style="font-size:0.68rem;font-weight:700;color:var(--yellow);text-transform:uppercase;text-align:right;">Amount</div>
+        </div>
+
+        ${milkProds.map(p => {
+          const rate = dist ? getDistRate(dist, p.id) : (p.rate||0);
+          const ltrSize = sizeInLtr[p.id] || 1;
+          return `
+            <div style="display:grid;grid-template-columns:1fr 60px 60px 72px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+              <div>
+                <div style="font-size:0.88rem;font-weight:700;">${p.name}</div>
+                <div style="font-size:0.72rem;color:var(--muted);">${p.size}${rate?` · ₹${rate}/ltr`:''}</div>
+              </div>
+              <input type="number" id="dq-${p.id}" value="0" min="0"
+                oninput="calcMilkRow('${p.id}',${ltrSize},${rate})"
+                style="width:100%;text-align:center;padding:7px 4px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:0.92rem;font-weight:700;">
+              <div id="ltr-${p.id}" style="text-align:center;font-family:var(--mono);font-size:0.88rem;color:var(--accent);font-weight:700;">0</div>
+              <div id="amt-${p.id}" style="text-align:right;font-family:var(--mono);font-size:0.85rem;color:var(--yellow);font-weight:700;">₹0</div>
+            </div>`;
+        }).join('')}
+
+        <!-- Milk Total -->
+        <div style="display:flex;justify-content:space-between;padding:10px 0;margin-top:4px;">
+          <div style="font-size:0.82rem;font-weight:800;color:var(--accent);">Total LTR: <span id="milk-total-ltr">0</span></div>
+          <div style="font-family:var(--mono);font-weight:800;color:var(--yellow);" id="milk-total-amt">₹0</div>
+        </div>
+      </div>
+
+      <!-- MILK PRODUCTS SECTION -->
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+        <div style="font-size:0.75rem;font-weight:800;text-transform:uppercase;color:var(--yellow);margin-bottom:10px;">🧀 Milk Products</div>
+        ${mpProds.map(p => {
+          const rate = dist ? getDistRate(dist, p.id) : (p.rate||0);
+          const calcHints = {'curd140':'CURD KG×0.14','curd5':'CURD KG×5','curd15':'CURD KG×15'};
+          return `
+            <div class="prod-row">
+              <div>
+                <div class="prod-name">${p.name}</div>
+                <div class="prod-size">${p.size}${calcHints[p.id]?` · <span style="color:var(--yellow);font-size:0.72rem;">${calcHints[p.id]}</span>`:''}</div>
+                ${rate ? `<div class="prod-rate">₹${rate%1===0?rate:rate.toFixed(2)}</div>` : ''}
+              </div>
+              <div class="qty-ctrl">
+                <button class="qty-btn qty-btn-minus" onclick="adjQ('dq-${p.id}',-1)">−</button>
+                <input type="number" id="dq-${p.id}" value="0" min="0" class="qty-input">
+                <button class="qty-btn qty-btn-plus" onclick="adjQ('dq-${p.id}',1)">+</button>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  function calcMilkRow(pid, ltrSize, rate) {
+    const pkt = parseFloat(document.getElementById('dq-'+pid)?.value) || 0;
+    const ltr = pkt * ltrSize;
+    const amt = ltr * rate;
+    const ltrEl = document.getElementById('ltr-'+pid);
+    const amtEl = document.getElementById('amt-'+pid);
+    if (ltrEl) ltrEl.textContent = ltr % 1 === 0 ? ltr : ltr.toFixed(2);
+    if (amtEl) amtEl.textContent = '₹' + Math.round(amt).toLocaleString('en-IN');
+    updateMilkTotals();
+  }
+
+  function updateMilkTotals() {
+    const dist  = document.getElementById('dem-dist')?.value || '';
+    const sizeInLtr = {
+      'fcm500':0.5,'fcm1l':1,'fcm6l':6,
+      'std500':0.5,'std1l':1,
+      'ton500':0.5,'ton6l':6,
+      'cow':1,'dtm170':0.17,'fcm135':0.135,
+      'chach300':0.3,'chach400':0.4,
+    };
+    let totalLtr = 0, totalAmt = 0;
+    Object.entries(sizeInLtr).forEach(([pid, ltrSize]) => {
+      const pkt  = parseFloat(document.getElementById('dq-'+pid)?.value) || 0;
+      const rate = dist ? getDistRate(dist, pid) : (getAllProducts().find(p=>p.id===pid)?.rate||0);
+      totalLtr += pkt * ltrSize;
+      totalAmt += pkt * ltrSize * rate;
+    });
+    const ltrEl = document.getElementById('milk-total-ltr');
+    const amtEl = document.getElementById('milk-total-amt');
+    if (ltrEl) ltrEl.textContent = totalLtr % 1 === 0 ? totalLtr : totalLtr.toFixed(2);
+    if (amtEl) amtEl.textContent = '₹' + Math.round(totalAmt).toLocaleString('en-IN');
   }
 
   function adjQ(id, d) {
@@ -1287,19 +1376,37 @@
     const el = document.getElementById('product-list');
     if (!el) return;
     const all = getAllProducts();
-    el.innerHTML = all.map(p => `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
-        <div>
-          <div style="font-size:0.85rem;font-weight:600;">${p.name} <span style="color:var(--muted);font-size:0.75rem;">${p.size}</span></div>
-          ${p.custom ? '<span class="badge bg-cyan" style="font-size:0.62rem;">Custom</span>' : ''}
+    const cats = ['Milk', 'Milk Products'];
+    const calcHints = { 'fcm6l':'FCM 1LTR×6', 'ton6l':'TONED 500ml×12', 'curd140':'CURD KG×0.14', 'curd5':'CURD KG×5', 'curd15':'CURD KG×15' };
+
+    el.innerHTML = cats.map(cat => {
+      const catProds = all.filter(p => (p.cat||'Milk') === cat);
+      return `
+        <div style="font-size:0.75rem;font-weight:800;text-transform:uppercase;color:${cat==='Milk'?'var(--accent)':'var(--yellow)'};margin:14px 0 8px;">
+          ${cat==='Milk'?'🥛':'🧀'} ${cat}
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <input type="number" value="${p.rate||''}" placeholder="Rate ₹"
-            onchange="updateProductRate('${p.id}',this.value)"
-            style="width:72px;padding:5px 7px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:0.82rem;text-align:right;">
-          ${p.custom ? `<button class="btn btn-red btn-sm" onclick="deleteCustomProduct('${p.id}')">✕</button>` : ''}
+        <!-- Header -->
+        <div style="display:grid;grid-template-columns:1fr 70px 90px;gap:8px;padding:8px 0;border-bottom:1.5px solid var(--border);margin-bottom:4px;">
+          <div style="font-size:0.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;">Product</div>
+          <div style="font-size:0.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;text-align:center;">Size</div>
+          <div style="font-size:0.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;text-align:right;">Rate ₹</div>
         </div>
-      </div>`).join('');
+        ${catProds.map(p => `
+          <div style="display:grid;grid-template-columns:1fr 70px 90px;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-size:0.9rem;font-weight:700;">${p.name}</div>
+              ${calcHints[p.id] ? `<div style="font-size:0.7rem;color:var(--yellow);">${calcHints[p.id]}</div>` : ''}
+              ${p.custom ? '<span class="badge bg-cyan" style="font-size:0.65rem;">Custom</span>' : ''}
+            </div>
+            <div style="text-align:center;font-size:0.85rem;font-weight:600;color:var(--muted);">${p.size||'—'}</div>
+            <div style="text-align:right;">
+              <input type="number" value="${p.rate||''}" placeholder="0"
+                onchange="updateProductRate('${p.id}',this.value)"
+                style="width:100%;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--accent);font-family:var(--mono);font-size:0.9rem;text-align:right;">
+              ${p.custom ? `<button class="btn btn-red btn-sm" style="margin-top:4px;width:100%;" onclick="deleteCustomProduct('${p.id}')">✕ Del</button>` : ''}
+            </div>
+          </div>`).join('')}`;
+    }).join('');
   }
 
   // ===== DISTRIBUTOR RATES =====
@@ -1342,11 +1449,37 @@
   }
 
   function getDistRate(dist, pid) {
-    // Distributor specific rate first, then default product rate
-    const distRate = (appData.distRates || {})[dist]?.[pid];
-    if (distRate) return distRate;
-    const prod = getAllProducts().find(p => p.id === pid);
-    return prod ? (prod.rate || 0) : 0;
+    // Helper: get base rate (dist specific or default)
+    function baseRate(id) {
+      const dr = (appData.distRates||{})[dist]?.[id];
+      if (dr) return dr;
+      return getAllProducts().find(p=>p.id===id)?.rate || 0;
+    }
+
+    switch(pid) {
+      // FCM 6 LTR = FCM 1 LTR rate × 6
+      case 'fcm6l':
+        return baseRate('fcm1l') * 6;
+
+      // Toned 6 LTR = Toned 500ml rate × 12
+      case 'ton6l':
+        return baseRate('ton500') * 12;
+
+      // Curd 5 KG = Curd KG rate × 5
+      case 'curd5':
+        return baseRate('curd_kg') * 5;
+
+      // Curd 15 KG = Curd KG rate × 15
+      case 'curd15':
+        return baseRate('curd_kg') * 15;
+
+      // Curd 140gm = Curd KG rate × 0.14
+      case 'curd140':
+        return baseRate('curd_kg') * 0.14;
+
+      default:
+        return baseRate(pid);
+    }
   }
 
   // ===== TAB =====
