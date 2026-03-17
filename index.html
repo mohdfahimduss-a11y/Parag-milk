@@ -1091,6 +1091,8 @@
       grid.innerHTML = allProds.map(p => {
         const savedRate = (dist.productRates || {})[p.id] || '';
         const ac = autoCalc[p.id];
+        // Display rate: for 6LTR products show per-LTR (÷ mult)
+        const dispRate = (ac && savedRate) ? Math.round(savedRate/ac.mult*100)/100 : savedRate;
         const hasLtr = !!sizeInLtr[p.id];
         const hasKg  = !!sizeInKg[p.id];
         const unit   = hasLtr ? 'LTR' : hasKg ? 'KG' : null;
@@ -1107,8 +1109,8 @@
           </button>` : ''}
           <div style="display:flex;align-items:center;gap:4px;">
             <span style="color:var(--muted);font-weight:700;">₹</span>
-            <input type="number" id="drate-${p.id}" value="${savedRate}" placeholder="${ac ? '1LTR rate' : 'Rate'}" min="0"
-              style="width:80px;padding:7px 8px;border:1.5px solid ${ac?'#A5D6A7':' var(--border)'};border-radius:8px;font-family:var(--mono);font-size:0.9rem;background:white;">
+            <input type="number" id="drate-${p.id}" value="${dispRate}" placeholder="${ac ? '1LTR rate' : 'Rate'}" min="0"
+              style="width:80px;padding:7px 8px;border:1.5px solid ${ac?'#A5D6A7':'var(--border)'};border-radius:8px;font-family:var(--mono);font-size:0.9rem;background:white;">
           </div>
         </div>`;
       }).join('');
@@ -1354,9 +1356,13 @@
     if (dist && dist.productRates && dist.productRates[pid]) {
       rate = parseFloat(dist.productRates[pid]) || 0;
     }
+    // For 6LTR products, display per-LTR rate
+    const displayDiv = {'fcm6l':6,'ton6l':6};
+    const div = displayDiv[pid] || 1;
+    const dispRate = div > 1 ? Math.round(rate/div*100)/100 : rate;
     const rateEl = document.getElementById(rowId + '-rate');
-    rateEl.textContent = rate ? '₹' + rate : '-';
-    rateEl.dataset.ratenum = rate;
+    rateEl.textContent = dispRate ? '₹' + dispRate + (div>1?'/LTR':'') : '-';
+    rateEl.dataset.ratenum = rate; // store full pkt rate for calculation
 
     const kgltrInp = document.getElementById(rowId + '-kgltr');
     const qtyInp   = document.getElementById(rowId + '-qty');
@@ -3296,13 +3302,18 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
       return codeA.localeCompare(codeB);
     });
 
-    tb.innerHTML = sorted.map((p, i) => `
+    const displayDiv = {'fcm6l':6,'ton6l':6};
+    tb.innerHTML = sorted.map((p, i) => {
+      const div = displayDiv[p.id] || 1;
+      const dispRate = div > 1 ? Math.round(p.rate/div*100)/100 : p.rate;
+      const rateLabel = div > 1 ? `₹${dispRate}/LTR` : `₹${dispRate}`;
+      return `
       <tr style="opacity:${p.active===false?'0.45':'1'}">
         <td><strong style="color:var(--amber);font-family:var(--mono);">${p.code || '—'}</strong></td>
         <td><strong>${p.name}</strong></td>
         <td><span style="color:var(--muted);font-family:var(--mono);font-size:0.85rem;">${p.size||'—'}</span></td>
         <td><span class="badge ${catColors[p.cat] || 'badge-blue'}">${p.cat}</span></td>
-        <td><strong style="color:var(--green)">₹${p.rate}</strong></td>
+        <td><strong style="color:var(--green)">${rateLabel}</strong></td>
         <td>
           <button class="btn btn-sm" style="background:#FFF3E0;color:var(--amber);border:1px solid #F0D8A0" onclick="openEditProduct('${p.id}')">✏️ Edit</button>
         </td>
@@ -3313,7 +3324,8 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
           </button>
         </td>
         <td><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">🗑️ Del</button></td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   }
 
   // Edit product inline panel
