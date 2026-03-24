@@ -1661,8 +1661,13 @@
       const vehicle = dist && dist.vehicle ? `<br><span style="font-size:0.72rem;color:#1565C0;">🚛 ${dist.vehicle}</span>` : '';
       const cells = usedProds.map(prod => {
         const itemData = (e.items||{})[prod.id];
-        const qty = itemData ? (typeof itemData==='object' ? (itemData.qty||0) : Number(itemData)) : 0;
-        return `<td style="text-align:center;padding:5px 8px;border:1px solid #ddd;font-family:var(--mono);font-size:0.85rem;">${qty > 0 ? `<strong>${qty}</strong>` : '<span style="color:#ccc;">-</span>'}</td>`;
+        const qty   = itemData ? (typeof itemData==='object' ? (itemData.qty||0)   : Number(itemData)) : 0;
+        const kgltr = itemData ? (typeof itemData==='object' ? (itemData.kgltr||0) : 0) : 0;
+        // 6LTR products: show LTR value, others: show qty (bags/pkts)
+        const is6ltr = ['fcm6l','ton6l'].includes(prod.id);
+        const dispVal = is6ltr ? (kgltr || qty * 6) : qty;
+        const dispUnit = is6ltr ? ' L' : '';
+        return `<td style="text-align:center;padding:5px 8px;border:1px solid #ddd;font-family:var(--mono);font-size:0.85rem;">${dispVal > 0 ? `<strong>${dispVal}${dispUnit}</strong>` : '<span style="color:#ccc;">-</span>'}</td>`;
       }).join('');
       const statusDot = e.completed ? '🟢' : '🟡';
       return `<tr style="${(idx%2===1)?'background:#F9F9F9':''}">
@@ -1674,11 +1679,16 @@
     // Total row for summary
     const summaryTotalCells = usedProds.map(prod => {
       let t = 0;
+      const is6ltr = ['fcm6l','ton6l'].includes(prod.id);
       entries.forEach(e => {
         const itemData = (e.items||{})[prod.id];
-        t += itemData ? (typeof itemData==='object' ? (itemData.qty||0) : Number(itemData)) : 0;
+        if (!itemData) return;
+        const qty   = typeof itemData==='object' ? (itemData.qty||0)   : Number(itemData);
+        const kgltr = typeof itemData==='object' ? (itemData.kgltr||0) : 0;
+        t += is6ltr ? (kgltr || qty * 6) : qty;
       });
-      return `<td style="text-align:center;padding:5px 8px;border:1px solid #ddd;font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--green);">${t > 0 ? t : '-'}</td>`;
+      const dispUnit = is6ltr ? ' L' : '';
+      return `<td style="text-align:center;padding:5px 8px;border:1px solid #ddd;font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--green);">${t > 0 ? t + dispUnit : '-'}</td>`;
     }).join('');
 
     const summaryHtml = `
