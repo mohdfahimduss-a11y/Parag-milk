@@ -292,9 +292,7 @@
                 <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Product</th>
                 <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Size</th>
                 <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Rate ₹</th>
-                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;border-bottom:1.5px solid var(--border);background:#E8F5EE;color:var(--green);">KG / LTR</th>
-                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:#EEF2FF;color:#3949AB;">Pkts (Auto)</th>
-                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Crates</th>
+                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;border-bottom:1.5px solid var(--border);background:#E8F5EE;color:var(--green);">KG / LTR / PKT</th>
                 <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:#FFF3E0;color:var(--amber);">Amount ₹</th>
                 <th style="padding:9px 12px;border-bottom:1.5px solid var(--border);text-align:center;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;">+/−</th>
               </tr>
@@ -302,7 +300,7 @@
             <tbody id="demand-entry-grid"></tbody>
             <tfoot>
               <tr>
-                <td colspan="6" style="padding:10px 12px;">
+                <td colspan="4" style="padding:10px 12px;">
                   <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);border:1px solid #B0D8C0;" onclick="addDemandRow()">+ Nayi Row</button>
                 </td>
               </tr>
@@ -1281,15 +1279,9 @@
       <td id="${newRowId}-rate" style="padding:8px 12px;font-family:var(--mono);font-size:0.85rem;" data-ratenum="0">-</td>
       <td style="padding:8px 10px;background:#F0FFF4;">
         <input type="number" id="${newRowId}-kgltr" placeholder="0" min="0" step="0.01" oninput="calcKgLtr('${newRowId}')"
-          style="width:75px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
-      </td>
-      <td style="padding:8px 10px;background:#EEF2FF;">
-        <input type="number" id="${newRowId}-qty" placeholder="auto" min="0" readonly
-          style="width:75px;padding:7px 8px;border:1.5px solid #9FA8DA;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:#EEF2FF;color:#3949AB;cursor:not-allowed;">
-      </td>
-      <td style="padding:8px 10px;">
-        <input type="number" id="${newRowId}-crates" placeholder="0" min="0"
-          style="width:65px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;">
+          style="width:90px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
+        <input type="hidden" id="${newRowId}-qty" value="">
+        <input type="hidden" id="${newRowId}-crates" value="">
       </td>
       <td id="${newRowId}-amount" style="padding:8px 12px;font-family:var(--mono);font-size:0.88rem;font-weight:700;color:var(--amber);background:#FFF3E0;">-</td>
       <td style="padding:6px 8px;text-align:center;white-space:nowrap;">
@@ -1333,15 +1325,9 @@
       <td id="${rowId}-rate" style="padding:8px 12px;font-family:var(--mono);font-size:0.85rem;" data-ratenum="0">-</td>
       <td style="padding:8px 10px;background:#F0FFF4;">
         <input type="number" id="${rowId}-kgltr" placeholder="0" min="0" step="0.01" oninput="calcKgLtr('${rowId}')"
-          style="width:75px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
-      </td>
-      <td style="padding:8px 10px;background:#EEF2FF;">
-        <input type="number" id="${rowId}-qty" placeholder="auto" min="0" readonly
-          style="width:75px;padding:7px 8px;border:1.5px solid #9FA8DA;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:#EEF2FF;color:#3949AB;cursor:not-allowed;">
-      </td>
-      <td style="padding:8px 10px;">
-        <input type="number" id="${rowId}-crates" placeholder="0" min="0"
-          style="width:65px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;">
+          style="width:90px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
+        <input type="hidden" id="${rowId}-qty" value="">
+        <input type="hidden" id="${rowId}-crates" value="">
       </td>
       <td id="${rowId}-amount" style="padding:8px 12px;font-family:var(--mono);font-size:0.88rem;font-weight:700;color:var(--amber);background:#FFF3E0;">-</td>
       <td style="padding:6px 8px;text-align:center;white-space:nowrap;">
@@ -1741,9 +1727,7 @@
         return `<tr>
           <td><strong>${prod.name}</strong> ${prod.size||''}</td>
           <td><span class="badge ${catColors[prod.cat]||'badge-blue'}">${prod.cat}</span></td>
-          <td><strong>${qty}</strong></td>
-          <td>${crates || '-'}</td>
-          <td>${kgltr ? kgltr + ' KG/LTR' : '-'}</td>
+          <td><strong>${kgltr || qty || '-'}</strong></td>
           <td>${rateLabel}</td>
           <td><strong style="color:var(--green)">₹${val}</strong></td>
           <td><button class="btn btn-danger btn-sm" onclick="deleteItemFromEntry(${e.id},'${pid}')">✕</button></td>
@@ -1768,7 +1752,7 @@
             </div>
           </div>
           <table>
-            <thead><tr><th>Product</th><th>Cat</th><th>Pkts</th><th>Crates</th><th>KG/LTR</th><th>Rate</th><th>Value</th><th>Del</th></tr></thead>
+            <thead><tr><th>Product</th><th>Cat</th><th>KG/LTR/PKT</th><th>Rate</th><th>Value</th><th>Del</th></tr></thead>
             <tbody>${distItems}</tbody>
           </table>
         </div>`;
@@ -1832,16 +1816,10 @@
         <td id="${rowId}-size" style="padding:8px 12px;font-size:0.85rem;color:var(--muted);">${prod ? prod.size||'-' : '-'}</td>
         <td id="${rowId}-rate" style="padding:8px 12px;font-family:var(--mono);font-size:0.85rem;" data-ratenum="${editDispRate}">${editRateLabel}</td>
         <td style="padding:8px 10px;background:#F0FFF4;">
-          <input type="number" id="${rowId}-kgltr" value="${kgltr||''}" min="0" step="0.01" oninput="calcKgLtr('${rowId}')"
-            style="width:75px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
-        </td>
-        <td style="padding:8px 10px;background:#EEF2FF;">
-          <input type="number" id="${rowId}-qty" value="${qty||''}" min="0" readonly
-            style="width:75px;padding:7px 8px;border:1.5px solid #9FA8DA;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:#EEF2FF;color:#3949AB;cursor:not-allowed;">
-        </td>
-        <td style="padding:8px 10px;">
-          <input type="number" id="${rowId}-crates" value="${crates||''}" min="0"
-            style="width:65px;padding:7px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;">
+          <input type="number" id="${rowId}-kgltr" value="${kgltr||qty||''}" min="0" step="0.01" oninput="calcKgLtr('${rowId}')"
+            style="width:90px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
+          <input type="hidden" id="${rowId}-qty" value="${qty||''}">
+          <input type="hidden" id="${rowId}-crates" value="${crates||''}">
         </td>
         <td id="${rowId}-amount" style="padding:8px 12px;font-family:var(--mono);font-size:0.88rem;font-weight:700;color:var(--amber);background:#FFF3E0;">-</td>
         <td style="padding:8px 10px;">
