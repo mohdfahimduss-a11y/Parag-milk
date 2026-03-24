@@ -784,7 +784,13 @@
       // Fix null/object arrays from Firebase
       if (!Array.isArray(data.products)) data.products = [];
       if (!Array.isArray(data.sales)) data.sales = [];
-      if (!Array.isArray(data.demandEntries)) data.demandEntries = [];
+      // Firebase stores arrays as objects {0:..., 1:...} or {'e_123':...}
+      // Must convert back to array — NOT reset to []
+      if (!Array.isArray(data.demandEntries)) {
+        data.demandEntries = data.demandEntries
+          ? Object.values(data.demandEntries).filter(e => e && e.id)
+          : [];
+      }
       if (!Array.isArray(data.taxInvoices)) data.taxInvoices = [];
 
       // Always ensure customers exist
@@ -825,13 +831,14 @@
   // Safe demand save - converts array to object for Firebase reliability
   function saveDemandEntries() {
     if (!dbRef) return;
-    // Convert array to keyed object for Firebase (arrays can get corrupted)
+    // Convert array to keyed object for Firebase reliability
+    // Firebase corrupts numeric-indexed arrays on save — use string keys
     const demandObj = {};
     (data.demandEntries||[]).forEach(e => {
       const key = 'e_' + (e.id || Date.now());
       demandObj[key] = e;
     });
-    dbRef.child('demandEntries').set(data.demandEntries)
+    dbRef.child('demandEntries').set(demandObj)
       .catch(e => console.log('Demand save error:', e));
   }
 
@@ -1523,22 +1530,43 @@
     if (!data.demandEntries) data.demandEntries = [];
 
     if (editingId) {
-      const idx = data.demandEntries.findIndex(e => e.id === editingId);
+      const idx = data.demandEntries.findIndex(e => String(e.id) === String(editingId));
       if (idx >= 0) {
-        data.demandEntries[idx] = { ...data.demandEntries[idx], date, distName, items, savedAt: Date.now() };
+        // Merge: form ke items ko existing ke saath merge karo
+        // Taki koi bhi item accidentally delete na ho
+        const existingEdit = data.demandEntries[idx].items || {};
+        const mergedEdit = { ...existingEdit };
+        Object.entries(items).forEach(([pid, val]) => { mergedEdit[pid] = val; });
+        data.demandEntries[idx] = { ...data.demandEntries[idx], date, distName, items: mergedEdit, savedAt: Date.now() };
       }
-      if(dbRef) dbRef.child("demandEntries").set(data.demandEntries); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
-      alert(`✅ ${distName} ki demand update ho gayi!`);
+      if(dbRef) saveDemandEntries(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
+      if (idx >= 0) alert(`✅ ${distName} ki demand update ho gayi!`);
+      else alert(`⚠️ Entry nahi mili, naya save kar raha hoon!`);
     } else {
       const idx = data.demandEntries.findIndex(e => e.date === date && e.distName === distName);
       if (idx >= 0) {
-        if (!confirm(`${distName} ki demand already hai is date ke liye. Update karein?`)) return;
-        data.demandEntries[idx] = { ...data.demandEntries[idx], date, distName, items, savedAt: Date.now() };
+        // MERGE: naye items purane ke upar add karo — purani entry delete nahi hogi
+        const existingItems = data.demandEntries[idx].items || {};
+        const mergedItems = { ...existingItems };
+        Object.entries(items).forEach(([pid, newVal]) => {
+          if (existingItems[pid]) {
+            // Product pehle se tha — qty add karo ya replace karo?
+            // Agar user ne form mein daala hai toh REPLACE karo (user intentionally update kar raha hai)
+            mergedItems[pid] = newVal;
+          } else {
+            // Naya product — add karo
+            mergedItems[pid] = newVal;
+          }
+        });
+        data.demandEntries[idx] = { ...data.demandEntries[idx], date, distName, items: mergedItems, savedAt: Date.now() };
+        const addedCount = Object.keys(items).length;
+        const totalCount = Object.keys(mergedItems).length;
+        alert(`✅ ${distName} ki demand update ho gayi!\n${addedCount} products update/add kiye — Total: ${totalCount} products`);
       } else {
         data.demandEntries.push({ id: Date.now(), date, distName, items, savedAt: Date.now() });
+        alert(`✅ ${distName} ki demand save ho gayi!`);
       }
-      if(dbRef) dbRef.child("demandEntries").set(data.demandEntries); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
-      alert(`✅ ${distName} ki demand save ho gayi!`);
+      if(dbRef) saveDemandEntries(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
     }
   }
 
@@ -1605,7 +1633,7 @@
     const label = formatDate(date);
     if (!confirm(`${label} ki saari demands delete karein?`)) return;
     data.demandEntries = (data.demandEntries||[]).filter(e => e.date !== date);
-    if(dbRef) dbRef.child("demandEntries").set(data.demandEntries);
+    if(dbRef) saveDemandEntries();
     renderDemandSummaryPage(date);
   }
 
@@ -1707,7 +1735,7 @@
           <td>${kgltr ? kgltr + ' KG/LTR' : '-'}</td>
           <td>${rateLabel}</td>
           <td><strong style="color:var(--green)">₹${val}</strong></td>
-          <td><button class="btn btn-danger btn-sm" onclick="deleteDemandEntry(${e.id})">✕</button></td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteItemFromEntry(${e.id},'${pid}')">✕</button></td>
         </tr>`;
       }).join('');
       return `
@@ -1762,7 +1790,8 @@
       const qty    = typeof itemData === 'object' ? (itemData.qty||0)    : Number(itemData);
       const kgltr  = typeof itemData === 'object' ? (itemData.kgltr||0)  : 0;
       const crates = typeof itemData === 'object' ? (itemData.crates||0) : 0;
-      if (!qty) return;
+      // Skip only if BOTH qty aur kgltr zero hain — sirf qty=0 pe skip mat karo
+      if (!qty && !kgltr) return;
 
       demandRowCount++;
       const rowId = 'drow-' + demandRowCount;
@@ -1816,10 +1845,32 @@
   }
 
   function deleteDemandEntry(id) {
-    if (!confirm('Ye demand delete karein?')) return;
-    data.demandEntries = (data.demandEntries||[]).filter(e => e.id !== id);
-    if(dbRef) dbRef.child("demandEntries").set(data.demandEntries);
+    if (!confirm('Ye poori demand delete karein?')) return;
+    data.demandEntries = (data.demandEntries||[]).filter(e => String(e.id) !== String(id));
+    if(dbRef) saveDemandEntries();
     const _vd = (document.getElementById("demand-view-date")||{}).value || today(); renderDemandSummaryPage(_vd);
+  }
+
+  function deleteItemFromEntry(entryId, pid) {
+    // Type-safe: Firebase se load hone ke baad ID string/number dono ho sakti hai
+    const entry = (data.demandEntries||[]).find(e => String(e.id) === String(entryId));
+    if (!entry) return;
+    const prodName = (entry.items||{})[pid];
+    const label = pid;
+    if (!confirm('Sirf yeh product delete karein?')) return;
+    // Remove only this product from the entry's items
+    const newItems = { ...(entry.items||{}) };
+    delete newItems[pid];
+    if (Object.keys(newItems).length === 0) {
+      // No items left — delete the whole entry
+      data.demandEntries = (data.demandEntries||[]).filter(e => String(e.id) !== String(entryId));
+    } else {
+      const idx = data.demandEntries.findIndex(e => String(e.id) === String(entryId));
+      if (idx >= 0) data.demandEntries[idx].items = newItems;
+    }
+    if(dbRef) saveDemandEntries();
+    const _vd = (document.getElementById("demand-view-date")||{}).value || today();
+    renderDemandSummaryPage(_vd);
   }
 
   function addDemandToSales(id) {
@@ -1855,7 +1906,7 @@
 
     // Mark demand as added to sales
     entry.addedToSales = true;
-    if(dbRef) dbRef.child("demandEntries").set(data.demandEntries);
+    if(dbRef) saveDemandEntries();
     renderDemandSummaryPage(entry.date);
     alert(`✅ ${entry.distName} ki demand Sales mein add ho gayi!`);
   }
@@ -1864,7 +1915,7 @@
     const entry = (data.demandEntries||[]).find(e => e.id === id);
     if (!entry) return;
     entry.completed = true;
-    if(dbRef) dbRef.child("demandEntries").set(data.demandEntries);
+    if(dbRef) saveDemandEntries();
     const _vd = (document.getElementById("demand-view-date")||{}).value || today(); renderDemandSummaryPage(_vd);
   }
 
