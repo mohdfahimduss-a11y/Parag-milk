@@ -1986,9 +1986,21 @@
         const veh  = dist ? (dist.vehicle || '') : '';
         let rowCells = COLS.map(col => {
           const itemData = (e.items||{})[col.id];
-          const qty = itemData ? (typeof itemData === 'object' ? (itemData.qty||0) : Number(itemData)) : 0;
-          const matkaKg = {matka5:5, matka15:15};
-          const dispVal = qty > 0 ? (matkaKg[col.id] ? (qty * matkaKg[col.id]) + ' KG' : qty) : '';
+          const qty   = itemData ? (typeof itemData === 'object' ? (itemData.qty||0)   : Number(itemData)) : 0;
+          const kgltr = itemData ? (typeof itemData === 'object' ? (itemData.kgltr||0) : 0) : 0;
+          const matkaKg  = {matka5:5, matka15:15};
+          const ltr6Prods = ['fcm6l','ton6l'];
+          let dispVal = '';
+          if (qty > 0 || kgltr > 0) {
+            if (matkaKg[col.id]) {
+              dispVal = (qty * matkaKg[col.id]) + ' KG';
+            } else if (ltr6Prods.includes(col.id)) {
+              // Show LTR: use saved kgltr if available, else qty*6
+              dispVal = kgltr || qty * 6;
+            } else {
+              dispVal = qty;
+            }
+          }
           return `<td>${dispVal}</td>`;
         }).join('');
         // total crates for this entry
@@ -2003,10 +2015,12 @@
 
       // Column totals for this slip
       const colTotals = COLS.map(col => {
+        const ltr6Prods = ['fcm6l','ton6l'];
         const t = group.entries.reduce((s, e) => {
           const d = (e.items||{})[col.id];
-          const q = d ? (typeof d==='object' ? (d.qty||0) : Number(d)) : 0;
-          return s + q;
+          const q     = d ? (typeof d==='object' ? (d.qty||0)   : Number(d)) : 0;
+          const kgltr = d ? (typeof d==='object' ? (d.kgltr||0) : 0) : 0;
+          return s + (ltr6Prods.includes(col.id) ? (kgltr || q * 6) : q);
         }, 0);
         const matkaKg = {matka5:5, matka15:15};
         const dispT = t > 0 ? (matkaKg[col.id] ? (t * matkaKg[col.id]) + ' KG' : t) : '';
@@ -2881,13 +2895,16 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
         const label = e.distName + (dist && dist.vehicle ? ` (${dist.vehicle})` : '');
         const row = [label];
         let rowCrates = 0;
+        const ltr6x = ['fcm6l','ton6l'];
         PROD_COLS.forEach(p => {
           const itemData = (e.items||{})[p.id];
           const qty    = itemData ? (typeof itemData==='object' ? (itemData.qty||0)    : Number(itemData)) : 0;
+          const kgltr  = itemData ? (typeof itemData==='object' ? (itemData.kgltr||0)  : 0) : 0;
           const crates = itemData ? (typeof itemData==='object' ? (itemData.crates||0) : 0) : 0;
-          groupTotals[p.id] += qty;
+          const dispQty = ltr6x.includes(p.id) ? (kgltr || qty * 6) : qty;
+          groupTotals[p.id] += dispQty;
           rowCrates += crates;
-          row.push(qty > 0 ? qty : '');
+          row.push(dispQty > 0 ? dispQty : '');
         });
         groupCrates += rowCrates;
         row.push(rowCrates > 0 ? rowCrates : '');
@@ -3044,13 +3061,16 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     entries.forEach(e => {
       const row = [e.distName];
       let rowCrates = 0;
+      const ltr6xNcr = ['fcm6l','ton6l'];
       PROD_COLS.forEach(p => {
         const itemData = (e.items||{})[p.id];
         const qty    = itemData ? (typeof itemData==='object' ? (itemData.qty||0)    : Number(itemData)) : 0;
+        const kgltr  = itemData ? (typeof itemData==='object' ? (itemData.kgltr||0)  : 0) : 0;
         const crates = itemData ? (typeof itemData==='object' ? (itemData.crates||0) : 0) : 0;
-        colTotals[p.id] = (colTotals[p.id]||0) + qty;
+        const dispQty = ltr6xNcr.includes(p.id) ? (kgltr || qty * 6) : qty;
+        colTotals[p.id] = (colTotals[p.id]||0) + dispQty;
         rowCrates += crates;
-        row.push(qty > 0 ? qty : '');
+        row.push(dispQty > 0 ? dispQty : '');
       });
       grandCrates += rowCrates;
       row.push(rowCrates > 0 ? rowCrates : '');
