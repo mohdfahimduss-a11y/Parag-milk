@@ -208,7 +208,10 @@
 
 <div class="header">
   <h1>🥛 Parag <span>Milk</span></h1>
-  <div class="date" id="headerDate"></div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div class="date" id="headerDate"></div>
+    <div id="online-badge" style="font-size:0.7rem;font-weight:800;padding:3px 8px;border-radius:20px;background:#E8F5E9;color:#2A7A4A;letter-spacing:0.5px;">🟢 Online</div>
+  </div>
 </div>
 
 <div class="nav">
@@ -233,26 +236,51 @@
       </div>
     </div>
 
-    <div class="cards">
+    <!-- Stat Cards -->
+    <div class="cards" style="grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
       <div class="card green">
-        <div class="card-icon">💰</div>
-        <div class="card-label">Today's Sales</div>
-        <div class="card-value green" id="dash-income">₹0</div>
-        <div class="card-sub">Total sales today</div>
+        <div class="card-icon">📦</div>
+        <div class="card-label">Aaj ki Demand</div>
+        <div class="card-value green" id="dash-demand-count">0</div>
+        <div class="card-sub" id="dash-demand-sub">Distributors</div>
       </div>
       <div class="card blue">
+        <div class="card-icon">💰</div>
+        <div class="card-label">Today's Sales</div>
+        <div class="card-value blue" id="dash-income">₹0</div>
+        <div class="card-sub">Collection today</div>
+      </div>
+      <div class="card" style="background:var(--cream);border:1.5px solid var(--border);">
         <div class="card-icon">🏪</div>
         <div class="card-label">Distributors</div>
-        <div class="card-value blue" id="dash-customers">0</div>
-        <div class="card-sub">Total distributors</div>
+        <div class="card-value" id="dash-customers" style="color:var(--brown);">0</div>
+        <div class="card-sub">Total active</div>
+      </div>
+      <div class="card" style="background:#FFF3E0;border:1.5px solid #FFCC80;">
+        <div class="card-icon">🥛</div>
+        <div class="card-label">Aaj Total Milk</div>
+        <div class="card-value" id="dash-milk-ltr" style="color:var(--amber);">0 L</div>
+        <div class="card-sub">Estimated LTR</div>
+      </div>
+    </div>
+
+    <!-- Today's Demand Product Breakdown -->
+    <div class="table-card" id="dash-demand-breakdown" style="margin-bottom:14px;">
+      <div class="table-header" style="justify-content:space-between;">
+        <h3>📦 Aaj ki Demand — Product Wise</h3>
+        <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);border:1px solid #A5D6A7;"
+          onclick="showTab('demand')">View Full →</button>
+      </div>
+      <div id="dash-demand-products" style="padding:8px 0;">
+        <div class="empty">Koi demand nahi aaj</div>
       </div>
     </div>
 
     <div class="table-card">
-      <div class="table-header"><h3>📅 Recent Records</h3></div>
+      <div class="table-header"><h3>📅 Recent Sales</h3></div>
       <table>
-        <thead><tr><th>Date</th><th>Type</th><th>Details</th><th>Amount</th></tr></thead>
-        <tbody id="recent-table"><tr><td colspan="4" class="empty">No records yet.</td></tr></tbody>
+        <thead><tr><th>Date</th><th>Distributor</th><th>Amount</th></tr></thead>
+        <tbody id="recent-table"><tr><td colspan="3" class="empty">No records yet.</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -322,9 +350,23 @@
           <input type="date" id="demand-view-date" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;"
             onchange="renderDemandSummaryPage(this.value)">
           <button class="btn btn-sm" style="background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;font-weight:700;" onclick="renderDemandSummaryPage(document.getElementById('demand-view-date').value||today())">🔄 Refresh</button>
-          <button class="btn btn-sm" style="background:#FFF9C4;color:#5D4037;border:1px solid #F9A825;font-weight:700;" onclick="debugDemandData()">🔍 Debug</button>
           <button class="btn btn-sm" style="background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;font-weight:700;" onclick="printMangPatra('vehicle')">🖨️ Mang Patra (Vehicle-wise)</button>
           <button class="btn btn-sm" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;font-weight:700;" onclick="printMangPatra('dist')">🖨️ Mang Patra (Dist-wise)</button>
+        </div>
+        <!-- Search & Filter Bar -->
+        <div style="width:100%;display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 0 4px;border-top:1px solid var(--border);margin-top:4px;">
+          <span style="font-size:0.78rem;font-weight:700;color:var(--muted);">🔍 Filter:</span>
+          <select id="demand-filter-dist" onchange="applyDemandFilter()"
+            style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82rem;background:white;color:var(--text);flex:1;min-width:130px;">
+            <option value="">All Distributors</option>
+          </select>
+          <input type="date" id="demand-filter-from" onchange="applyDemandFilter()"
+            style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82rem;flex:1;min-width:110px;" placeholder="From">
+          <span style="font-size:0.78rem;color:var(--muted);">→</span>
+          <input type="date" id="demand-filter-to" onchange="applyDemandFilter()"
+            style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82rem;flex:1;min-width:110px;" placeholder="To">
+          <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:1px solid #F9A8A8;"
+            onclick="clearDemandFilter()">✕ Clear</button>
         </div>
       </div>
 
@@ -772,7 +814,43 @@
     { id: 1048, code: "049", name: "ZILA JAIL(SH. SAI TRD.)", phone: "", daily: "", vehicle: "", address: "", productRates: {} }
   ];
 
+  // Offline support: load from localStorage first for instant start
+  function loadFromLocalCache() {
+    try {
+      const cached = localStorage.getItem('paragMilkData');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        data = { ...data, ...parsed };
+        if (!Array.isArray(data.demandEntries)) {
+          data.demandEntries = data.demandEntries ? Object.values(data.demandEntries).filter(e => e && e.id) : [];
+        }
+        renderSales(); renderCustomers(); renderProducts();
+        updateCustomerList(); updateDistList(); updateDashboard();
+        const vd = document.getElementById('demand-view-date');
+        if (vd) renderDemandSummaryPage(vd.value || today());
+        console.log('Loaded from local cache');
+      }
+    } catch(e) { console.log('Cache load error:', e); }
+  }
+
+  // Online/offline indicator
+  function updateOnlineStatus() {
+    const badge = document.getElementById('online-badge');
+    if (!badge) return;
+    if (navigator.onLine) {
+      badge.textContent = '🟢 Online';
+      badge.style.background = '#E8F5E9'; badge.style.color = '#2A7A4A';
+    } else {
+      badge.textContent = '🔴 Offline';
+      badge.style.background = '#FFF0EE'; badge.style.color = '#C93A2A';
+    }
+  }
+  window.addEventListener('online',  () => { updateOnlineStatus(); loadDataFromFirebase(); });
+  window.addEventListener('offline', updateOnlineStatus);
+
   function loadDataFromFirebase() {
+    loadFromLocalCache(); // show cached data instantly
+    if (!navigator.onLine) { updateOnlineStatus(); return; } // skip Firebase if offline
     dbRef.once('value').then(snap => {
       const val = snap.val();
       if (val) {
@@ -1278,8 +1356,15 @@
       <td id="${newRowId}-size" style="padding:8px 12px;font-size:0.85rem;color:var(--muted);">-</td>
       <td id="${newRowId}-rate" style="padding:8px 12px;font-family:var(--mono);font-size:0.85rem;" data-ratenum="0">-</td>
       <td style="padding:8px 10px;background:#F0FFF4;">
-        <input type="number" id="${newRowId}-kgltr" placeholder="0" min="0" step="0.01" oninput="calcKgLtr('${newRowId}')"
-          style="width:90px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
+        <div style="display:flex;align-items:center;gap:5px;">
+          <button id="${newRowId}-unit" data-unit="PKT"
+            onclick="toggleDemandUnit('${newRowId}')"
+            style="padding:4px 8px;border-radius:7px;border:1.5px solid #E65100;background:#FFF3E0;color:#E65100;font-size:0.72rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;min-width:36px;text-align:center;">
+            PKT
+          </button>
+          <input type="number" id="${newRowId}-kgltr" placeholder="0" min="0" step="0.01" oninput="calcKgLtr('${newRowId}')"
+            style="width:80px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
+        </div>
         <input type="hidden" id="${newRowId}-qty" value="">
         <input type="hidden" id="${newRowId}-crates" value="">
       </td>
@@ -1324,8 +1409,15 @@
       <td id="${rowId}-size" style="padding:8px 12px;font-size:0.85rem;color:var(--muted);">-</td>
       <td id="${rowId}-rate" style="padding:8px 12px;font-family:var(--mono);font-size:0.85rem;" data-ratenum="0">-</td>
       <td style="padding:8px 10px;background:#F0FFF4;">
-        <input type="number" id="${rowId}-kgltr" placeholder="0" min="0" step="0.01" oninput="calcKgLtr('${rowId}')"
-          style="width:90px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
+        <div style="display:flex;align-items:center;gap:5px;">
+          <button id="${rowId}-unit" data-unit="PKT"
+            onclick="toggleDemandUnit('${rowId}')"
+            style="padding:4px 8px;border-radius:7px;border:1.5px solid #E65100;background:#FFF3E0;color:#E65100;font-size:0.72rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;min-width:36px;text-align:center;">
+            PKT
+          </button>
+          <input type="number" id="${rowId}-kgltr" placeholder="0" min="0" step="0.01" oninput="calcKgLtr('${rowId}')"
+            style="width:80px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
+        </div>
         <input type="hidden" id="${rowId}-qty" value="">
         <input type="hidden" id="${rowId}-crates" value="">
       </td>
@@ -1391,6 +1483,33 @@
     calcKgLtr(rowId);
   }
 
+  // PKT → LTR → KG cycle toggle
+  function toggleDemandUnit(rowId) {
+    const btn = document.getElementById(rowId + '-unit');
+    if (!btn) return;
+    const units = ['PKT', 'LTR', 'KG'];
+    const cur = btn.dataset.unit || 'PKT';
+    const next = units[(units.indexOf(cur) + 1) % units.length];
+    btn.dataset.unit = next;
+    btn.textContent = next;
+    // Style per unit
+    const styles = {
+      PKT: { border:'#E65100', bg:'#FFF3E0', color:'#E65100' },
+      LTR: { border:'#2A7A4A', bg:'#E8F5E9', color:'#2A7A4A' },
+      KG:  { border:'#1565C0', bg:'#E3F2FD', color:'#1565C0' },
+    };
+    const s = styles[next];
+    btn.style.borderColor = s.border;
+    btn.style.background  = s.bg;
+    btn.style.color       = s.color;
+    // Reset input
+    const inp = document.getElementById(rowId + '-kgltr');
+    if (inp) { inp.value = ''; inp.placeholder = next === 'PKT' ? 'PKT' : next === 'LTR' ? 'LTR' : 'KG'; }
+    const amtEl = document.getElementById(rowId + '-amount');
+    if (amtEl) amtEl.textContent = '-';
+    document.getElementById(rowId + '-qty').value = '';
+  }
+
   function calcKgLtr(rowId) {
     const qtyInp   = document.getElementById(rowId + '-qty');
     const kgltrInp = document.getElementById(rowId + '-kgltr');
@@ -1453,6 +1572,13 @@
     if (!names.length) {
       sel.innerHTML = '<option value="">-- Pehle Distributor add karein --</option>';
     }
+    // Also populate filter dropdown
+    const fsel = document.getElementById('demand-filter-dist');
+    if (fsel) {
+      const fcur = fsel.value;
+      fsel.innerHTML = '<option value="">All Distributors</option>' +
+        names.map(n => `<option value="${n}" ${n===fcur?'selected':''}>${n}</option>`).join('');
+    }
   }
 
   function onDistSelect(sel) {
@@ -1486,29 +1612,47 @@
       const qtyEl    = document.getElementById(rowId + '-qty');
       const cratesEl = document.getElementById(rowId + '-crates');
       const sizeEl   = document.getElementById(rowId + '-size');
-      const kgltr  = parseFloat(kgltrEl  ? kgltrEl.value  : 0) || 0;
+      const rawVal = parseFloat(kgltrEl ? kgltrEl.value : 0) || 0;
       const crates = parseFloat(cratesEl ? cratesEl.value : 0) || 0;
+      const unitBtn = document.getElementById(rowId + '-unit');
+      const selectedUnit = unitBtn ? (unitBtn.dataset.unit || 'PKT') : 'PKT';
 
-      // Recalculate qty from kgltr + size (don't rely on readonly field)
-      let qty = parseFloat(qtyEl ? qtyEl.value : 0) || 0;
-      if (!qty && kgltr > 0 && sizeEl) {
-        const sizeText = sizeEl.textContent || '';
+      // Convert input to qty (bags) and kgltr (liters/kg) based on unit
+      let qty = 0, kgltr = 0;
+      if (selectedUnit === 'PKT') {
+        qty = rawVal;
+        // Calculate kgltr from size if possible
+        const sizeText = sizeEl ? sizeEl.textContent || '' : '';
         const match = sizeText.match(/([\d.]+)\s*(ML|LTR|KG|GM)/i);
-        if (match) {
+        if (match && rawVal > 0) {
           let packSize = parseFloat(match[1]);
-          const unit = match[2].toUpperCase();
-          if (unit === 'ML') packSize = packSize / 1000;
-          if (unit === 'GM') packSize = packSize / 1000;
-          qty = Math.round(kgltr / packSize);
+          const u = match[2].toUpperCase();
+          if (u === 'ML') packSize = packSize / 1000;
+          if (u === 'GM') packSize = packSize / 1000;
+          kgltr = Math.round(rawVal * packSize * 1000) / 1000;
+        }
+      } else if (selectedUnit === 'LTR' || selectedUnit === 'KG') {
+        kgltr = rawVal;
+        // Calculate qty (bags) from size
+        const sizeText = sizeEl ? sizeEl.textContent || '' : '';
+        const match = sizeText.match(/([\d.]+)\s*(ML|LTR|KG|GM)/i);
+        if (match && rawVal > 0) {
+          let packSize = parseFloat(match[1]);
+          const u = match[2].toUpperCase();
+          if (u === 'ML') packSize = packSize / 1000;
+          if (u === 'GM') packSize = packSize / 1000;
+          qty = packSize > 0 ? Math.round(rawVal / packSize) : 0;
+        } else {
+          qty = rawVal; // no size — treat as direct qty
         }
       }
 
-      if (pid && (qty > 0 || kgltr > 0)) {
-        // Save product name+size for display even if product deleted later
+      if (pid && (qty > 0 || kgltr > 0 || rawVal > 0)) {
         const selOpt = sel.options[sel.selectedIndex];
         const prodName = selOpt ? selOpt.textContent.trim() : pid;
         const prodSize = sizeEl ? sizeEl.textContent.trim() : '';
-        items[pid] = { qty: (items[pid]?.qty || 0) + qty, crates, kgltr, name: prodName, size: prodSize };
+        const saveUnit = selectedUnit;
+        items[pid] = { qty: (items[pid]?.qty || 0) + qty, crates, kgltr, unit: saveUnit, rawVal, name: prodName, size: prodSize };
       }
     });
 
@@ -1623,6 +1767,81 @@
     renderDemandSummaryPage(date);
   }
 
+  function applyDemandFilter() {
+    const dist = document.getElementById('demand-filter-dist')?.value || '';
+    const from = document.getElementById('demand-filter-from')?.value || '';
+    const to   = document.getElementById('demand-filter-to')?.value || '';
+
+    if (!from && !to && !dist) {
+      // No filter — show date view
+      const date = document.getElementById('demand-view-date')?.value || today();
+      renderDemandSummaryPage(date);
+      return;
+    }
+    renderDemandHistory(dist, from, to);
+  }
+
+  function clearDemandFilter() {
+    document.getElementById('demand-filter-dist').value = '';
+    document.getElementById('demand-filter-from').value = '';
+    document.getElementById('demand-filter-to').value = '';
+    const date = document.getElementById('demand-view-date')?.value || today();
+    renderDemandSummaryPage(date);
+  }
+
+  function renderDemandHistory(distFilter, from, to) {
+    const allProds = getAllProducts();
+    let entries = (data.demandEntries||[]);
+    if (distFilter) entries = entries.filter(e => e.distName === distFilter);
+    if (from) entries = entries.filter(e => e.date >= from);
+    if (to)   entries = entries.filter(e => e.date <= to);
+    entries = [...entries].sort((a,b) => b.date.localeCompare(a.date));
+
+    const container = document.getElementById('demand-dist-tables');
+    document.getElementById('demand-day-label').textContent = (from||'...') + ' → ' + (to||'...');
+    document.getElementById('demand-count-label').textContent = entries.length + ' demands';
+
+    if (!entries.length) {
+      container.innerHTML = '<div class="empty" style="padding:24px;">Koi demand nahi mili filter ke hisaab se</div>';
+      return;
+    }
+
+    container.innerHTML = entries.map(e => {
+      const dist = (data.customers||[]).find(c => c.name === e.distName);
+      const totalVal = Object.entries(e.items||{}).reduce((s, [pid, itemData]) => {
+        const qty   = typeof itemData==='object' ? (itemData.qty||0)   : Number(itemData);
+        const kgltr = typeof itemData==='object' ? (itemData.kgltr||0) : 0;
+        const prod  = allProds.find(p => String(p.id)===String(pid));
+        const eDist = dist;
+        const rawRate = (eDist && eDist.productRates && eDist.productRates[pid]) ? parseFloat(eDist.productRates[pid]) : (prod ? (prod.rate||0) : 0);
+        const displayDiv6 = {'fcm6l':6,'ton6l':6};
+        const rDiv = displayDiv6[pid] || 1;
+        const perUnitRate = rDiv > 1 ? Math.round(rawRate/rDiv*100)/100 : rawRate;
+        return s + (kgltr > 0 ? perUnitRate * kgltr : rawRate * qty);
+      }, 0);
+      const itemCount = Object.keys(e.items||{}).length;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;"
+        onclick="showDemandDetail(${e.id})">
+        <div>
+          <div style="font-weight:700;font-size:0.92rem;">${e.distName}</div>
+          <div style="font-size:0.78rem;color:var(--muted);">${formatDate(e.date)} · ${itemCount} products</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:var(--mono);font-weight:800;color:var(--amber);">₹${Math.round(totalVal).toLocaleString('en-IN')}</div>
+          <div style="font-size:0.72rem;color:var(--muted);">${e.completed ? '✅ Done' : '🟡 Pending'}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function showDemandDetail(id) {
+    const entry = (data.demandEntries||[]).find(e => String(e.id)===String(id));
+    if (!entry) return;
+    document.getElementById('demand-view-date').value = entry.date;
+    renderDemandSummaryPage(entry.date);
+    clearDemandFilter();
+  }
+
   function renderDemandSummaryPage(date) {
     date = date || today();
     const allProds = getAllProducts();
@@ -1727,7 +1946,7 @@
         return `<tr>
           <td><strong>${prod.name}</strong> ${prod.size||''}</td>
           <td><span class="badge ${catColors[prod.cat]||'badge-blue'}">${prod.cat}</span></td>
-          <td><strong>${kgltr || qty || '-'}</strong></td>
+          <td><strong>${kgltr > 0 ? kgltr + ' ' + (itemData.unit||'LTR') : qty > 0 ? qty + ' PKT' : '-'}</strong></td>
           <td>${rateLabel}</td>
           <td><strong style="color:var(--green)">₹${val}</strong></td>
           <td><button class="btn btn-danger btn-sm" onclick="deleteItemFromEntry(${e.id},'${pid}')">✕</button></td>
@@ -1746,6 +1965,7 @@
                  <button class="btn btn-danger btn-sm" onclick="deleteDemandEntry(${e.id})">🗑️ Del</button>` 
                 : 
                 `<button onclick="editDemandEntry(${e.id})" style="background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;padding:5px 10px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;">✏️ Edit</button>
+                 <button onclick="copyDemandToToday(${e.id})" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;padding:5px 10px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;">📋 Copy</button>
                  <button onclick="completeDemand(${e.id})" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;padding:5px 10px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;">✅ Complete</button>
                  <button class="btn btn-danger btn-sm" onclick="deleteDemandEntry(${e.id})">🗑️ Del</button>`
               }
@@ -1816,8 +2036,15 @@
         <td id="${rowId}-size" style="padding:8px 12px;font-size:0.85rem;color:var(--muted);">${prod ? prod.size||'-' : '-'}</td>
         <td id="${rowId}-rate" style="padding:8px 12px;font-family:var(--mono);font-size:0.85rem;" data-ratenum="${editDispRate}">${editRateLabel}</td>
         <td style="padding:8px 10px;background:#F0FFF4;">
-          <input type="number" id="${rowId}-kgltr" value="${kgltr||qty||''}" min="0" step="0.01" oninput="calcKgLtr('${rowId}')"
-            style="width:90px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
+          <div style="display:flex;align-items:center;gap:5px;">
+            <button id="${rowId}-unit" data-unit="${kgltr > 0 ? 'LTR' : 'PKT'}"
+              onclick="toggleDemandUnit('${rowId}')"
+              style="padding:4px 8px;border-radius:7px;border:1.5px solid ${kgltr > 0 ? '#2A7A4A' : '#E65100'};background:${kgltr > 0 ? '#E8F5E9' : '#FFF3E0'};color:${kgltr > 0 ? '#2A7A4A' : '#E65100'};font-size:0.72rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;min-width:36px;text-align:center;">
+              ${kgltr > 0 ? 'LTR' : 'PKT'}
+            </button>
+            <input type="number" id="${rowId}-kgltr" value="${kgltr||qty||''}" min="0" step="0.01" oninput="calcKgLtr('${rowId}')"
+              style="width:80px;padding:7px 8px;border:1.5px solid #B0D8C0;border-radius:8px;font-family:var(--mono);font-size:0.88rem;background:white;font-weight:700;">
+          </div>
           <input type="hidden" id="${rowId}-qty" value="${qty||''}">
           <input type="hidden" id="${rowId}-crates" value="${crates||''}">
         </td>
@@ -1831,6 +2058,42 @@
 
     // Scroll to form
     document.getElementById('demand-form-card').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+
+  function copyDemandToToday(id) {
+    const entry = (data.demandEntries||[]).find(e => String(e.id)===String(id));
+    if (!entry) return;
+    const t = today();
+    if (entry.date === t) { alert('Yeh demand aaj ki hi hai!'); return; }
+    const existing = (data.demandEntries||[]).find(e => e.date===t && e.distName===entry.distName);
+    const distName = entry.distName;
+    if (existing) {
+      if (!confirm(`${distName} ki aaj (${t}) ki demand already hai.\nCopy karke merge karein?`)) return;
+      // Merge: existing + copied items
+      const merged = { ...(existing.items||{}) };
+      Object.entries(entry.items||{}).forEach(([pid, val]) => {
+        if (!merged[pid]) merged[pid] = val; // only add missing items
+      });
+      const idx = data.demandEntries.findIndex(e => String(e.id)===String(existing.id));
+      if (idx >= 0) data.demandEntries[idx].items = merged;
+    } else {
+      // New entry for today
+      const newEntry = {
+        id: Date.now(),
+        date: t,
+        distName,
+        items: { ...(entry.items||{}) },
+        savedAt: Date.now(),
+        copiedFrom: entry.date,
+      };
+      data.demandEntries.push(newEntry);
+    }
+    saveDemandEntries();
+    document.getElementById('demand-view-date').value = t;
+    renderDemandSummaryPage(t);
+    updateDashboard();
+    alert(`✅ ${distName} ki demand ${formatDate(entry.date)} se aaj copy ho gayi!`);
   }
 
   function deleteDemandEntry(id) {
@@ -3297,23 +3560,61 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
 
   function updateDashboard() {
     const t = today();
+    const allProds = getAllProducts();
+
+    // Sales
     const todayIncome = data.sales.filter(r => r.date === t).reduce((s,r) => s + r.amount, 0);
-    document.getElementById('dash-income').textContent = '₹' + todayIncome;
+    document.getElementById('dash-income').textContent = '₹' + todayIncome.toLocaleString('en-IN');
     document.getElementById('dash-customers').textContent = data.customers.length;
 
-    // Recent records — sales only
-    const all = data.sales
-      .map(r => ({date:r.date, type:'Sale', detail: r.customer||r.product, amount:'₹'+r.amount}))
-      .sort((a,b) => b.date?.localeCompare(a.date)).slice(0,8);
+    // Today's demands
+    const todayDemands = (data.demandEntries||[]).filter(e => e.date === t);
+    document.getElementById('dash-demand-count').textContent = todayDemands.length;
+    document.getElementById('dash-demand-sub').textContent = todayDemands.length === 1 ? 'Distributor' : 'Distributors';
 
+    // Product-wise totals across all today's demands
+    const prodTotals = {};
+    const sizeInLtr = {'fcm500':0.5,'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,'ton500':0.5,'ton1l':1,'ton6l':6,'cow':1,'regular':1,'dtm500':0.5,'dtm150':0.15};
+    let totalLtr = 0;
+    todayDemands.forEach(e => {
+      Object.entries(e.items||{}).forEach(([pid, itemData]) => {
+        const qty   = typeof itemData==='object' ? (itemData.qty||0)   : Number(itemData);
+        const kgltr = typeof itemData==='object' ? (itemData.kgltr||0) : 0;
+        const unit  = typeof itemData==='object' ? (itemData.unit||'PKT') : 'PKT';
+        const dispVal = kgltr > 0 ? kgltr : qty;
+        if (!prodTotals[pid]) prodTotals[pid] = { val:0, unit };
+        prodTotals[pid].val += dispVal;
+        // estimate liters
+        const ltrFactor = sizeInLtr[pid] || 0;
+        if (ltrFactor) totalLtr += (kgltr > 0 ? kgltr : qty * ltrFactor);
+      });
+    });
+    document.getElementById('dash-milk-ltr').textContent = Math.round(totalLtr) + ' L';
+
+    // Render product breakdown
+    const prodEl = document.getElementById('dash-demand-products');
+    if (!Object.keys(prodTotals).length) {
+      prodEl.innerHTML = '<div class="empty">Koi demand nahi aaj ke liye</div>';
+    } else {
+      prodEl.innerHTML = Object.entries(prodTotals).map(([pid, d]) => {
+        const prod = allProds.find(p => String(p.id)===String(pid));
+        const name = prod ? prod.name + ' ' + (prod.size||'') : pid;
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:0.88rem;font-weight:600;">${name}</span>
+          <span style="font-family:var(--mono);font-weight:800;color:var(--amber);font-size:0.95rem;">${d.val} <span style="font-size:0.72rem;color:var(--muted);">${d.unit}</span></span>
+        </div>`;
+      }).join('');
+    }
+
+    // Recent sales
     const rt = document.getElementById('recent-table');
-    if (!all.length) { rt.innerHTML = '<tr><td colspan="4" class="empty">No records yet.</td></tr>'; return; }
-    rt.innerHTML = all.map(r => `
+    const recentSales = [...data.sales].sort((a,b) => (b.date||'').localeCompare(a.date||'')).slice(0,6);
+    if (!recentSales.length) { rt.innerHTML = '<tr><td colspan="3" class="empty">No records yet.</td></tr>'; return; }
+    rt.innerHTML = recentSales.map(r => `
       <tr>
         <td>${formatDate(r.date)}</td>
-        <td><span class="badge badge-green">${r.type}</span></td>
-        <td>${r.detail}</td>
-        <td><strong>${r.amount}</strong></td>
+        <td style="font-size:0.82rem;">${r.customer||r.product||'-'}</td>
+        <td><strong>₹${(r.amount||0).toLocaleString('en-IN')}</strong></td>
       </tr>`).join('');
   }
 
