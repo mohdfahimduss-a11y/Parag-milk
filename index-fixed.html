@@ -1665,7 +1665,8 @@
         const kgltr = itemData ? (typeof itemData==='object' ? (itemData.kgltr||0) : 0) : 0;
         // 6LTR products: show LTR value, others: show qty (bags/pkts)
         const is6ltr = ['fcm6l','ton6l'].includes(prod.id);
-        const dispVal = is6ltr ? (kgltr || qty * 6) : qty;
+        // For 6LTR: show liters. For no-size products (cow, regular): show kgltr if qty=0
+        const dispVal = is6ltr ? (kgltr || qty * 6) : (qty || kgltr);
         const dispUnit = is6ltr ? ' L' : '';
         return `<td style="text-align:center;padding:5px 8px;border:1px solid #ddd;font-family:var(--mono);font-size:0.85rem;">${dispVal > 0 ? `<strong>${dispVal}${dispUnit}</strong>` : '<span style="color:#ccc;">-</span>'}</td>`;
       }).join('');
@@ -1685,7 +1686,7 @@
         if (!itemData) return;
         const qty   = typeof itemData==='object' ? (itemData.qty||0)   : Number(itemData);
         const kgltr = typeof itemData==='object' ? (itemData.kgltr||0) : 0;
-        t += is6ltr ? (kgltr || qty * 6) : qty;
+        t += is6ltr ? (kgltr || qty * 6) : (qty || kgltr);
       });
       const dispUnit = is6ltr ? ' L' : '';
       return `<td style="text-align:center;padding:5px 8px;border:1px solid #ddd;font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--green);">${t > 0 ? t + dispUnit : '-'}</td>`;
@@ -1998,7 +1999,8 @@
               // Show LTR: use saved kgltr if available, else qty*6
               dispVal = kgltr || qty * 6;
             } else {
-              dispVal = qty;
+              // For no-size products (cow, regular): show kgltr if qty=0
+              dispVal = qty || kgltr;
             }
           }
           return `<td>${dispVal}</td>`;
@@ -2020,7 +2022,7 @@
           const d = (e.items||{})[col.id];
           const q     = d ? (typeof d==='object' ? (d.qty||0)   : Number(d)) : 0;
           const kgltr = d ? (typeof d==='object' ? (d.kgltr||0) : 0) : 0;
-          return s + (ltr6Prods.includes(col.id) ? (kgltr || q * 6) : q);
+          return s + (ltr6Prods.includes(col.id) ? (kgltr || q * 6) : (q || kgltr));
         }, 0);
         const matkaKg = {matka5:5, matka15:15};
         const dispT = t > 0 ? (matkaKg[col.id] ? (t * matkaKg[col.id]) + ' KG' : t) : '';
@@ -2129,10 +2131,12 @@ ${slipHTML}
       const prod = allProds.find(p => String(p.id)===String(pid));
       if (!prod) return null;
       const qty    = typeof itemData === 'object' ? (itemData.qty   || 0) : (itemData || 0);
+      const kgltrI = typeof itemData === 'object' ? (itemData.kgltr || 0) : 0;
       const crates = typeof itemData === 'object' ? (itemData.crates|| 0) : 0;
       const rate   = (dist && dist.productRates && dist.productRates[pid]) ? dist.productRates[pid] : (prod.rate||0);
-      const amount = rate * qty;
-      return { sno: idx+1, name: prod.name, size: prod.size||'', qty, crates, unit: prod.cat==='Milk'?'LTR':'KG/PACK', rate, amount };
+      const dispQtyInv = qty || kgltrI; // for no-size products (cow, regular)
+      const amount = rate * dispQtyInv;
+      return { sno: idx+1, name: prod.name, size: prod.size||'', qty: dispQtyInv, crates, unit: prod.cat==='Milk'?'LTR':'KG/PACK', rate, amount };
     }).filter(Boolean).filter(i => i.qty > 0);
 
     const totalQty    = items.reduce((s,i) => s + i.qty, 0);
@@ -2331,10 +2335,12 @@ ${slipHTML}
         productMap[pid].qty    += qty;
         productMap[pid].crates += crates;
         productMap[pid].kgltr  += kgltr;
+        // No-size products (cow, regular): normalize — if qty=0, treat kgltr as qty
+        if (!qty && kgltr > 0) productMap[pid].qty += kgltr;
       });
     });
 
-    const items = Object.values(productMap).filter(i => i.qty > 0);
+    const items = Object.values(productMap).filter(i => i.qty > 0 || i.kgltr > 0);
     if (!items.length) { alert('Koi items nahi mili!'); return; }
 
     items.forEach(it => { it.amount = it.rate * (it.kgltr || it.qty); });
@@ -2901,7 +2907,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
           const qty    = itemData ? (typeof itemData==='object' ? (itemData.qty||0)    : Number(itemData)) : 0;
           const kgltr  = itemData ? (typeof itemData==='object' ? (itemData.kgltr||0)  : 0) : 0;
           const crates = itemData ? (typeof itemData==='object' ? (itemData.crates||0) : 0) : 0;
-          const dispQty = ltr6x.includes(p.id) ? (kgltr || qty * 6) : qty;
+          const dispQty = ltr6x.includes(p.id) ? (kgltr || qty * 6) : (qty || kgltr);
           groupTotals[p.id] += dispQty;
           rowCrates += crates;
           row.push(dispQty > 0 ? dispQty : '');
@@ -3067,7 +3073,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
         const qty    = itemData ? (typeof itemData==='object' ? (itemData.qty||0)    : Number(itemData)) : 0;
         const kgltr  = itemData ? (typeof itemData==='object' ? (itemData.kgltr||0)  : 0) : 0;
         const crates = itemData ? (typeof itemData==='object' ? (itemData.crates||0) : 0) : 0;
-        const dispQty = ltr6xNcr.includes(p.id) ? (kgltr || qty * 6) : qty;
+        const dispQty = ltr6xNcr.includes(p.id) ? (kgltr || qty * 6) : (qty || kgltr);
         colTotals[p.id] = (colTotals[p.id]||0) + dispQty;
         rowCrates += crates;
         row.push(dispQty > 0 ? dispQty : '');
