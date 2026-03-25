@@ -1254,7 +1254,7 @@
       'fcm500':0.5,'fcm1l':1,'fcm6l':6,'fcm200':0.2,
       'std500':0.5,'std1l':1,
       'ton500':0.5,'ton1l':1,'ton6l':6,
-      'dtm500':0.5,'dtm150':0.15,
+      'dtm500':0.5,'dtm150':0.15,'dtm170':0.17,'fcm135':0.135,'fcm200':0.2,
       'cow':1,'regular':1,'chach300':0.3,
     };
     const sizeInKg = {
@@ -1324,8 +1324,8 @@
     if (!dist) return;
     const allProds = getAllProducts();
     const sizeInLtr = {
-      'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
-      'ton500':0.5,'ton6l':6,'cow':1,'chach400':0.4,
+      'fcm1l':1,'fcm6l':6,'fcm200':0.2,'fcm135':0.135,'std500':0.5,'std1l':1,
+      'ton500':0.5,'ton6l':6,'cow':1,'chach400':0.4,'dtm500':0.5,'dtm150':0.15,'dtm170':0.17,
     };
     const sizeInKg = {
       'curd5':5,'curd15':15,'curd140':0.14,'curd_kg':1,'pan1kg':1,
@@ -2321,7 +2321,7 @@
 
     // Dynamic product columns — collect ALL products actually used in today's entries
     const PREFERRED_ORDER = ['fcm500','fcm1l','fcm6l','fcm200','fcm135',
-      'std500','std1l','ton500','ton1l','ton6l','dtm500','dtm150',
+      'std500','std1l','ton500','ton1l','ton6l','dtm500','dtm150','dtm170',
       'cow','regular','chach300','chach400',
       'matka5','matka15','curd_kg','curd140','curd5','curd15',
       'chhach300','curd200','dahi140','kheer90','paneer1kg','ghee1l','butter500'];
@@ -3828,7 +3828,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
 
     // Product-wise totals across all today's demands
     const prodTotals = {};
-    const sizeInLtr = {'fcm500':0.5,'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,'ton500':0.5,'ton1l':1,'ton6l':6,'cow':1,'regular':1,'dtm500':0.5,'dtm150':0.15};
+    const sizeInLtr = {'fcm500':0.5,'fcm1l':1,'fcm6l':6,'fcm200':0.2,'fcm135':0.135,'std500':0.5,'std1l':1,'ton500':0.5,'ton1l':1,'ton6l':6,'cow':1,'regular':1,'dtm500':0.5,'dtm150':0.15,'dtm170':0.17,'chach300':0.3,'chach400':0.4};
     let totalLtr = 0;
     todayDemands.forEach(e => {
       Object.entries(e.items||{}).forEach(([pid, itemData]) => {
@@ -3890,6 +3890,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     // Others
     { id:'dtm500',   code:'P11', name:'DTM',          size:'500 ML',  cat:'Milk' },
     { id:'dtm150',   code:'P12', name:'DTM',          size:'150 ML',  cat:'Milk' },
+    { id:'dtm170',   code:'P13', name:'DTM',          size:'170 ML',  cat:'Milk' },
     { id:'cow',      code:'P13', name:'COW MILK',     size:'',        cat:'Milk' },
     { id:'regular',  code:'P14', name:'REGULAR MILK', size:'',        cat:'Milk' },
   ];
@@ -4006,7 +4007,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
           <label style="font-size:0.75rem;font-weight:700;color:var(--muted);">RATE (₹)</label>
           <div style="display:flex;gap:6px;align-items:center;">
             ${(()=>{
-              const sLtr = {'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,'ton500':0.5,'ton6l':6,'cow':1};
+              const sLtr = {'fcm1l':1,'fcm6l':6,'fcm200':0.2,'fcm135':0.135,'std500':0.5,'std1l':1,'ton500':0.5,'ton6l':6,'cow':1,'dtm500':0.5,'dtm150':0.15,'dtm170':0.17};
               const sKg  = {'curd5':5,'curd15':15,'curd140':0.14,'curd_kg':1,'pan1kg':1};
               const unit = sLtr[p.id] ? 'LTR' : sKg[p.id] ? 'KG' : null;
               return unit ? `<button id="ep-rate-toggle" data-unit="${unit}" data-size="${sLtr[p.id]||sKg[p.id]}"
