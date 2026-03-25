@@ -1986,9 +1986,16 @@
         const kgltr = itemData ? (typeof itemData==='object' ? (itemData.kgltr||0) : 0) : 0;
         // 6LTR products: show LTR value, others: show qty (bags/pkts)
         const is6ltr = ['fcm6l','ton6l'].includes(prod.id);
-        // For 6LTR: show liters. For no-size products (cow, regular): show kgltr if qty=0
-        const dispVal = is6ltr ? (kgltr || qty * 6) : (qty || kgltr);
-        const dispUnit = is6ltr ? ' L' : '';
+        const savedUnit = typeof itemData==='object' ? (itemData.unit||'PKT') : 'PKT';
+        // 6LTR: always show LTR. PKT mode: show qty. LTR/KG mode: show kgltr
+        let dispVal, dispUnit;
+        if (is6ltr) {
+          dispVal = kgltr || qty * 6; dispUnit = ' L';
+        } else if (savedUnit === 'PKT') {
+          dispVal = qty; dispUnit = '';
+        } else {
+          dispVal = kgltr || qty; dispUnit = ' ' + savedUnit;
+        }
         return `<td style="text-align:center;padding:5px 8px;border:1px solid #ddd;font-family:var(--mono);font-size:0.85rem;">${dispVal > 0 ? `<strong>${dispVal}${dispUnit}</strong>` : '<span style="color:#ccc;">-</span>'}</td>`;
       }).join('');
       const statusDot = e.completed ? '🟢' : '🟡';
@@ -2005,9 +2012,12 @@
       entries.forEach(e => {
         const itemData = (e.items||{})[prod.id];
         if (!itemData) return;
-        const qty   = typeof itemData==='object' ? (itemData.qty||0)   : Number(itemData);
-        const kgltr = typeof itemData==='object' ? (itemData.kgltr||0) : 0;
-        t += is6ltr ? (kgltr || qty * 6) : (qty || kgltr);
+        const qty     = typeof itemData==='object' ? (itemData.qty||0)   : Number(itemData);
+        const kgltr   = typeof itemData==='object' ? (itemData.kgltr||0) : 0;
+        const sUnit   = typeof itemData==='object' ? (itemData.unit||'PKT') : 'PKT';
+        if (is6ltr)            t += kgltr || qty * 6;
+        else if (sUnit==='PKT') t += qty;
+        else                    t += kgltr || qty;
       });
       const dispUnit = is6ltr ? ' L' : '';
       return `<td style="text-align:center;padding:5px 8px;border:1px solid #ddd;font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--green);">${t > 0 ? t + dispUnit : '-'}</td>`;
@@ -2062,7 +2072,14 @@
         return `<tr>
           <td><strong>${prod.name}</strong> ${prod.size||''}</td>
           <td><span class="badge ${catColors[prod.cat]||'badge-blue'}">${prod.cat}</span></td>
-          <td><strong>${kgltr > 0 ? kgltr + ' ' + (itemData.unit||'LTR') : qty > 0 ? qty + ' PKT' : '-'}</strong></td>
+          <td><strong>${(()=>{
+            const unit = typeof itemData==='object' ? (itemData.unit||'PKT') : 'PKT';
+            const rv   = typeof itemData==='object' ? (itemData.rawVal||0)  : 0;
+            const display6 = ['fcm6l','ton6l'].includes(pid);
+            if (display6) return (kgltr||qty*6) + ' LTR';
+            if (unit === 'PKT') return (qty||rv) + ' PKT';
+            return (kgltr||rv) + ' ' + unit;
+          })()}</strong></td>
           <td>${rateLabel}</td>
           <td><strong style="color:var(--green)">₹${val}</strong></td>
           <td><button class="btn btn-danger btn-sm" onclick="deleteItemFromEntry(${e.id},'${pid}')">✕</button></td>
@@ -2371,8 +2388,9 @@
               // Show LTR: use saved kgltr if available, else qty*6
               dispVal = kgltr || qty * 6;
             } else {
-              // For no-size products (cow, regular): show kgltr if qty=0
-              dispVal = qty || kgltr;
+              // Unit-aware: PKT mode → show qty; LTR/KG mode → show kgltr
+              const sU = itemData && typeof itemData==='object' ? (itemData.unit||'PKT') : 'PKT';
+              dispVal = (sU === 'PKT') ? (qty || kgltr) : (kgltr || qty);
             }
           }
           return `<td>${dispVal}</td>`;
@@ -3382,7 +3400,8 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
           const qty    = itemData ? (typeof itemData==='object' ? (itemData.qty||0)    : Number(itemData)) : 0;
           const kgltr  = itemData ? (typeof itemData==='object' ? (itemData.kgltr||0)  : 0) : 0;
           const crates = itemData ? (typeof itemData==='object' ? (itemData.crates||0) : 0) : 0;
-          const dispQty = ltr6x.includes(p.id) ? (kgltr || qty * 6) : (qty || kgltr);
+          const sUnit5 = itemData && typeof itemData==='object' ? (itemData.unit||'PKT') : 'PKT';
+          const dispQty = ltr6x.includes(p.id) ? (kgltr || qty * 6) : (sUnit5==='PKT' ? qty : (kgltr || qty));
           groupTotals[p.id] += dispQty;
           rowCrates += crates;
           row.push(dispQty > 0 ? dispQty : '');
@@ -3548,7 +3567,8 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
         const qty    = itemData ? (typeof itemData==='object' ? (itemData.qty||0)    : Number(itemData)) : 0;
         const kgltr  = itemData ? (typeof itemData==='object' ? (itemData.kgltr||0)  : 0) : 0;
         const crates = itemData ? (typeof itemData==='object' ? (itemData.crates||0) : 0) : 0;
-        const dispQty = ltr6xNcr.includes(p.id) ? (kgltr || qty * 6) : (qty || kgltr);
+        const sUnitN = itemData && typeof itemData==='object' ? (itemData.unit||'PKT') : 'PKT';
+        const dispQty = ltr6xNcr.includes(p.id) ? (kgltr || qty * 6) : (sUnitN==='PKT' ? qty : (kgltr || qty));
         colTotals[p.id] = (colTotals[p.id]||0) + dispQty;
         rowCrates += crates;
         row.push(dispQty > 0 ? dispQty : '');
