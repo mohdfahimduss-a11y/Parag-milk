@@ -1618,39 +1618,57 @@
     const numEl    = document.getElementById(rowId);
     if (!qtyInp || !kgltrInp || !sizeEl) return;
 
-    const pid = numEl ? numEl.dataset.pid : '';
-    const kgltr = parseFloat(kgltrInp.value) || 0;
+    const unitBtn      = document.getElementById(rowId + '-unit');
+    const selectedUnit = unitBtn ? (unitBtn.dataset.unit || 'PKT') : 'PKT';
+    const rawVal   = parseFloat(kgltrInp.value) || 0;
     const sizeText = sizeEl.textContent || '';
-    const match = sizeText.match(/([\d.]+)\s*(ML|LTR|KG|GM)/i);
+    const match    = sizeText.match(/([\d.]+)\s*(ML|LTR|KG|GM)/i);
 
-    let packets = 0;
-    if (match && kgltr > 0) {
-      let packSize = parseFloat(match[1]);
-      const unit = match[2].toUpperCase();
-      if (unit === 'ML') packSize = packSize / 1000;
-      if (unit === 'GM') packSize = packSize / 1000;
-      packets = Math.round(kgltr / packSize);
-      qtyInp.value = packets;
+    let qty = 0, kgltr = 0;
 
-      // Auto crate only for milk LTR/ML products
-      if (cratesInp && (unit === 'ML' || unit === 'LTR')) {
+    if (selectedUnit === 'PKT') {
+      // User entered packets directly
+      qty = rawVal;
+      qtyInp.value = qty || '';
+      // Calculate liters from size (for display info only)
+      if (match && rawVal > 0) {
+        let packSize = parseFloat(match[1]);
+        const u = match[2].toUpperCase();
+        if (u === 'ML') packSize /= 1000;
+        if (u === 'GM') packSize /= 1000;
+        kgltr = Math.round(rawVal * packSize * 1000) / 1000;
+      }
+      // No-size products (cow, regular): qty IS the quantity, kgltr stays 0
+    } else {
+      // LTR or KG mode — user entered liters/kg
+      kgltr = rawVal;
+      if (match && rawVal > 0) {
+        let packSize = parseFloat(match[1]);
+        const u = match[2].toUpperCase();
+        if (u === 'ML') packSize /= 1000;
+        if (u === 'GM') packSize /= 1000;
+        qty = packSize > 0 ? Math.round(rawVal / packSize) : rawVal;
+      } else {
+        qty = rawVal; // no size — treat as direct count
+      }
+      qtyInp.value = qty || '';
+      // Auto crate
+      if (cratesInp && kgltr > 0) {
         const crates = Math.floor(kgltr / 12);
         cratesInp.value = crates > 0 ? crates : '';
       }
-    } else {
-      qtyInp.value = '';
-      if (cratesInp) cratesInp.value = '';
     }
 
-    // Amount calculation
+    // Amount — use rate × liters if LTR/KG mode; rate × qty if PKT mode
     if (amountEl && rateEl) {
       const rate = parseFloat(rateEl.dataset.ratenum) || 0;
-      // dahi140: rate × KG; others: rate × kgltr (LTR)
-      if (rate && kgltr) {
-        amountEl.textContent = '₹' + (rate * kgltr).toFixed(2);
+      let amt = 0;
+      if (selectedUnit === 'PKT') {
+        amt = rate * qty;
       } else {
-        amountEl.textContent = '-';
+        amt = rate * kgltr;
       }
+      amountEl.textContent = (rate && rawVal) ? '₹' + amt.toFixed(2) : '-';
     }
   }
 
