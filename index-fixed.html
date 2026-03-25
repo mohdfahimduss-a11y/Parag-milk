@@ -2065,9 +2065,19 @@
         const displayDiv6 = {'fcm6l':6,'ton6l':6};
         const rDiv = displayDiv6[pid] || 1;
         const perUnitRate = rDiv > 1 ? Math.round(rawRate/rDiv*100)/100 : rawRate;
-        const rateLabel = rDiv > 1 ? '₹'+perUnitRate+'/LTR' : '₹'+perUnitRate;
-        const val = kgltr > 0 ? Math.round(perUnitRate * kgltr * 100)/100
-                               : Math.round(rawRate * qty * 100)/100;
+        const rateLabel = rDiv > 1 ? '₹'+perUnitRate+'/LTR'
+          : (savedUnit !== 'PKT' ? '₹'+perUnitRate+'/'+savedUnit : '₹'+rawRate+'/PKT');
+        const savedUnit = typeof itemData==='object' ? (itemData.unit||'PKT') : 'PKT';
+        // Unit-aware amount: PKT mode → rate × qty, LTR/KG mode → perUnitRate × kgltr
+        let val;
+        if (rDiv > 1) {
+          // 6LTR products always use kgltr
+          val = Math.round(perUnitRate * (kgltr || qty * rDiv) * 100) / 100;
+        } else if (savedUnit === 'PKT') {
+          val = Math.round(rawRate * (qty || kgltr) * 100) / 100;
+        } else {
+          val = Math.round(perUnitRate * kgltr * 100) / 100;
+        }
         entryTotal += val;
         return `<tr>
           <td><strong>${prod.name}</strong> ${prod.size||''}</td>
