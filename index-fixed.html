@@ -382,12 +382,29 @@
       <div class="form-grid">
         <div class="form-group">
           <label>Date</label>
-          <input type="date" id="sale-date">
+          <input type="date" id="sale-date" onchange="onSaleCustomerChange()">
         </div>
         <div class="form-group">
           <label>Distributor Name</label>
-          <input type="text" id="sale-customer" placeholder="Distributor name" list="customer-list">
+          <input type="text" id="sale-customer" placeholder="Distributor name" list="customer-list"
+            oninput="onSaleCustomerChange()" onchange="onSaleCustomerChange()">
           <datalist id="customer-list"></datalist>
+        </div>
+        <!-- Demand Amount Preview -->
+        <div class="form-group" id="sale-demand-preview" style="display:none;grid-column:1/-1;">
+          <div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div>
+              <div style="font-size:0.78rem;font-weight:700;color:var(--green);margin-bottom:2px;">📦 Is date ki Demand Amount</div>
+              <div id="sale-demand-breakdown" style="font-size:0.75rem;color:var(--muted);"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="sale-demand-amt" style="font-family:var(--mono);font-size:1.1rem;font-weight:900;color:var(--green);">₹0</span>
+              <button onclick="fillSaleFromDemand()" 
+                style="padding:6px 12px;border-radius:8px;border:1.5px solid #2A7A4A;background:#2A7A4A;color:white;font-size:0.78rem;font-weight:800;cursor:pointer;">
+                ↙ Fill
+              </button>
+            </div>
+          </div>
         </div>
         <div class="form-group">
           <label>Product</label>
@@ -595,14 +612,35 @@
         <!-- Date Range -->
         <div style="background:var(--cream);border-radius:10px;padding:12px;border:1.5px solid var(--border);">
           <label style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:8px;">📅 Date Range Report</label>
+          <!-- Quick presets -->
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+            <button onclick="setReportRange(15)" class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">15 Din</button>
+            <button onclick="setReportRange(30)" class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">30 Din</button>
+            <button onclick="setReportRange(7)"  class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">7 Din</button>
+            <button onclick="setCurrentMonth()"  class="btn btn-sm" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;font-size:0.75rem;">Is Mahina</button>
+          </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <input type="date" id="report-from" style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;">
+            <span style="color:var(--muted);font-size:0.85rem;">→</span>
             <input type="date" id="report-to" style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;">
-            <button class="btn btn-primary btn-sm" onclick="exportDateRangeReport()">📥 Download</button>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn btn-primary" style="flex:1;" onclick="generateRangeReport()">📊 Generate Report</button>
+            <button class="btn btn-primary btn-sm" onclick="exportDateRangeReport()">📥 Excel</button>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Range Report Display -->
+    <div class="table-card" id="range-report-card" style="display:none;">
+      <div class="table-header" style="flex-wrap:wrap;gap:8px;">
+        <h3 id="range-report-title">📊 Report</h3>
+        <button class="btn btn-primary btn-sm" onclick="exportDateRangeReport()">📥 Excel Download</button>
+      </div>
+      <div id="range-report-body"></div>
+    </div>
+
 
     <!-- Tax Invoice History -->
     <div class="table-card">
@@ -1004,6 +1042,66 @@
   }
 
   // SALES
+
+  function onSaleCustomerChange() {
+    const distName = document.getElementById('sale-customer').value.trim();
+    const date     = document.getElementById('sale-date').value || today();
+    const preview  = document.getElementById('sale-demand-preview');
+    const amtEl    = document.getElementById('sale-demand-amt');
+    const breakEl  = document.getElementById('sale-demand-breakdown');
+
+    if (!distName) { preview.style.display = 'none'; return; }
+
+    // Find today's demand for this distributor
+    const entry = (data.demandEntries||[]).find(e =>
+      e.date === date && e.distName.toLowerCase() === distName.toLowerCase()
+    );
+
+    if (!entry) { preview.style.display = 'none'; return; }
+
+    // Calculate total amount
+    const allProds = getAllProducts();
+    const dist = data.customers.find(c => c.name === entry.distName);
+    let totalAmt = 0;
+    const breakdown = [];
+
+    Object.entries(entry.items||{}).forEach(([pid, itemData]) => {
+      const prod = allProds.find(p => String(p.id) === String(pid));
+      if (!prod) return;
+      const qty   = typeof itemData === 'object' ? (itemData.qty||0)   : Number(itemData);
+      const kgltr = typeof itemData === 'object' ? (itemData.kgltr||0) : 0;
+      const rawRate = (dist && dist.productRates && dist.productRates[pid])
+        ? parseFloat(dist.productRates[pid]) : (prod.rate||0);
+      const displayDiv6 = {'fcm6l':6,'ton6l':6};
+      const rDiv = displayDiv6[pid] || 1;
+      const perUnitRate = rDiv > 1 ? Math.round(rawRate/rDiv*100)/100 : rawRate;
+      const val = kgltr > 0 ? Math.round(perUnitRate * kgltr * 100)/100
+                             : Math.round(rawRate * qty * 100)/100;
+      totalAmt += val;
+      if (val > 0) breakdown.push(`${prod.name} ${prod.size||''}: ₹${Math.round(val).toLocaleString('en-IN')}`);
+    });
+
+    amtEl.textContent = '₹' + Math.round(totalAmt).toLocaleString('en-IN');
+    breakEl.textContent = breakdown.slice(0,3).join(' · ') + (breakdown.length > 3 ? ' ...' : '');
+    preview.style.display = 'block';
+
+    // Store for fillSaleFromDemand
+    preview.dataset.amt = Math.round(totalAmt);
+    preview.dataset.dist = entry.distName;
+  }
+
+  function fillSaleFromDemand() {
+    const preview = document.getElementById('sale-demand-preview');
+    const amt = parseFloat(preview.dataset.amt) || 0;
+    const distName = preview.dataset.dist || '';
+    if (!amt) return;
+    document.getElementById('sale-customer').value = distName;
+    document.getElementById('sale-amount').value = amt;
+    document.getElementById('sale-rate').value = '';
+    document.getElementById('sale-qty').value = '';
+    document.getElementById('sale-notes').value = 'Demand payment';
+  }
+
   function addSale() {
     const rec = {
       id: Date.now(),
@@ -1924,25 +2022,25 @@
     const detailHtml = entries.map((e, idx) => {
       const dist = (data.customers||[]).find(c => c.name === e.distName);
       const vehicle = dist && dist.vehicle ? `<span style="margin-left:10px;font-size:0.78rem;color:#1565C0;font-weight:700;">🚛 ${dist.vehicle}</span>` : '';
+      // Calculate total amount for this entry
+      const eDist = (data.customers||[]).find(c => c.name === e.distName);
+      let entryTotal = 0;
       const distItems = Object.entries(e.items).map(([pid, itemData]) => {
         const prod = allProds.find(p => String(p.id) === String(pid));
         if (!prod) return '';
         const qty = typeof itemData === 'object' ? (itemData.qty || 0) : itemData;
         const crates = typeof itemData === 'object' ? (itemData.crates || 0) : 0;
         const kgltr = typeof itemData === 'object' ? (itemData.kgltr || 0) : 0;
-        // Get distributor-specific rate, fallback to global product rate
-        const eDist = (data.customers||[]).find(c => c.name === e.distName);
         const rawRate = (eDist && eDist.productRates && eDist.productRates[pid])
           ? parseFloat(eDist.productRates[pid])
           : (prod.rate||0);
-        // For 6LTR products: stored rate is per-bag; display and calculate per-LTR
         const displayDiv6 = {'fcm6l':6,'ton6l':6};
         const rDiv = displayDiv6[pid] || 1;
         const perUnitRate = rDiv > 1 ? Math.round(rawRate/rDiv*100)/100 : rawRate;
         const rateLabel = rDiv > 1 ? '₹'+perUnitRate+'/LTR' : '₹'+perUnitRate;
-        // Amount: perUnitRate × kgltr (if kgltr entered) else rawRate × qty (bags)
         const val = kgltr > 0 ? Math.round(perUnitRate * kgltr * 100)/100
                                : Math.round(rawRate * qty * 100)/100;
+        entryTotal += val;
         return `<tr>
           <td><strong>${prod.name}</strong> ${prod.size||''}</td>
           <td><span class="badge ${catColors[prod.cat]||'badge-blue'}">${prod.cat}</span></td>
@@ -1952,14 +2050,21 @@
           <td><button class="btn btn-danger btn-sm" onclick="deleteItemFromEntry(${e.id},'${pid}')">✕</button></td>
         </tr>`;
       }).join('');
+
+      const totalAmtHtml = `<tr style="background:#F0FFF4;border-top:2px solid #A5D6A7;">
+        <td colspan="4" style="text-align:right;font-weight:800;font-size:0.88rem;padding:8px 10px;color:var(--green);">💰 TOTAL AMOUNT</td>
+        <td colspan="2" style="font-family:var(--mono);font-weight:900;font-size:1rem;color:var(--green);padding:8px 10px;">₹${Math.round(entryTotal).toLocaleString('en-IN')}</td>
+      </tr>`;
+
       return `
         <div style="border-bottom:2px solid var(--border);${e.completed ? 'border-left:4px solid #2A7A4A;background:#F1FFF5;' : ''}">
-          <div style="padding:10px 16px;background:var(--cream);display:flex;justify-content:space-between;align-items:center;">
-            <strong style="color:var(--brown);">
-              <span style="background:var(--brown);color:white;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:0.72rem;margin-right:6px;">${idx+1}</span>
-              🏪 ${e.distName}${vehicle}
-            </strong>
-            <div style="display:flex;gap:8px;align-items:center;">
+          <div style="padding:10px 16px;background:var(--cream);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="background:var(--brown);color:white;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:0.72rem;">${idx+1}</span>
+              <strong style="color:var(--brown);">🏪 ${e.distName}${vehicle}</strong>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span style="font-family:var(--mono);font-weight:800;color:var(--amber);font-size:0.95rem;">₹${Math.round(entryTotal).toLocaleString('en-IN')}</span>
               ${e.completed ? 
                 `<span style="background:#E8F5E9;color:#2A7A4A;padding:4px 10px;border-radius:8px;font-size:0.75rem;font-weight:700;">✅ Completed</span>
                  <button class="btn btn-danger btn-sm" onclick="deleteDemandEntry(${e.id})">🗑️ Del</button>` 
@@ -1973,7 +2078,7 @@
           </div>
           <table>
             <thead><tr><th>Product</th><th>Cat</th><th>KG/LTR/PKT</th><th>Rate</th><th>Value</th><th>Del</th></tr></thead>
-            <tbody>${distItems}</tbody>
+            <tbody>${distItems}${totalAmtHtml}</tbody>
           </table>
         </div>`;
     }).join('');
@@ -2177,29 +2282,37 @@
     const entries = (data.demandEntries||[]).filter(e => e.date === date);
     if (!entries.length) { alert('Koi demand nahi hai is date ke liye!'); return; }
 
-    const allProds = getAllProducts();
+    const allProds = getAllProductsForExport(); // use export version — includes inactive products too
 
-    // Fixed product columns (same as Excel export)
-    const COLS = [
-      { id:'fcm500',    name:'FCM',        size:'500ml', unit:'Ltr' },
-      { id:'fcm1l',     name:'FCM',        size:'1 Ltr', unit:'Ltr' },
-      { id:'fcm6l',     name:'FCM',        size:'6 Ltr', unit:'Ltr' },
-      { id:'std500',    name:'STD',        size:'500ml', unit:'Ltr' },
-      { id:'std1l',     name:'STD',        size:'1 Ltr', unit:'Ltr' },
-      { id:'std350',    name:'COW MILK',   size:'350ml', unit:'Ltr' },
-      { id:'ton500',    name:'TOND',       size:'500ml', unit:'Ltr' },
-      { id:'ton1l',     name:'TOND',       size:'1 Ltr', unit:'Ltr' },
-      { id:'ton6l',     name:'TOND',       size:'6 Ltr', unit:'Ltr' },
-      { id:'matka5',    name:'DAHI',       size:'5 Kg',  unit:'Kg' },
-      { id:'matka15',   name:'DAHI',       size:'15 Kg', unit:'Kg' },
-      { id:'chhach300', name:'CHHACH',     size:'300ml', unit:'Pack' },
-      { id:'curd200',   name:'P.CURD',     size:'200gm', unit:'KG' },
-      { id:'dahi140',   name:'DAHI PACK',  size:'140gm', unit:'KG' },
-      { id:'kheer90',   name:'P.KHEER',    size:'90gm',  unit:'Pack' },
-      { id:'paneer1kg', name:'PANEER',     size:'1 Kg',  unit:'Kg' },
-      { id:'ghee1l',    name:'GHEE',       size:'1 Ltr', unit:'Ltr' },
-      { id:'butter500', name:'BUTTER',     size:'500gm', unit:'Kg' },
-    ];
+    // Dynamic product columns — collect ALL products actually used in today's entries
+    const PREFERRED_ORDER = ['fcm500','fcm1l','fcm6l','fcm200','fcm135',
+      'std500','std1l','ton500','ton1l','ton6l','dtm500','dtm150',
+      'cow','regular','chach300','chach400',
+      'matka5','matka15','curd_kg','curd140','curd5','curd15',
+      'chhach300','curd200','dahi140','kheer90','paneer1kg','ghee1l','butter500'];
+
+    const usedPidSet = new Set();
+    entries.forEach(e => Object.keys(e.items||{}).forEach(pid => usedPidSet.add(pid)));
+
+    // Sort by preferred order, unknowns at end
+    const sortedPids = [...usedPidSet].sort((a,b) => {
+      const ia = PREFERRED_ORDER.indexOf(a);
+      const ib = PREFERRED_ORDER.indexOf(b);
+      if (ia === -1 && ib === -1) return a.localeCompare(b);
+      if (ia === -1) return 1;
+      if (ib === -1) return -1;
+      return ia - ib;
+    });
+
+    const COLS = sortedPids.map(pid => {
+      const prod = allProds.find(p => String(p.id) === String(pid));
+      return {
+        id: pid,
+        name: prod ? prod.name : pid,
+        size: prod ? (prod.size||'') : '',
+        unit: prod ? (prod.cat === 'Milk Products' ? 'KG' : 'Ltr') : 'PKT',
+      };
+    });
 
     // Group entries: vehicle-wise or dist-wise
     let groups = [];
@@ -2863,6 +2976,109 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
 <div class="no-print" style="text-align:center;margin-top:12px;">
   <button onclick="window.print()" style="padding:10px 30px;background:#2A4A7A;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;">🖨️ Print / Save PDF</button>
 </div>`;
+  }
+
+
+  function setReportRange(days) {
+    const to   = today();
+    const from = new Date();
+    from.setDate(from.getDate() - days + 1);
+    document.getElementById('report-from').value = from.toISOString().split('T')[0];
+    document.getElementById('report-to').value   = to;
+  }
+
+  function setCurrentMonth() {
+    const now = new Date();
+    const yr  = now.getFullYear();
+    const mo  = String(now.getMonth()+1).padStart(2,'0');
+    document.getElementById('report-from').value = `${yr}-${mo}-01`;
+    document.getElementById('report-to').value   = today();
+  }
+
+  function generateRangeReport() {
+    const fromDate = document.getElementById('report-from').value;
+    const toDate   = document.getElementById('report-to').value;
+    if (!fromDate || !toDate) { alert('From aur To date dono select karo!'); return; }
+    if (fromDate > toDate)   { alert('From date, To date se pehle honi chahiye!'); return; }
+
+    const allProds = getAllProducts();
+    const customers = data.customers || [];
+    const entries = (data.demandEntries||[]).filter(e => e.date >= fromDate && e.date <= toDate);
+
+    const card = document.getElementById('range-report-card');
+    const body = document.getElementById('range-report-body');
+    const title = document.getElementById('range-report-title');
+
+    const days = Math.round((new Date(toDate) - new Date(fromDate)) / 86400000) + 1;
+    title.textContent = `📊 Report: ${formatDate(fromDate)} → ${formatDate(toDate)} (${days} din)`;
+    card.style.display = 'block';
+    card.scrollIntoView({ behavior:'smooth', block:'start' });
+
+    if (!entries.length) {
+      body.innerHTML = '<div class="empty" style="padding:24px;">Is period mein koi demand nahi</div>';
+      return;
+    }
+
+    // Dist-wise totals
+    const distTotals = {};
+    let grandTotal = 0;
+    entries.forEach(e => {
+      const dist = customers.find(c => c.name === e.distName);
+      if (!distTotals[e.distName]) distTotals[e.distName] = { value:0, days: new Set(), code: dist?(dist.code||''):'' };
+      distTotals[e.distName].days.add(e.date);
+      Object.entries(e.items||{}).forEach(([pid, itemData]) => {
+        const prod = allProds.find(p => String(p.id)===String(pid));
+        if (!prod) return;
+        const qty   = typeof itemData==='object' ? (itemData.qty||0)   : Number(itemData);
+        const kgltr = typeof itemData==='object' ? (itemData.kgltr||0) : 0;
+        const rawRate = (dist && dist.productRates && dist.productRates[pid]) ? parseFloat(dist.productRates[pid]) : (prod.rate||0);
+        const displayDiv6 = {'fcm6l':6,'ton6l':6};
+        const rDiv = displayDiv6[pid] || 1;
+        const perUnitRate = rDiv > 1 ? Math.round(rawRate/rDiv*100)/100 : rawRate;
+        const val = kgltr > 0 ? Math.round(perUnitRate * kgltr * 100)/100 : Math.round(rawRate * qty * 100)/100;
+        distTotals[e.distName].value += val;
+        grandTotal += val;
+      });
+    });
+
+    // Sort by value desc
+    const sorted = Object.entries(distTotals).sort((a,b) => b[1].value - a[1].value);
+
+    body.innerHTML = `
+      <!-- Grand Total Banner -->
+      <div style="background:var(--brown);color:white;border-radius:10px;padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:0.75rem;opacity:0.7;text-transform:uppercase;letter-spacing:1px;">Total Demand (${days} din)</div>
+          <div style="font-size:1.4rem;font-weight:900;font-family:var(--mono);">₹${Math.round(grandTotal).toLocaleString('en-IN')}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.75rem;opacity:0.7;">Entries</div>
+          <div style="font-size:1.2rem;font-weight:800;">${entries.length}</div>
+        </div>
+      </div>
+
+      <!-- Distributor-wise breakdown -->
+      <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Distributor Wise</div>
+      ${sorted.map(([name, d]) => {
+        const pct = grandTotal > 0 ? (d.value/grandTotal*100) : 0;
+        return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <div>
+              <span style="font-weight:700;font-size:0.9rem;">${name}</span>
+              <span style="font-size:0.72rem;color:var(--muted);margin-left:6px;">${d.days.size} din</span>
+            </div>
+            <span style="font-family:var(--mono);font-weight:800;color:var(--amber);">₹${Math.round(d.value).toLocaleString('en-IN')}</span>
+          </div>
+          <div style="height:5px;background:var(--border);border-radius:4px;overflow:hidden;">
+            <div style="height:100%;width:${pct.toFixed(1)}%;background:var(--amber);border-radius:4px;"></div>
+          </div>
+        </div>`;
+      }).join('')}
+
+      <div style="display:flex;justify-content:space-between;padding:12px 0;margin-top:4px;font-weight:800;">
+        <span>GRAND TOTAL</span>
+        <span style="font-family:var(--mono);color:var(--green);">₹${Math.round(grandTotal).toLocaleString('en-IN')}</span>
+      </div>`;
   }
 
   function exportDateRangeReport() {
