@@ -350,24 +350,9 @@
           <input type="date" id="demand-view-date" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;"
             onchange="renderDemandSummaryPage(this.value)">
           <button class="btn btn-sm" style="background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;font-weight:700;" onclick="renderDemandSummaryPage(document.getElementById('demand-view-date').value||today())">🔄 Refresh</button>
-          <button class="btn btn-sm" style="background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;font-weight:700;" onclick="printMangPatra('vehicle')">🖨️ Mang Patra (Vehicle-wise)</button>
-          <button class="btn btn-sm" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;font-weight:700;" onclick="printMangPatra('dist')">🖨️ Mang Patra (Dist-wise)</button>
+
         </div>
-        <!-- Search & Filter Bar -->
-        <div style="width:100%;display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 0 4px;border-top:1px solid var(--border);margin-top:4px;">
-          <span style="font-size:0.78rem;font-weight:700;color:var(--muted);">🔍 Filter:</span>
-          <select id="demand-filter-dist" onchange="applyDemandFilter()"
-            style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82rem;background:white;color:var(--text);flex:1;min-width:130px;">
-            <option value="">All Distributors</option>
-          </select>
-          <input type="date" id="demand-filter-from" onchange="applyDemandFilter()"
-            style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82rem;flex:1;min-width:110px;" placeholder="From">
-          <span style="font-size:0.78rem;color:var(--muted);">→</span>
-          <input type="date" id="demand-filter-to" onchange="applyDemandFilter()"
-            style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82rem;flex:1;min-width:110px;" placeholder="To">
-          <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:1px solid #F9A8A8;"
-            onclick="clearDemandFilter()">✕ Clear</button>
-        </div>
+
       </div>
 
       <!-- Distributor-wise table -->
@@ -1025,11 +1010,13 @@
     document.getElementById(tab).classList.add('active');
     event.target.classList.add('active');
     if (tab === 'dashboard') updateDashboard();
-    if (tab === 'demand') { 
-      renderDemandEntryGrid(); 
-      document.getElementById('demand-view-date').value = today();
-      const _vd = (document.getElementById("demand-view-date")||{}).value || today(); renderDemandSummaryPage(_vd); 
-      updateDistList(); 
+    if (tab === 'demand') {
+      renderDemandEntryGrid();
+      // Only set date if not already set — don't override user's selected date
+      const vdEl = document.getElementById('demand-view-date');
+      if (!vdEl.value) vdEl.value = today();
+      renderDemandSummaryPage(vdEl.value);
+      updateDistList();
     }
     if (tab === 'reports') {
       renderTaxInvoiceHistory();
@@ -1688,13 +1675,7 @@
     if (!names.length) {
       sel.innerHTML = '<option value="">-- Pehle Distributor add karein --</option>';
     }
-    // Also populate filter dropdown
-    const fsel = document.getElementById('demand-filter-dist');
-    if (fsel) {
-      const fcur = fsel.value;
-      fsel.innerHTML = '<option value="">All Distributors</option>' +
-        names.map(n => `<option value="${n}" ${n===fcur?'selected':''}>${n}</option>`).join('');
-    }
+
   }
 
   function onDistSelect(sel) {
@@ -1785,9 +1766,17 @@
         Object.entries(items).forEach(([pid, val]) => { mergedEdit[pid] = val; });
         data.demandEntries[idx] = { ...data.demandEntries[idx], date, distName, items: mergedEdit, savedAt: Date.now() };
       }
-      if(dbRef) saveDemandEntries(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
+      document.getElementById('demand-view-date').value = date;
       if (idx >= 0) alert(`✅ ${distName} ki demand update ho gayi!`);
       else alert(`⚠️ Entry nahi mili, naya save kar raha hoon!`);
+      if(dbRef) saveDemandEntries();
+      updateDistList();
+      clearDemandForm();
+      renderDemandSummaryPage(date);
+      setTimeout(() => {
+        const el = document.getElementById('demand-dist-tables');
+        if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+      }, 100);
     } else {
       const idx = data.demandEntries.findIndex(e => e.date === date && e.distName === distName);
       if (idx >= 0) {
@@ -1812,7 +1801,15 @@
         data.demandEntries.push({ id: Date.now(), date, distName, items, savedAt: Date.now() });
         alert(`✅ ${distName} ki demand save ho gayi!`);
       }
-      if(dbRef) saveDemandEntries(); updateDistList(); renderDemandSummaryPage(date); clearDemandForm();
+      document.getElementById('demand-view-date').value = date;
+      if(dbRef) saveDemandEntries();
+      updateDistList();
+      clearDemandForm();
+      renderDemandSummaryPage(date);
+      setTimeout(() => {
+        const el = document.getElementById('demand-dist-tables');
+        if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+      }, 100);
     }
   }
 
@@ -1960,7 +1957,7 @@
 
   function renderDemandSummaryPage(date) {
     date = date || today();
-    const allProds = getAllProducts();
+    const allProds = getAllProductsForExport(); // include inactive products too
     const entries = (data.demandEntries||[]).filter(e => e.date === date);
     const container = document.getElementById('demand-dist-tables');
     document.getElementById('demand-day-label').textContent = formatDate(date);
