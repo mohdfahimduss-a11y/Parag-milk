@@ -917,6 +917,9 @@
       updateDistList();
       updateDashboard();
       renderTaxInvoiceHistory();
+      // Render demand summary after Firebase data loads
+      const vdEl = document.getElementById('demand-view-date');
+      if (vdEl) renderDemandSummaryPage(vdEl.value || today());
     }).catch(e => {
       console.log('Firebase load error:', e);
       renderProducts();
@@ -2050,7 +2053,7 @@
       // Calculate total amount for this entry
       const eDist = (data.customers||[]).find(c => c.name === e.distName);
       let entryTotal = 0;
-      const distItems = Object.entries(e.items).map(([pid, itemData]) => {
+      const distItems = Object.entries(e.items||{}).map(([pid, itemData]) => {
         const prod = allProds.find(p => String(p.id) === String(pid));
         if (!prod) return '';
         const qty = typeof itemData === 'object' ? (itemData.qty || 0) : itemData;
@@ -2059,12 +2062,12 @@
         const rawRate = (eDist && eDist.productRates && eDist.productRates[pid])
           ? parseFloat(eDist.productRates[pid])
           : (prod.rate||0);
+        const savedUnit = typeof itemData==='object' ? (itemData.unit||'PKT') : 'PKT';
         const displayDiv6 = {'fcm6l':6,'ton6l':6};
         const rDiv = displayDiv6[pid] || 1;
         const perUnitRate = rDiv > 1 ? Math.round(rawRate/rDiv*100)/100 : rawRate;
         const rateLabel = rDiv > 1 ? '₹'+perUnitRate+'/LTR'
           : (savedUnit !== 'PKT' ? '₹'+perUnitRate+'/'+savedUnit : '₹'+rawRate+'/PKT');
-        const savedUnit = typeof itemData==='object' ? (itemData.unit||'PKT') : 'PKT';
         // Unit-aware amount: PKT mode → rate × qty, LTR/KG mode → perUnitRate × kgltr
         let val;
         if (rDiv > 1) {
@@ -4195,7 +4198,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     csv += '========== DEMAND DATA ==========\n';
     csv += 'Date,Distributor,Product,Size,Category,Quantity,Rate,Value\n';
     (data.demandEntries||[]).forEach(e => {
-      Object.entries(e.items).forEach(([pid, qty]) => {
+      Object.entries(e.items||{}).forEach(([pid, qty]) => {
         const prod = allProds.find(p => String(p.id) === String(pid));
         if (!prod) return;
         csv += `${e.date},${e.distName},${prod.name},${prod.size||''},${prod.cat},${qty},${prod.rate||0},${(prod.rate||0)*qty}\n`;
