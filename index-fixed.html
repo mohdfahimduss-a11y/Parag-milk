@@ -627,6 +627,34 @@
     </div>
 
 
+    <!-- DEMAND REPORTS -->
+    <div class="form-card">
+      <h3>📊 Demand Reports</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button onclick="setDemRptRange(7)"  class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">7 Din</button>
+          <button onclick="setDemRptRange(15)" class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">15 Din</button>
+          <button onclick="setDemRptRange(30)" class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">30 Din</button>
+          <button onclick="setDemRptMonth()"  class="btn btn-sm" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;font-size:0.75rem;">Is Mahina</button>
+        </div>
+        <input type="date" id="dem-rpt-from" style="flex:1;min-width:110px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;">
+        <span style="color:var(--muted);">→</span>
+        <input type="date" id="dem-rpt-to"   style="flex:1;min-width:110px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;">
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" style="flex:1;min-width:120px;" onclick="showDemRpt('dist')">🏪 Distributor Wise</button>
+        <button class="btn btn-primary" style="flex:1;min-width:120px;" onclick="showDemRpt('item')">🧀 Item Wise</button>
+        <button class="btn btn-primary" style="flex:1;min-width:120px;" onclick="showDemRpt('all')">📋 All Party</button>
+      </div>
+    </div>
+    <div class="table-card" id="dem-rpt-card" style="display:none;">
+      <div class="table-header" style="flex-wrap:wrap;gap:8px;">
+        <h3 id="dem-rpt-title">Report</h3>
+        <button class="btn btn-sm" style="background:#1D6F42;color:white;border:none;" onclick="exportDemRpt()">📥 Excel</button>
+      </div>
+      <div id="dem-rpt-body"></div>
+    </div>
+
     <!-- Tax Invoice History -->
     <div class="table-card">
       <div class="table-header" style="flex-wrap:wrap;gap:8px;">
@@ -4242,6 +4270,132 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
   }
 
   // PWA — Install Prompt
+  // ══ DEMAND REPORTS ══
+  let _demRptMode = 'dist';
+
+  function setDemRptRange(days) {
+    const to = today(), from = new Date();
+    from.setDate(from.getDate() - days + 1);
+    document.getElementById('dem-rpt-from').value = from.toISOString().split('T')[0];
+    document.getElementById('dem-rpt-to').value = to;
+  }
+  function setDemRptMonth() {
+    const now = new Date(), yr = now.getFullYear(), mo = String(now.getMonth()+1).padStart(2,'0');
+    document.getElementById('dem-rpt-from').value = `${yr}-${mo}-01`;
+    document.getElementById('dem-rpt-to').value = today();
+  }
+
+  function showDemRpt(mode) {
+    const from = document.getElementById('dem-rpt-from').value;
+    const to   = document.getElementById('dem-rpt-to').value;
+    if (!from || !to) { alert('Pehle date range select karo!'); return; }
+    _demRptMode = mode;
+    const entries = (data.demandEntries||[]).filter(e => e.date >= from && e.date <= to);
+    const allProds = getAllProductsForExport ? getAllProductsForExport() : getAllProducts();
+    const customers = data.customers || [];
+    const card = document.getElementById('dem-rpt-card');
+    const body = document.getElementById('dem-rpt-body');
+    const title = document.getElementById('dem-rpt-title');
+    const days = Math.round((new Date(to) - new Date(from)) / 86400000) + 1;
+    card.style.display = 'block';
+    card.scrollIntoView({ behavior:'smooth', block:'start' });
+    if (!entries.length) { title.textContent = 'Report'; body.innerHTML = '<div class="empty" style="padding:24px;">Is period mein koi demand nahi</div>'; return; }
+
+    function getVal(pid, itemData, dist) {
+      const prod = allProds.find(p => String(p.id)===String(pid)); if (!prod) return {val:0, dq:0};
+      const qty = typeof itemData==='object'?(itemData.qty||0):Number(itemData);
+      const kgltr = typeof itemData==='object'?(itemData.kgltr||0):0;
+      const savedUnit = typeof itemData==='object'?(itemData.unit||'PKT'):'PKT';
+      const rawRate = (dist&&dist.productRates&&dist.productRates[pid])?parseFloat(dist.productRates[pid]):(prod.rate||0);
+      const d6 = {'fcm6l':6,'ton6l':6}; const rDiv = d6[pid]||1;
+      const pRate = rDiv>1?Math.round(rawRate/rDiv*100)/100:rawRate;
+      const val = rDiv>1?Math.round(pRate*(kgltr||qty*rDiv)*100)/100:savedUnit==='PKT'?Math.round(rawRate*(qty||kgltr)*100)/100:Math.round(pRate*kgltr*100)/100;
+      const dq = rDiv>1?(kgltr||qty*rDiv):savedUnit==='PKT'?qty:(kgltr||qty);
+      return { val, dq, savedUnit: rDiv>1?'L':savedUnit==='PKT'?'PKT':savedUnit };
+    }
+
+    if (mode === 'dist') {
+      title.textContent = `🏪 Distributor Wise — ${formatDate(from)} → ${formatDate(to)} (${days} din)`;
+      const map = {};
+      entries.forEach(e => {
+        const dist = customers.find(c => c.name===e.distName);
+        if (!map[e.distName]) map[e.distName] = {total:0, days:new Set(), code:dist?(dist.code||''):''};
+        map[e.distName].days.add(e.date);
+        Object.entries(e.items||{}).forEach(([pid,itemData]) => { map[e.distName].total += getVal(pid,itemData,dist).val; });
+      });
+      const sorted = Object.entries(map).sort((a,b)=>b[1].total-a[1].total);
+      const grand = sorted.reduce((s,[,d])=>s+d.total,0);
+      body.innerHTML = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+        <thead><tr style="background:var(--brown);color:white;"><th style="padding:8px 12px;text-align:left;">Distributor</th><th style="padding:8px 10px;text-align:center;">Code</th><th style="padding:8px 10px;text-align:center;">Din</th><th style="padding:8px 12px;text-align:right;">Total Amount</th></tr></thead>
+        <tbody>${sorted.map(([name,d],i)=>`<tr style="${i%2?'background:var(--cream)':''}"><td style="padding:8px 12px;font-weight:600;">${name}</td><td style="padding:8px 10px;text-align:center;color:var(--muted);font-size:0.78rem;">${d.code}</td><td style="padding:8px 10px;text-align:center;">${d.days.size}</td><td style="padding:8px 12px;text-align:right;font-family:var(--mono);font-weight:700;color:var(--amber);">₹${Math.round(d.total).toLocaleString('en-IN')}</td></tr>`).join('')}</tbody>
+        <tfoot><tr style="background:var(--brown);color:white;"><td colspan="3" style="padding:8px 12px;font-weight:800;">GRAND TOTAL</td><td style="padding:8px 12px;text-align:right;font-family:var(--mono);font-weight:900;">₹${Math.round(grand).toLocaleString('en-IN')}</td></tr></tfoot>
+      </table></div>`;
+    }
+    else if (mode === 'item') {
+      title.textContent = `🧀 Item Wise — ${formatDate(from)} → ${formatDate(to)} (${days} din)`;
+      const map = {};
+      entries.forEach(e => {
+        const dist = customers.find(c => c.name===e.distName);
+        Object.entries(e.items||{}).forEach(([pid,itemData]) => {
+          const prod = allProds.find(p=>String(p.id)===String(pid)); if (!prod) return;
+          const r = getVal(pid,itemData,dist);
+          if (!map[pid]) map[pid] = {name:prod.name, size:prod.size||'', qty:0, unit:r.savedUnit, total:0};
+          map[pid].qty += r.dq; map[pid].total += r.val;
+        });
+      });
+      const sorted = Object.entries(map).sort((a,b)=>b[1].total-a[1].total);
+      const grand = sorted.reduce((s,[,d])=>s+d.total,0);
+      body.innerHTML = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+        <thead><tr style="background:var(--brown);color:white;"><th style="padding:8px 12px;text-align:left;">Product</th><th style="padding:8px 10px;text-align:right;">Total Qty</th><th style="padding:8px 12px;text-align:right;">Total Amount</th></tr></thead>
+        <tbody>${sorted.map(([,d],i)=>`<tr style="${i%2?'background:var(--cream)':''}"><td style="padding:8px 12px;font-weight:600;">${d.name} <span style="color:var(--muted);font-size:0.78rem;">${d.size}</span></td><td style="padding:8px 10px;text-align:right;font-family:var(--mono);">${Math.round(d.qty*100)/100} ${d.unit}</td><td style="padding:8px 12px;text-align:right;font-family:var(--mono);font-weight:700;color:var(--amber);">₹${Math.round(d.total).toLocaleString('en-IN')}</td></tr>`).join('')}</tbody>
+        <tfoot><tr style="background:var(--brown);color:white;"><td colspan="2" style="padding:8px 12px;font-weight:800;">GRAND TOTAL</td><td style="padding:8px 12px;text-align:right;font-family:var(--mono);font-weight:900;">₹${Math.round(grand).toLocaleString('en-IN')}</td></tr></tfoot>
+      </table></div>`;
+    }
+    else {
+      title.textContent = `📋 All Party — ${formatDate(from)} → ${formatDate(to)} (${days} din)`;
+      const usedPids = new Set();
+      entries.forEach(e => Object.keys(e.items||{}).forEach(pid => usedPids.add(pid)));
+      const PREF = ['fcm500','fcm1l','fcm6l','fcm200','fcm135','std500','std1l','ton500','ton1l','ton6l','dtm500','dtm150','dtm170','cow','regular','chach300','chach400','matka5','matka15','curd_kg','curd140','curd5','curd15','chhach300','paneer1kg','ghee1l','butter500'];
+      const cols = [...usedPids].sort((a,b)=>{const ia=PREF.indexOf(a),ib=PREF.indexOf(b);return ia===-1&&ib===-1?0:ia===-1?1:ib===-1?-1:ia-ib;}).map(pid=>{const p=allProds.find(x=>String(x.id)===String(pid));return{pid,name:p?p.name:pid,size:p?p.size||'':''};});
+      const distNames = [...new Set(entries.map(e=>e.distName))].sort();
+      const colTotals = {}; cols.forEach(c=>colTotals[c.pid]=0); let grand=0;
+      const rows = distNames.map((distName,i)=>{
+        const dist = customers.find(c=>c.name===distName);
+        const dEntries = entries.filter(e=>e.distName===distName);
+        let rowTotal=0;
+        const cells = cols.map(col=>{
+          let dq=0,val=0;
+          dEntries.forEach(e=>{const itemData=(e.items||{})[col.pid];if(!itemData)return;const r=getVal(col.pid,itemData,dist);dq+=r.dq;val+=r.val;});
+          colTotals[col.pid]+=dq; rowTotal+=val;
+          return `<td style="text-align:center;padding:5px 6px;border:1px solid #ddd;font-family:var(--mono);font-size:0.82rem;">${dq>0?`<strong>${Math.round(dq*100)/100}</strong>`:'-'}</td>`;
+        }).join('');
+        grand+=rowTotal;
+        return `<tr style="${i%2?'background:var(--cream)':''}"><td style="padding:5px 10px;border:1px solid #ddd;font-weight:700;font-size:0.82rem;white-space:nowrap;">${distName}</td>${cells}<td style="padding:5px 10px;border:1px solid #ddd;text-align:right;font-family:var(--mono);font-weight:800;color:var(--amber);">₹${Math.round(rowTotal).toLocaleString('en-IN')}</td></tr>`;
+      }).join('');
+      body.innerHTML = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+        <thead><tr style="background:var(--brown);color:white;"><th style="padding:7px 10px;text-align:left;min-width:120px;">Party</th>${cols.map(c=>`<th style="padding:5px 6px;text-align:center;min-width:46px;">${c.name}<br><span style="font-weight:400;opacity:0.8;font-size:0.68rem;">${c.size}</span></th>`).join('')}<th style="padding:7px 10px;text-align:right;min-width:80px;">Total</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr style="background:var(--brown);color:white;"><td style="padding:6px 10px;font-weight:800;">TOTAL</td>${cols.map(col=>`<td style="text-align:center;padding:5px 6px;font-family:var(--mono);font-weight:800;">${colTotals[col.pid]>0?Math.round(colTotals[col.pid]*100)/100:'-'}</td>`).join('')}<td style="padding:6px 10px;text-align:right;font-family:var(--mono);font-weight:900;">₹${Math.round(grand).toLocaleString('en-IN')}</td></tr></tfoot>
+      </table></div>`;
+    }
+  }
+
+  function exportDemRpt() {
+    const from=document.getElementById('dem-rpt-from').value, to=document.getElementById('dem-rpt-to').value;
+    if(!from||!to)return;
+    if(typeof XLSX==='undefined'){alert('Excel library load nahi hui!');return;}
+    const entries=(data.demandEntries||[]).filter(e=>e.date>=from&&e.date<=to);
+    if(!entries.length){alert('Koi data nahi!');return;}
+    const allProds=getAllProductsForExport?getAllProductsForExport():getAllProducts();
+    const customers=data.customers||[];
+    const wb=XLSX.utils.book_new();
+    function getV(pid,itemData,dist){const prod=allProds.find(p=>String(p.id)===String(pid));if(!prod)return{val:0,dq:0};const qty=typeof itemData==='object'?(itemData.qty||0):Number(itemData);const kgltr=typeof itemData==='object'?(itemData.kgltr||0):0;const su=typeof itemData==='object'?(itemData.unit||'PKT'):'PKT';const rr=(dist&&dist.productRates&&dist.productRates[pid])?parseFloat(dist.productRates[pid]):(prod.rate||0);const d6={'fcm6l':6,'ton6l':6};const rDiv=d6[pid]||1;const pr=rDiv>1?Math.round(rr/rDiv*100)/100:rr;const val=rDiv>1?Math.round(pr*(kgltr||qty*rDiv)*100)/100:su==='PKT'?Math.round(rr*(qty||kgltr)*100)/100:Math.round(pr*kgltr*100)/100;const dq=rDiv>1?(kgltr||qty*rDiv):su==='PKT'?qty:(kgltr||qty);return{val,dq};}
+    if(_demRptMode==='dist'){const map={};entries.forEach(e=>{const d=customers.find(c=>c.name===e.distName);if(!map[e.distName])map[e.distName]={total:0,days:new Set(),code:d?(d.code||''):''};map[e.distName].days.add(e.date);Object.entries(e.items||{}).forEach(([pid,id])=>{map[e.distName].total+=getV(pid,id,d).val;});});const rows=[['Distributor','Code','Din','Total Amount']];Object.entries(map).sort((a,b)=>b[1].total-a[1].total).forEach(([n,d])=>rows.push([n,d.code,d.days.size,Math.round(d.total)]));XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Distributor Wise');}
+    else if(_demRptMode==='item'){const map={};entries.forEach(e=>{const d=customers.find(c=>c.name===e.distName);Object.entries(e.items||{}).forEach(([pid,id])=>{const prod=allProds.find(p=>String(p.id)===String(pid));if(!prod)return;const r=getV(pid,id,d);if(!map[pid])map[pid]={name:prod.name,size:prod.size||'',qty:0,total:0};map[pid].qty+=r.dq;map[pid].total+=r.val;});});const rows=[['Product','Size','Total Qty','Total Amount']];Object.values(map).sort((a,b)=>b.total-a.total).forEach(d=>rows.push([d.name,d.size,Math.round(d.qty*100)/100,Math.round(d.total)]));XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Item Wise');}
+    else{const up=new Set();entries.forEach(e=>Object.keys(e.items||{}).forEach(pid=>up.add(pid)));const PREF=['fcm500','fcm1l','fcm6l','fcm200','fcm135','std500','std1l','ton500','ton1l','ton6l','dtm500','dtm150','dtm170','cow','regular','chach300','chach400','matka5','matka15','paneer1kg'];const cols=[...up].sort((a,b)=>{const ia=PREF.indexOf(a),ib=PREF.indexOf(b);return ia===-1&&ib===-1?0:ia===-1?1:ib===-1?-1:ia-ib;}).map(pid=>{const p=allProds.find(x=>String(x.id)===String(pid));return{pid,name:p?p.name:pid,size:p?p.size||'':''};});const dn=[...new Set(entries.map(e=>e.distName))].sort();const rows=[['Party',...cols.map(c=>c.name+' '+c.size),'Total']];dn.forEach(dn=>{const d=customers.find(c=>c.name===dn);const de=entries.filter(e=>e.distName===dn);let rt=0;const cells=cols.map(col=>{let dq=0,val=0;de.forEach(e=>{const id=(e.items||{})[col.pid];if(!id)return;const r=getV(col.pid,id,d);dq+=r.dq;val+=r.val;});rt+=val;return dq>0?Math.round(dq*100)/100:'';});rows.push([dn,...cells,Math.round(rt)]);});XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'All Party');}
+    XLSX.writeFile(wb,`DemandReport_${_demRptMode}_${from}_${to}.xlsx`);
+  }
+
   let deferredPrompt;
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
