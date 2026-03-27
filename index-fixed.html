@@ -362,248 +362,86 @@
 
   <!-- SALES -->
   <div class="section" id="sales">
-
-    <!-- ═══ MAIN SALES VIEW ═══ -->
-    <div id="sales-main-view" style="padding-bottom:90px;">
-
-      <!-- Stat Cards -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-        <!-- You'll Get -->
-        <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,0.08);">
-          <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m0 0l-5-5m5 5l5-5" stroke="#2A7A4A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span style="font-size:0.72rem;color:#888;font-weight:600;">You'll Get</span>
-          </div>
-          <div id="sale-youll-get" style="font-size:1.18rem;font-weight:900;color:#222;letter-spacing:-0.5px;">₹0</div>
+    <div class="form-card">
+      <h3>💰 Add Sale Record</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="sale-date" onchange="onSaleCustomerChange()">
         </div>
-        <!-- Sale This Month -->
-        <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,0.08);">
-          <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="#E08B30" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="#E08B30" stroke-width="2" stroke-linecap="round"/></svg>
-            <span style="font-size:0.72rem;color:#888;font-weight:600;">Sale (<span id="sale-month-label">Mar</span>)</span>
-            <span id="sale-change-badge" style="font-size:0.65rem;color:#C93A2A;font-weight:700;display:none;">↓</span>
-          </div>
-          <div id="sale-month-total" style="font-size:1.18rem;font-weight:900;color:#222;letter-spacing:-0.5px;">₹0</div>
+        <div class="form-group">
+          <label>Distributor Name</label>
+          <input type="text" id="sale-customer" placeholder="Distributor name" list="customer-list"
+            oninput="onSaleCustomerChange()" onchange="onSaleCustomerChange()">
+          <datalist id="customer-list"></datalist>
         </div>
-      </div>
-
-      <!-- Tabs: Parties / Transactions / Items -->
-      <div style="display:flex;border:1.5px solid #ddd;border-radius:25px;overflow:hidden;background:white;margin-bottom:14px;">
-        <button onclick="salesTab('parties')" id="stab-parties"
-          style="flex:1;padding:9px 4px;border:none;background:#C62828;color:white;font-weight:700;font-size:0.82rem;cursor:pointer;border-radius:23px;transition:all 0.2s;">Parties</button>
-        <button onclick="salesTab('transactions')" id="stab-transactions"
-          style="flex:1;padding:9px 4px;border:none;background:transparent;color:#888;font-weight:600;font-size:0.82rem;cursor:pointer;border-radius:0;transition:all 0.2s;">Transactions</button>
-        <button onclick="salesTab('items')" id="stab-items"
-          style="flex:1;padding:9px 4px;border:none;background:transparent;color:#888;font-weight:600;font-size:0.82rem;cursor:pointer;border-radius:23px;transition:all 0.2s;">Items</button>
-      </div>
-
-      <!-- Search + New Party + ⋮ -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-        <div style="flex:1;display:flex;align-items:center;gap:8px;background:white;border:1.5px solid #ddd;border-radius:8px;padding:9px 12px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#1565C0" stroke-width="2.2"/><path d="M16.5 16.5L21 21" stroke="#1565C0" stroke-width="2.2" stroke-linecap="round"/></svg>
-          <input type="text" id="sale-search" placeholder="SEARCH PARTY" oninput="renderSales()"
-            style="border:none;outline:none;font-size:0.82rem;font-weight:600;letter-spacing:0.5px;background:transparent;flex:1;color:#888;">
-        </div>
-        <button onclick="openAddSaleForm()" style="display:flex;align-items:center;gap:5px;padding:9px 14px;background:#E8F0FE;color:#1565C0;border:1.5px solid #BBCEF8;border-radius:25px;font-weight:700;font-size:0.82rem;cursor:pointer;white-space:nowrap;">
-          <span style="font-size:1.1rem;line-height:1;">+</span> New Party
-        </button>
-        <button style="width:34px;height:34px;border:1.5px solid #ddd;border-radius:50%;background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem;color:#555;">⋮</button>
-      </div>
-
-      <!-- Parties List -->
-      <div id="sales-parties-view">
-        <div id="sales-parties-list" style="background:white;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,0.07);overflow:hidden;"></div>
-      </div>
-
-      <!-- Transactions List -->
-      <div id="sales-transactions-view" style="display:none;">
-        <div id="sales-txn-list" style="background:white;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,0.07);overflow:hidden;"></div>
-      </div>
-
-      <!-- Items List -->
-      <div id="sales-items-view" style="display:none;">
-        <div id="sales-items-list" style="background:white;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,0.07);overflow:hidden;"></div>
-      </div>
-
-    </div><!-- /sales-main-view -->
-
-    <!-- ═══ BOTTOM BAR ═══ -->
-    <div id="sales-bottom-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:white;border-top:1px solid #eee;padding:10px 14px 14px;align-items:center;gap:10px;">
-      <button onclick="openTakePaymentModal()"
-        style="flex:1;padding:13px;background:#1565C0;color:white;border:none;border-radius:30px;font-weight:800;font-size:0.9rem;cursor:pointer;box-shadow:0 2px 8px rgba(21,101,192,0.35);">
-        Take Payment
-      </button>
-      <button onclick="openAddSaleForm()"
-        style="width:50px;height:50px;flex-shrink:0;background:white;border:2px solid #1565C0;color:#1565C0;border-radius:50%;font-size:1.7rem;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">
-        +
-      </button>
-      <button onclick="openAddSaleForm()"
-        style="flex:1;padding:13px;background:#C62828;color:white;border:none;border-radius:30px;font-weight:800;font-size:0.9rem;cursor:pointer;box-shadow:0 2px 8px rgba(198,40,40,0.35);">
-        Add Sale
-      </button>
-    </div>
-
-    <!-- ═══ ADD SALE FULL-SCREEN FORM ═══ -->
-    <div id="sales-add-form" style="display:none;position:fixed;inset:0;background:#f5f5f5;z-index:300;overflow-y:auto;">
-
-      <!-- Header -->
-      <div style="background:white;padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;position:sticky;top:0;z-index:10;">
-        <button onclick="closeSaleForm()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#333;padding:2px 6px;">←</button>
-        <span style="font-size:1.05rem;font-weight:800;flex:1;color:#111;">Sale</span>
-        <!-- Credit / Cash toggle -->
-        <div style="display:flex;background:#f0f0f0;border-radius:20px;padding:3px;">
-          <button id="sale-credit-btn" onclick="setSaleType('Credit')"
-            style="padding:5px 16px;border:none;border-radius:18px;font-weight:700;font-size:0.8rem;cursor:pointer;background:#1565C0;color:white;transition:all 0.2s;">Credit</button>
-          <button id="sale-cash-btn" onclick="setSaleType('Cash')"
-            style="padding:5px 16px;border:none;border-radius:18px;font-weight:700;font-size:0.8rem;cursor:pointer;background:transparent;color:#999;transition:all 0.2s;">Cash</button>
-        </div>
-        <button style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#555;margin-left:4px;">⚙️</button>
-      </div>
-
-      <!-- Invoice No | Date -->
-      <div style="background:white;display:flex;border-bottom:1px solid #eee;margin-bottom:2px;">
-        <div style="flex:1;padding:14px 16px;border-right:1px solid #eee;">
-          <div style="font-size:0.72rem;color:#aaa;margin-bottom:5px;">Invoice No.</div>
-          <div style="display:flex;align-items:center;gap:4px;">
-            <span id="sale-invoice-no" style="font-size:0.98rem;font-weight:700;color:#111;">1</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#888" stroke-width="2" stroke-linecap="round"/></svg>
-          </div>
-        </div>
-        <div style="flex:1;padding:14px 16px;">
-          <div style="font-size:0.72rem;color:#aaa;margin-bottom:5px;">Date</div>
-          <div style="display:flex;align-items:center;gap:4px;">
-            <input type="date" id="sale-date" onchange="onSaleCustomerChange()"
-              style="border:none;outline:none;font-size:0.95rem;font-weight:700;color:#111;background:transparent;padding:0;width:100%;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><path d="M6 9l6 6 6-6" stroke="#888" stroke-width="2" stroke-linecap="round"/></svg>
-          </div>
-        </div>
-      </div>
-
-      <!-- Firm Name -->
-      <div style="background:white;padding:13px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-        <span style="font-size:0.82rem;color:#888;white-space:nowrap;">Firm Name:</span>
-        <span style="font-size:0.82rem;font-weight:600;color:#333;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Moradabad Dugdh Utpadak Sahakari Sangh Ltd.</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><path d="M6 9l6 6 6-6" stroke="#888" stroke-width="2" stroke-linecap="round"/></svg>
-      </div>
-
-      <!-- Customer -->
-      <div style="background:white;padding:16px;border-bottom:1px solid #eee;margin-bottom:2px;">
-        <div style="border:2px solid #1565C0;border-radius:8px;padding:10px 14px;position:relative;">
-          <div style="position:absolute;top:-10px;left:12px;background:white;padding:0 4px;font-size:0.72rem;color:#1565C0;font-weight:700;">Customer *</div>
-          <select id="sale-customer" onchange="onSaleCustomerChange()"
-            style="border:none;outline:none;font-size:1rem;width:100%;color:#111;background:transparent;padding:0;appearance:none;-webkit-appearance:none;cursor:pointer;">
-            <option value="">— Distributor chunein —</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Phone Number -->
-      <div style="background:white;padding:14px 16px;border-bottom:1px solid #eee;margin-bottom:2px;">
-        <input type="tel" id="sale-phone" placeholder="Phone Number"
-          style="border:1.5px solid #ddd;border-radius:8px;padding:11px 14px;font-size:0.95rem;width:100%;outline:none;color:#111;background:white;box-sizing:border-box;">
-      </div>
-
-      <!-- Demand Preview (shows if demand exists) -->
-      <div id="sale-demand-preview" style="display:none;background:white;padding:12px 16px;border-bottom:1px solid #eee;margin-bottom:2px;">
-        <div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
-          <div>
-            <div style="font-size:0.75rem;font-weight:700;color:#2A7A4A;margin-bottom:2px;">📦 Demand Amount</div>
-            <div id="sale-demand-breakdown" style="font-size:0.72rem;color:#666;"></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-            <span id="sale-demand-amt" style="font-weight:900;color:#2A7A4A;font-size:1rem;">₹0</span>
-            <button onclick="fillSaleFromDemand()" style="padding:5px 10px;border-radius:6px;border:none;background:#2A7A4A;color:white;font-size:0.75rem;font-weight:800;cursor:pointer;">↙ Fill</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Add Items button -->
-      <div style="background:white;padding:14px 16px;border-bottom:1px solid #eee;margin-bottom:2px;">
-        <div style="border:1.5px solid #ddd;border-radius:8px;padding:13px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleSaleItemsPanel()">
-          <div style="width:24px;height:24px;border-radius:50%;background:#1565C0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <span style="color:white;font-size:1rem;line-height:1;font-weight:300;">+</span>
-          </div>
-          <span style="font-size:0.9rem;font-weight:600;color:#1565C0;">Add Items</span>
-          <span style="font-size:0.9rem;color:#aaa;">(Optional)</span>
-        </div>
-        <!-- Product / Qty / Rate mini-form (hidden by default) -->
-        <div id="sale-items-panel" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #eee;">
-          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-            <span style="font-size:0.8rem;color:#888;white-space:nowrap;">Product:</span>
-            <select id="sale-product" style="border:1.5px solid #ddd;border-radius:6px;padding:7px 10px;font-size:0.88rem;flex:1;outline:none;background:white;">
-              <option>Milk</option>
-              <option>Milk Products</option>
-            </select>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <div style="flex:1;">
-              <div style="font-size:0.72rem;color:#aaa;margin-bottom:4px;">Qty</div>
-              <div style="display:flex;gap:5px;">
-                <button id="sale-unit-toggle" onclick="toggleSaleUnit()" style="padding:7px 9px;border-radius:6px;border:1.5px solid var(--amber);background:#FFF3E0;color:var(--amber);font-size:0.75rem;font-weight:800;cursor:pointer;white-space:nowrap;">PKT</button>
-                <input type="number" id="sale-qty" placeholder="0.0" step="0.1" min="0" style="border:1.5px solid #ddd;border-radius:6px;padding:7px 8px;font-size:0.9rem;width:100%;outline:none;">
-              </div>
+        <!-- Demand Amount Preview -->
+        <div class="form-group" id="sale-demand-preview" style="display:none;grid-column:1/-1;">
+          <div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div>
+              <div style="font-size:0.78rem;font-weight:700;color:var(--green);margin-bottom:2px;">📦 Is date ki Demand Amount</div>
+              <div id="sale-demand-breakdown" style="font-size:0.75rem;color:var(--muted);"></div>
             </div>
-            <div style="flex:1;">
-              <div style="font-size:0.72rem;color:#aaa;margin-bottom:4px;">Rate (₹)</div>
-              <input type="number" id="sale-rate" placeholder="0" min="0" style="border:1.5px solid #ddd;border-radius:6px;padding:7px 10px;font-size:0.9rem;width:100%;outline:none;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="sale-demand-amt" style="font-family:var(--mono);font-size:1.1rem;font-weight:900;color:var(--green);">₹0</span>
+              <button onclick="fillSaleFromDemand()" 
+                style="padding:6px 12px;border-radius:8px;border:1.5px solid #2A7A4A;background:#2A7A4A;color:white;font-size:0.78rem;font-weight:800;cursor:pointer;">
+                ↙ Fill
+              </button>
             </div>
           </div>
-          <div style="margin-top:8px;">
-            <input type="text" id="sale-notes" placeholder="Notes (optional)" style="border:1.5px solid #ddd;border-radius:6px;padding:9px 12px;font-size:0.9rem;width:100%;outline:none;box-sizing:border-box;">
-          </div>
         </div>
-      </div>
-
-      <!-- Total Amount -->
-      <div style="background:white;padding:16px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
-        <span style="font-size:0.95rem;font-weight:800;color:#111;">Total Amount</span>
-        <div style="display:flex;align-items:center;gap:4px;">
-          <span style="font-size:1rem;color:#888;">₹</span>
-          <input type="number" id="sale-amount" placeholder="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" min="0"
-            style="border:none;border-bottom:1.5px dashed #bbb;outline:none;font-size:1.05rem;font-weight:700;color:#111;width:140px;text-align:right;background:transparent;padding:4px 0 2px;">
-        </div>
-      </div>
-
-      <input type="hidden" id="sale-payment" value="Pending">
-
-      <!-- Spacer for bottom bar -->
-      <div style="height:70px;"></div>
-
-      <!-- Sticky Bottom Save Bar -->
-      <div style="position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #eee;display:flex;align-items:center;z-index:10;">
-        <button onclick="addSaleAndNew()" style="flex:1;padding:16px;border:none;background:transparent;color:#999;font-weight:700;font-size:0.88rem;cursor:pointer;border-right:1px solid #eee;">Save &amp; New</button>
-        <button onclick="addSale()" style="flex:2;padding:16px;background:#1565C0;color:white;border:none;font-weight:800;font-size:0.98rem;cursor:pointer;">Save</button>
-        <button style="width:44px;padding:16px 0;border:none;background:#1565C0;color:white;cursor:pointer;border-left:1px solid rgba(255,255,255,0.2);">⋮</button>
-      </div>
-    </div>
-
-    <!-- ═══ TAKE PAYMENT BOTTOM SHEET ═══ -->
-    <div id="take-payment-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:400;align-items:flex-end;" onclick="if(event.target===this)closeTakePaymentModal()">
-      <div style="background:white;border-radius:20px 20px 0 0;padding:20px 16px 28px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 -4px 24px rgba(0,0,0,0.15);">
-        <div style="width:40px;height:4px;background:#ddd;border-radius:4px;margin:0 auto 18px;"></div>
-        <h3 style="font-size:1rem;font-weight:800;color:#111;margin-bottom:18px;">💵 Take Payment</h3>
-        <div style="margin-bottom:14px;">
-          <label style="font-size:0.75rem;color:#888;font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px;">Distributor</label>
-          <select id="tp-customer" style="width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:0.95rem;outline:none;background:white;color:#111;">
-            <option value="">— Select Party —</option>
+        <div class="form-group">
+          <label>Product</label>
+          <select id="sale-product">
+            <option>Milk</option>
+            <option>Milk Products</option>
           </select>
         </div>
-        <div style="margin-bottom:14px;">
-          <label style="font-size:0.75rem;color:#888;font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px;">Amount (₹)</label>
-          <input type="number" id="tp-amount" placeholder="0" style="width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:1.05rem;font-weight:700;outline:none;box-sizing:border-box;color:#111;">
+        <div class="form-group">
+          <label>Quantity — <span id="sale-qty-label" style="color:var(--amber);">L/Kg/Pkt</span></label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button id="sale-unit-toggle" onclick="toggleSaleUnit()"
+              style="padding:8px 12px;border-radius:8px;border:1.5px solid var(--amber);background:#FFF3E0;color:var(--amber);font-size:0.82rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+              PKT
+            </button>
+            <input type="number" id="sale-qty" placeholder="0.0" step="0.1" min="0" style="flex:1;">
+          </div>
         </div>
-        <div style="margin-bottom:20px;">
-          <label style="font-size:0.75rem;color:#888;font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px;">Date</label>
-          <input type="date" id="tp-date" style="width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:0.95rem;outline:none;box-sizing:border-box;color:#111;">
+        <div class="form-group">
+          <label>Rate (₹ per L/Kg)</label>
+          <input type="number" id="sale-rate" placeholder="0" min="0">
         </div>
-        <div style="display:flex;gap:10px;">
-          <button onclick="closeTakePaymentModal()" style="flex:1;padding:14px;border:1.5px solid #ddd;border-radius:12px;background:white;font-weight:700;font-size:0.92rem;cursor:pointer;color:#555;">Cancel</button>
-          <button onclick="submitTakePayment()" style="flex:2;padding:14px;background:#1565C0;color:white;border:none;border-radius:12px;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 2px 8px rgba(21,101,192,0.3);">Confirm Payment</button>
+        <div class="form-group">
+          <label>Total Amount (₹)</label>
+          <input type="number" id="sale-amount" placeholder="Auto-calculated" min="0">
         </div>
+        <div class="form-group">
+          <label>Payment</label>
+          <select id="sale-payment">
+            <option>Paid</option>
+            <option>Pending</option>
+            <option>Partial</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <input type="text" id="sale-notes" placeholder="Optional notes">
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="addSale()">+ Add Sale</button>
       </div>
     </div>
 
-  </div><!-- /sales section -->
+    <div class="table-card">
+      <div class="table-header"><h3>💵 Sales History</h3></div>
+      <table>
+        <thead><tr><th>Date</th><th>Distributor</th><th>Product</th><th>Qty</th><th>Amount</th><th>Status</th><th>Del</th></tr></thead>
+        <tbody id="sales-table"><tr><td colspan="7" class="empty">No sales records yet.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
 
   <!-- DISTRIBUTORS -->
   <div class="section" id="customers">
@@ -1169,173 +1007,22 @@
   document.getElementById('headerDate').textContent = now.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' });
   document.getElementById('todayDate').textContent = now.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
-  // ── SALES UI ──────────────────────────────────────────────
-  let _salesTab = 'parties';
-  let _saleType = 'Credit';
-
-  function salesTab(tab) {
-    _salesTab = tab;
-    ['parties','transactions','items'].forEach(t => {
-      const btn = document.getElementById('stab-'+t);
-      const view = document.getElementById('sales-'+t+'-view');
-      const isActive = t === tab;
-      if(btn) {
-        btn.style.background = isActive ? '#C62828' : 'transparent';
-        btn.style.color = isActive ? 'white' : '#888';
-        btn.style.fontWeight = isActive ? '700' : '600';
-      }
-      if(view) view.style.display = isActive ? 'block' : 'none';
-    });
-    renderSales();
-  }
-
-  function setSaleType(type) {
-    _saleType = type;
-    document.getElementById('sale-credit-btn').style.background = type==='Credit' ? '#1565C0' : 'transparent';
-    document.getElementById('sale-credit-btn').style.color = type==='Credit' ? 'white' : '#888';
-    document.getElementById('sale-cash-btn').style.background = type==='Cash' ? '#1565C0' : 'transparent';
-    document.getElementById('sale-cash-btn').style.color = type==='Cash' ? 'white' : '#888';
-    document.getElementById('sale-payment').value = type==='Cash' ? 'Paid' : 'Pending';
-  }
-
-  function openAddSaleForm() {
-    document.getElementById('sales-add-form').style.display = 'block';
-    document.getElementById('sales-bottom-bar').style.display = 'none';
-    const nextInv = data.sales.length > 0 ? Math.max(...data.sales.map(s=>s.invoiceNo||0)) + 1 : 1;
-    document.getElementById('sale-invoice-no').textContent = nextInv;
-    document.getElementById('sale-date').value = today();
-  }
-
-  function closeSaleForm() {
-    document.getElementById('sales-add-form').style.display = 'none';
-    document.getElementById('sales-bottom-bar').style.display = 'flex';
-    const sel = document.getElementById('sale-customer');
-    if(sel) sel.value = '';
-    ['sale-qty','sale-rate','sale-amount','sale-notes','sale-phone'].forEach(id => {
-      const el = document.getElementById(id); if(el) el.value = '';
-    });
-    document.getElementById('sale-demand-preview').style.display = 'none';
-    const panel = document.getElementById('sale-items-panel');
-    if(panel) panel.style.display = 'none';
-  }
-
-  function openTakePaymentModal() {
-    const modal = document.getElementById('take-payment-modal');
-    modal.style.display = 'flex';
-    document.getElementById('tp-date').value = today();
-    const pending = getPendingByParty();
-    const sel = document.getElementById('tp-customer');
-    sel.innerHTML = '<option value="">— Select —</option>' +
-      Object.entries(pending).filter(([,d])=>d.pending>0).sort((a,b)=>b[1].pending-a[1].pending)
-        .map(([name,d])=>`<option value="${name}">${name} — ₹${Math.round(d.pending).toLocaleString('en-IN')}</option>`).join('');
-  }
-
-  function closeTakePaymentModal() {
-    document.getElementById('take-payment-modal').style.display = 'none';
-  }
-
-  function submitTakePayment() {
-    const customer = document.getElementById('tp-customer').value;
-    const amount = parseFloat(document.getElementById('tp-amount').value) || 0;
-    const date = document.getElementById('tp-date').value || today();
-    if(!customer) { alert('Distributor chunein!'); return; }
-    if(!amount) { alert('Amount daalen!'); return; }
-    const rec = { id:Date.now(), invoiceNo:null, date, customer, phone:'', product:'Payment Received', qty:0, rate:0, amount, payment:'Paid', notes:'Payment received', isPayment:true };
-    data.sales.unshift(rec);
-    if(dbRef) dbRef.update({sales: data.sales});
-    closeTakePaymentModal();
-    renderSales();
-    alert('✅ Payment received! ₹' + amount.toLocaleString('en-IN'));
-  }
-
-  function getPendingByParty() {
-    const map = {};
-    (data.sales||[]).forEach(s => {
-      const k = s.customer||'Unknown';
-      if(!map[k]) map[k] = {total:0, paid:0, lastDate:s.date||''};
-      map[k].total += s.amount||0;
-      if(s.payment==='Paid') map[k].paid += s.amount||0;
-      if((s.date||'') > map[k].lastDate) map[k].lastDate = s.date;
-    });
-    Object.keys(map).forEach(k => { map[k].pending = map[k].total - map[k].paid; });
-    return map;
-  }
-
-  function toggleSaleItemsPanel() {
-    const p = document.getElementById('sale-items-panel');
-    p.style.display = p.style.display === 'none' ? 'block' : 'none';
-  }
-
-  function updateSaleStats() {
-    const pending = getPendingByParty();
-    const youllGet = Object.values(pending).reduce((s,d)=>s+Math.max(0,d.pending),0);
-    const yEl = document.getElementById('sale-youll-get');
-    const mEl = document.getElementById('sale-month-total');
-    const mlEl = document.getElementById('sale-month-label');
-    if(yEl) yEl.textContent = '₹' + Math.round(youllGet).toLocaleString('en-IN');
-    const m = today().slice(0,7);
-    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    if(mlEl) mlEl.textContent = monthNames[parseInt(m.slice(5,7))-1];
-    const monthTotal = (data.sales||[]).filter(s=>s.date&&s.date.startsWith(m)).reduce((s,r)=>s+(r.amount||0),0);
-    if(mEl) mEl.textContent = '₹' + Math.round(monthTotal).toLocaleString('en-IN');
-  }
-
-  function renderSales() {
-    updateSaleStats();
-    const q = (document.getElementById('sale-search')?.value||'').toLowerCase();
-    if(_salesTab === 'parties') {
-      const pending = getPendingByParty();
-      const list = document.getElementById('sales-parties-list');
-      if(!list) return;
-      const entries = Object.entries(pending).filter(([name])=>!q||name.toLowerCase().includes(q)).sort((a,b)=>b[1].lastDate.localeCompare(a[1].lastDate));
-      if(!entries.length) { list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);">Koi party nahi</div>'; return; }
-      list.innerHTML = entries.map(([name,d],i)=>{
-        const p=Math.round(d.pending); const isGet=p>=0;
-        return `<div style="padding:14px 16px;${i>0?'border-top:1px solid #f0f0f0':''}display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="filterSalesByParty('${name.replace(/'/g,"\\'")}')">
-          <div><div style="font-weight:700;font-size:0.95rem;">${name}</div><div style="font-size:0.78rem;color:#aaa;margin-top:2px;">${formatDate(d.lastDate)}</div></div>
-          <div style="text-align:right;"><div style="font-weight:800;font-size:0.95rem;color:${isGet?'#2A7A4A':'#C93A2A'};">₹ ${Math.abs(p).toLocaleString('en-IN')}</div><div style="font-size:0.72rem;color:${isGet?'#2A7A4A':'#C93A2A'};font-weight:700;">${isGet?"You'll Get":"You'll Give"}</div></div>
-        </div>`;
-      }).join('');
-    } else if(_salesTab === 'transactions') {
-      const list = document.getElementById('sales-txn-list');
-      if(!list) return;
-      const filtered = (data.sales||[]).filter(s=>!q||((s.customer||'').toLowerCase().includes(q)||(s.product||'').toLowerCase().includes(q)));
-      if(!filtered.length) { list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);">Koi transaction nahi</div>'; return; }
-      list.innerHTML = filtered.map((r,i)=>`
-        <div style="padding:12px 16px;${i>0?'border-top:1px solid #f0f0f0':''}">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
-            <div><div style="font-weight:700;font-size:0.92rem;">${r.customer||'-'}</div><div style="font-size:0.78rem;color:#aaa;">${formatDate(r.date)} · ${r.product}</div></div>
-            <div style="text-align:right;"><div style="font-weight:800;color:${r.isPayment?'#1565C0':r.payment==='Paid'?'var(--green)':'#C93A2A'};">₹${(r.amount||0).toLocaleString('en-IN')}</div><span style="font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:10px;background:${r.payment==='Paid'?'#E8F5EE':r.payment==='Pending'?'#FFF0EE':'#FFF3E0'};color:${r.payment==='Paid'?'var(--green)':r.payment==='Pending'?'var(--red)':'var(--amber)'};">${r.payment}</span></div>
-          </div>
-          <div style="display:flex;gap:6px;margin-top:6px;">
-            ${!r.isPayment&&r.payment!=='Paid'?`<button onclick="takePayment(${r.id})" style="padding:5px 12px;border-radius:20px;border:none;background:#1565C0;color:white;font-size:0.75rem;font-weight:700;cursor:pointer;">💵 Pay</button>`:''}
-            <button onclick="delRecord('sales',${r.id})" style="padding:5px 10px;border-radius:20px;border:1px solid #ddd;background:white;color:#C93A2A;font-size:0.75rem;font-weight:700;cursor:pointer;">✕ Del</button>
-          </div>
-        </div>`).join('');
-    } else if(_salesTab === 'items') {
-      const list = document.getElementById('sales-items-list');
-      if(!list) return;
-      const map = {};
-      (data.sales||[]).filter(s=>!q||(s.product||'').toLowerCase().includes(q)).forEach(s=>{const k=s.product||'Other';if(!map[k])map[k]={count:0,total:0};map[k].count++;map[k].total+=s.amount||0;});
-      const entries = Object.entries(map).sort((a,b)=>b[1].total-a[1].total);
-      if(!entries.length){list.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted);">Koi item nahi</div>';return;}
-      list.innerHTML = entries.map(([name,d],i)=>`<div style="padding:14px 16px;${i>0?'border-top:1px solid #f0f0f0':''}display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:700;">${name}</div><div style="font-size:0.78rem;color:#aaa;">${d.count} transactions</div></div><div style="font-weight:800;color:var(--amber);">₹${Math.round(d.total).toLocaleString('en-IN')}</div></div>`).join('');
-    }
-  }
-
-  function filterSalesByParty(name) {
-    document.getElementById('sale-search').value = name;
-    salesTab('transactions');
-  }
-
-  let saleUnitMode = 'pkt';
+  // Auto-calculate sale amount
+  let saleUnitMode = 'pkt'; // 'pkt', 'ltr', 'kg'
   function toggleSaleUnit() {
     const btn = document.getElementById('sale-unit-toggle');
     const modes = ['PKT','LTR','KG'];
     const cur = btn.textContent.trim();
-    const next = modes[(modes.indexOf(cur)+1)%modes.length];
+    const next = modes[(modes.indexOf(cur)+1) % modes.length];
     btn.textContent = next;
     saleUnitMode = next.toLowerCase();
+    const isLtr = next === 'LTR';
+    const isKg  = next === 'KG';
+    btn.style.background  = (isLtr||isKg) ? '#E8F5E9' : '#FFF3E0';
+    btn.style.color       = (isLtr||isKg) ? 'var(--green)' : 'var(--amber)';
+    btn.style.borderColor = (isLtr||isKg) ? '#A5D6A7' : 'var(--amber)';
+    document.getElementById('sale-qty').placeholder = next === 'PKT' ? '0' : next + ' daalo';
+    document.getElementById('sale-qty-label').textContent = next;
     calcSale();
   }
 
@@ -1347,120 +1034,16 @@
     if (q && r) document.getElementById('sale-amount').value = (q * r).toFixed(0);
   }
 
-  function addSale() { _doAddSale(false); }
-  function addSaleAndNew() { _doAddSale(true); }
-  function _doAddSale(andNew) {
-    const invNo = parseInt(document.getElementById('sale-invoice-no').textContent) || (data.sales.length+1);
-    const rec = {
-      id: Date.now(), invoiceNo: invNo,
-      date: document.getElementById('sale-date').value,
-      customer: document.getElementById('sale-customer').value.trim(),
-      phone: document.getElementById('sale-phone').value.trim(),
-      product: document.getElementById('sale-product').value,
-      qty: parseFloat(document.getElementById('sale-qty').value)||0,
-      rate: parseFloat(document.getElementById('sale-rate').value)||0,
-      amount: parseFloat(document.getElementById('sale-amount').value)||0,
-      payment: document.getElementById('sale-payment').value || (_saleType==='Cash'?'Paid':'Pending'),
-      notes: document.getElementById('sale-notes').value
-    };
-    if(!rec.amount){alert('Amount daalen!');return;}
-    if(!rec.customer){alert('Customer ka naam daalen!');return;}
-    data.sales.unshift(rec);
-    if(dbRef) dbRef.update({sales: data.sales});
-    if(andNew) {
-      ['sale-customer','sale-qty','sale-rate','sale-amount','sale-notes','sale-phone'].forEach(id=>document.getElementById(id).value='');
-      document.getElementById('sale-demand-preview').style.display='none';
-      document.getElementById('sale-invoice-no').textContent = invNo+1;
-      document.getElementById('sale-customer').focus();
-    } else { closeSaleForm(); }
-    renderSales(); updateCustomerList();
-  }
-
-  function quickAddSale(customer, date) {
-    openAddSaleForm();
-    const sel = document.getElementById('sale-customer');
-    if(customer && sel) sel.value = customer;
-    if(date) document.getElementById('sale-date').value = date;
-    onSaleCustomerChange();
-  }
-
-  function takePayment(id) {
-    const idx = data.sales.findIndex(s=>s.id===id);
-    if(idx===-1) return;
-    if(data.sales[idx].payment==='Paid'){alert('Pehle se Paid hai!');return;}
-    const amt = data.sales[idx].amount;
-    if(!confirm(`₹${amt} payment receive karein?\n${data.sales[idx].customer||''}`)) return;
-    data.sales[idx].payment='Paid';
-    if(dbRef) dbRef.update({sales:data.sales});
-    renderSales();
-    alert('✅ Payment received! ₹'+amt);
-  }
-
-  function onSaleCustomerChange() {
-    const sel = document.getElementById('sale-customer');
-    const distName = sel ? (sel.tagName==='SELECT' ? sel.value : sel.value.trim()) : '';
-    // Auto-fill phone
-    const dist = data.customers.find(c=>c.name===distName);
-    const phoneEl = document.getElementById('sale-phone');
-    if(phoneEl && dist && dist.phone) phoneEl.value = dist.phone;
-    const date = document.getElementById('sale-date').value || today();
-    const preview = document.getElementById('sale-demand-preview');
-    const amtEl = document.getElementById('sale-demand-amt');
-    const breakEl = document.getElementById('sale-demand-breakdown');
-    if(!distName){preview.style.display='none';return;}
-    const entry = (data.demandEntries||[]).find(e=>e.date===date&&e.distName.toLowerCase()===distName.toLowerCase());
-    if(!entry){preview.style.display='none';return;}
-    const allProds=getAllProducts();
-    let totalAmt=0; const breakdown=[];
-    Object.entries(entry.items||{}).forEach(([pid,itemData])=>{
-      const prod=allProds.find(p=>String(p.id)===String(pid));if(!prod)return;
-      const qty=typeof itemData==='object'?(itemData.qty||0):Number(itemData);
-      const kgltr=typeof itemData==='object'?(itemData.kgltr||0):0;
-      const rawRate=(dist&&dist.productRates&&dist.productRates[pid])?parseFloat(dist.productRates[pid]):(prod.rate||0);
-      const rDiv={'fcm6l':6,'ton6l':6}[pid]||1;
-      const perUnitRate=rDiv>1?Math.round(rawRate/rDiv*100)/100:rawRate;
-      const val=kgltr>0?Math.round(perUnitRate*kgltr*100)/100:Math.round(rawRate*qty*100)/100;
-      totalAmt+=val;
-      if(val>0)breakdown.push(`${prod.name} ${prod.size||''}: ₹${Math.round(val).toLocaleString('en-IN')}`);
-    });
-    amtEl.textContent='₹'+Math.round(totalAmt).toLocaleString('en-IN');
-    breakEl.textContent=breakdown.slice(0,3).join(' · ')+(breakdown.length>3?' ...':'');
-    preview.style.display='block';
-    preview.dataset.amt=Math.round(totalAmt);
-    preview.dataset.dist=entry.distName;
-  }
-
-  function fillSaleFromDemand() {
-    const preview=document.getElementById('sale-demand-preview');
-    const amt=parseFloat(preview.dataset.amt)||0;
-    if(!amt)return;
-    document.getElementById('sale-customer').value=preview.dataset.dist||'';
-    document.getElementById('sale-amount').value=amt;
-    document.getElementById('sale-rate').value='';
-    document.getElementById('sale-qty').value='';
-    document.getElementById('sale-notes').value='Demand payment';
-  }
-
   // Tab Navigation
   function showTab(tab) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
     document.getElementById(tab).classList.add('active');
     event.target.classList.add('active');
-    // Sales bottom bar
-    const bar = document.getElementById('sales-bottom-bar');
-    const spacer = document.getElementById('sales-bottom-spacer');
-    if(tab === 'sales') {
-      if(bar) bar.style.display = 'flex';
-      if(spacer) spacer.style.display = 'block';
-      renderSales(); salesTab('parties');
-    } else {
-      if(bar) bar.style.display = 'none';
-      if(spacer) spacer.style.display = 'none';
-    }
     if (tab === 'dashboard') updateDashboard();
     if (tab === 'demand') {
       renderDemandEntryGrid();
+      // Only set date if not already set — don't override user's selected date
       const vdEl = document.getElementById('demand-view-date');
       if (!vdEl.value) vdEl.value = today();
       renderDemandSummaryPage(vdEl.value);
@@ -1474,6 +1057,106 @@
       document.getElementById('report-from').value = firstDay;
       document.getElementById('report-to').value = today();
     }
+  }
+
+  // SALES
+
+  function onSaleCustomerChange() {
+    const distName = document.getElementById('sale-customer').value.trim();
+    const date     = document.getElementById('sale-date').value || today();
+    const preview  = document.getElementById('sale-demand-preview');
+    const amtEl    = document.getElementById('sale-demand-amt');
+    const breakEl  = document.getElementById('sale-demand-breakdown');
+
+    if (!distName) { preview.style.display = 'none'; return; }
+
+    // Find today's demand for this distributor
+    const entry = (data.demandEntries||[]).find(e =>
+      e.date === date && e.distName.toLowerCase() === distName.toLowerCase()
+    );
+
+    if (!entry) { preview.style.display = 'none'; return; }
+
+    // Calculate total amount
+    const allProds = getAllProducts();
+    const dist = data.customers.find(c => c.name === entry.distName);
+    let totalAmt = 0;
+    const breakdown = [];
+
+    Object.entries(entry.items||{}).forEach(([pid, itemData]) => {
+      const prod = allProds.find(p => String(p.id) === String(pid));
+      if (!prod) return;
+      const qty   = typeof itemData === 'object' ? (itemData.qty||0)   : Number(itemData);
+      const kgltr = typeof itemData === 'object' ? (itemData.kgltr||0) : 0;
+      const rawRate = (dist && dist.productRates && dist.productRates[pid])
+        ? parseFloat(dist.productRates[pid]) : (prod.rate||0);
+      const displayDiv6 = {'fcm6l':6,'ton6l':6};
+      const rDiv = displayDiv6[pid] || 1;
+      const perUnitRate = rDiv > 1 ? Math.round(rawRate/rDiv*100)/100 : rawRate;
+      const val = kgltr > 0 ? Math.round(perUnitRate * kgltr * 100)/100
+                             : Math.round(rawRate * qty * 100)/100;
+      totalAmt += val;
+      if (val > 0) breakdown.push(`${prod.name} ${prod.size||''}: ₹${Math.round(val).toLocaleString('en-IN')}`);
+    });
+
+    amtEl.textContent = '₹' + Math.round(totalAmt).toLocaleString('en-IN');
+    breakEl.textContent = breakdown.slice(0,3).join(' · ') + (breakdown.length > 3 ? ' ...' : '');
+    preview.style.display = 'block';
+
+    // Store for fillSaleFromDemand
+    preview.dataset.amt = Math.round(totalAmt);
+    preview.dataset.dist = entry.distName;
+  }
+
+  function fillSaleFromDemand() {
+    const preview = document.getElementById('sale-demand-preview');
+    const amt = parseFloat(preview.dataset.amt) || 0;
+    const distName = preview.dataset.dist || '';
+    if (!amt) return;
+    document.getElementById('sale-customer').value = distName;
+    document.getElementById('sale-amount').value = amt;
+    document.getElementById('sale-rate').value = '';
+    document.getElementById('sale-qty').value = '';
+    document.getElementById('sale-notes').value = 'Demand payment';
+  }
+
+  function addSale() {
+    const rec = {
+      id: Date.now(),
+      date: document.getElementById('sale-date').value,
+      customer: document.getElementById('sale-customer').value,
+      product: document.getElementById('sale-product').value,
+      qty: parseFloat(document.getElementById('sale-qty').value) || 0,
+      rate: parseFloat(document.getElementById('sale-rate').value) || 0,
+      amount: parseFloat(document.getElementById('sale-amount').value) || 0,
+      payment: document.getElementById('sale-payment').value,
+      notes: document.getElementById('sale-notes').value
+    };
+    if (!rec.amount) { alert('Please enter amount!'); return; }
+    data.sales.unshift(rec);
+    if(dbRef) dbRef.update({sales: data.sales});
+    renderSales();
+    updateCustomerList();
+    document.getElementById('sale-customer').value = '';
+    document.getElementById('sale-qty').value = '';
+    document.getElementById('sale-rate').value = '';
+    document.getElementById('sale-amount').value = '';
+    document.getElementById('sale-notes').value = '';
+  }
+
+  function renderSales() {
+    const tb = document.getElementById('sales-table');
+    if (!data.sales.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">No sales records yet.</td></tr>'; return; }
+    tb.innerHTML = data.sales.map(r => `
+      <tr>
+        <td>${formatDate(r.date)}</td>
+        <td>${r.customer || '-'}</td>
+        <td>${r.product}</td>
+        <td>${r.qty} L</td>
+        <td><strong>₹${r.amount}</strong></td>
+        <td><span class="badge ${r.payment==='Paid'?'badge-green':r.payment==='Pending'?'badge-red':'badge-amber'}">${r.payment}</span></td>
+        <td><button class="btn btn-danger btn-sm" onclick="delRecord('sales',${r.id})">✕</button></td>
+      </tr>`).join('');
   }
 
   // CUSTOMERS
@@ -1523,17 +1206,8 @@
   }
 
   function updateCustomerList() {
-    // Old datalist (kept for compatibility)
     const dl = document.getElementById('customer-list');
-    if(dl) dl.innerHTML = data.customers.map(c=>`<option value="${c.name}">`).join('');
-    // Sale form dropdown
-    const sel = document.getElementById('sale-customer');
-    if(sel) {
-      const cur = sel.value;
-      sel.innerHTML = '<option value="">— Distributor chunein —</option>' +
-        data.customers.map(c=>`<option value="${c.name}" data-phone="${c.phone||''}">${c.name}${c.code?' ('+c.code+')':''}</option>`).join('');
-      if(cur) sel.value = cur;
-    }
+    if (dl) dl.innerHTML = data.customers.map(c => `<option value="${c.name}">`).join('');
     updateDistList();
   }
 
