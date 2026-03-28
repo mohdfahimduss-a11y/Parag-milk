@@ -574,119 +574,94 @@
       <div><h2>Reports & Export</h2></div>
     </div>
 
-    <!-- Excel Downloads -->
+    <!-- ═══ UNIFIED DEMAND REPORT CARD ═══ -->
     <div class="form-card">
-      <h3>📥 Excel Download</h3>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <div style="display:flex;gap:10px;">
-          <button class="btn btn-primary" style="flex:1;" onclick="exportAllExcel()">📥 Full Report</button>
-          <button class="btn btn-primary" style="flex:1;" onclick="exportSalesExcel()">💰 Sales Report</button>
-        </div>
-        <div style="display:flex;gap:10px;">
-          <button class="btn btn-primary" style="flex:1;" onclick="exportDemandExcel()">📦 Today's Demand</button>
-          <button class="btn btn-primary" style="flex:1;" onclick="exportMonthlyReport()">📅 Monthly Sales</button>
-        </div>
-        <!-- Monthly Demand -->
-        <div style="background:var(--cream);border-radius:10px;padding:12px;border:1.5px solid var(--border);">
-          <label style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:8px;">📦 Monthly Demand Excel (1–31)</label>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input type="month" id="demand-month-export" style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;">
-            <button class="btn btn-primary btn-sm" onclick="exportMonthlyDemandExcel()">📥 Download</button>
-          </div>
-        </div>
-        <!-- Date Range -->
-        <div style="background:var(--cream);border-radius:10px;padding:12px;border:1.5px solid var(--border);">
-          <label style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:8px;">📅 Date Range Report</label>
-          <!-- Quick presets -->
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-            <button onclick="setReportRange(15)" class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">15 Din</button>
-            <button onclick="setReportRange(30)" class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">30 Din</button>
-            <button onclick="setReportRange(7)"  class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">7 Din</button>
-            <button onclick="setCurrentMonth()"  class="btn btn-sm" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;font-size:0.75rem;">Is Mahina</button>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <input type="date" id="report-from" style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;">
-            <span style="color:var(--muted);font-size:0.85rem;">→</span>
-            <input type="date" id="report-to" style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;">
-          </div>
-          <div style="display:flex;gap:8px;margin-top:10px;">
-            <button class="btn btn-primary" style="flex:1;" onclick="generateRangeReport()">📊 Generate Report</button>
-            <button class="btn btn-primary btn-sm" onclick="exportDateRangeReport()">📥 Excel</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Range Report Display -->
-    <div class="table-card" id="range-report-card" style="display:none;">
-      <div class="table-header" style="flex-wrap:wrap;gap:8px;">
-        <h3 id="range-report-title">📊 Report</h3>
-        <button class="btn btn-primary btn-sm" onclick="exportDateRangeReport()">📥 Excel Download</button>
+      <!-- Toggle: Individual / All -->
+      <div style="display:flex;background:#f0f0f0;border-radius:12px;padding:4px;gap:4px;margin-bottom:16px;">
+        <button id="rpt-tab-individual" onclick="switchRptTab('individual')"
+          style="flex:1;padding:10px;border:none;border-radius:9px;font-weight:800;font-size:0.88rem;cursor:pointer;background:var(--brown);color:white;transition:all 0.2s;">
+          👤 Individual
+        </button>
+        <button id="rpt-tab-all" onclick="switchRptTab('all')"
+          style="flex:1;padding:10px;border:none;border-radius:9px;font-weight:800;font-size:0.88rem;cursor:pointer;background:transparent;color:#888;transition:all 0.2s;">
+          👥 All Distributors
+        </button>
       </div>
-      <div id="range-report-body"></div>
-    </div>
 
-
-    <!-- DEMAND REPORTS -->
-    <div class="form-card">
-      <h3>📊 Demand Reports</h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button onclick="setDemRptRange(7)"  class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">7 Din</button>
-          <button onclick="setDemRptRange(15)" class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">15 Din</button>
-          <button onclick="setDemRptRange(30)" class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">30 Din</button>
-          <button onclick="setDemRptMonth()"  class="btn btn-sm" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;font-size:0.75rem;">Is Mahina</button>
-        </div>
-        <input type="date" id="dem-rpt-from" style="flex:1;min-width:110px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;">
-        <span style="color:var(--muted);">→</span>
-        <input type="date" id="dem-rpt-to"   style="flex:1;min-width:110px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;">
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn btn-primary" style="flex:1;min-width:120px;" onclick="showDemRpt('dist')">🏪 Distributor Wise</button>
-        <button class="btn btn-primary" style="flex:1;min-width:120px;" onclick="showDemRpt('item')">🧀 Item Wise</button>
-        <button class="btn btn-primary" style="flex:1;min-width:120px;" onclick="showDemRpt('all')">📋 All Party</button>
-      </div>
-    </div>
-    <div class="table-card" id="dem-rpt-card" style="display:none;">
-      <div class="table-header" style="flex-wrap:wrap;gap:8px;">
-        <h3 id="dem-rpt-title">Report</h3>
-        <button class="btn btn-sm" style="background:#1D6F42;color:white;border:none;" onclick="exportDemRpt()">📥 Excel</button>
-      </div>
-      <div id="dem-rpt-body"></div>
-    </div>
-
-    <!-- INDIVIDUAL DISTRIBUTOR REPORT -->
-    <div class="form-card">
-      <h3>👤 Individual Distributor Report</h3>
-      <div style="margin-bottom:12px;">
-        <label style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Distributor Chunein</label>
-        <select id="idr-dist" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.95rem;outline:none;background:var(--cream);">
+      <!-- Individual: distributor select -->
+      <div id="rpt-individual-opts" style="margin-bottom:12px;">
+        <select id="rpt-dist" onchange="onRptDistChange()"
+          style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:0.95rem;outline:none;background:var(--cream);color:var(--text);">
           <option value="">— Distributor Select Karo —</option>
         </select>
       </div>
+
+      <!-- All: view mode -->
+      <div id="rpt-all-opts" style="display:none;margin-bottom:12px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button onclick="setAllRptMode('dist')" id="rpt-mode-dist"
+            style="flex:1;padding:9px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;background:var(--brown);color:white;">🏪 Dist Wise</button>
+          <button onclick="setAllRptMode('item')" id="rpt-mode-item"
+            style="flex:1;padding:9px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;background:white;color:var(--muted);">🧀 Item Wise</button>
+          <button onclick="setAllRptMode('table')" id="rpt-mode-table"
+            style="flex:1;padding:9px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;background:white;color:var(--muted);">📋 Full Table</button>
+        </div>
+      </div>
+
+      <!-- Quick Date Presets -->
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-        <button onclick="setIdrRange(7)"  class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">7 Din</button>
-        <button onclick="setIdrRange(15)" class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">15 Din</button>
-        <button onclick="setIdrRange(30)" class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">30 Din</button>
-        <button onclick="setIdrMonth()"   class="btn btn-sm" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;font-size:0.75rem;">Is Mahina</button>
+        <button onclick="setUniRptRange(7)"   class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">7 Din</button>
+        <button onclick="setUniRptRange(15)"  class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">15 Din</button>
+        <button onclick="setUniRptRange(30)"  class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">30 Din</button>
+        <button onclick="setUniRptMonth()"    class="btn btn-sm" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;font-size:0.75rem;">Is Mahina</button>
+        <button onclick="setUniRptRange(90)"  class="btn btn-sm" style="background:#FFF3E0;color:var(--amber);border:1px solid #FFCC80;font-size:0.75rem;">3 Mahine</button>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
-        <input type="date" id="idr-from" style="flex:1;min-width:130px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;">
-        <span style="color:var(--muted);">→</span>
-        <input type="date" id="idr-to"   style="flex:1;min-width:130px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;">
+
+      <!-- Date From → To -->
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+        <input type="date" id="rpt-from" style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;outline:none;">
+        <span style="color:var(--muted);font-size:0.9rem;font-weight:700;">→</span>
+        <input type="date" id="rpt-to"   style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;outline:none;">
       </div>
+
+      <!-- Action Buttons -->
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary" style="flex:1;" onclick="showIdrReport()">📊 Report Dekho</button>
-        <button class="btn btn-sm" style="background:#1D6F42;color:white;border:none;" onclick="exportIdrExcel()">📥 Excel</button>
+        <button onclick="generateUniReport()" class="btn btn-primary" style="flex:1;font-size:0.92rem;">
+          📊 Report Dekho
+        </button>
+        <button onclick="exportUniExcel()" style="padding:12px 16px;background:#1D6F42;color:white;border:none;border-radius:10px;font-weight:700;font-size:0.88rem;cursor:pointer;white-space:nowrap;">
+          📥 Excel
+        </button>
       </div>
     </div>
 
-    <div class="table-card" id="idr-card" style="display:none;">
+    <!-- Report Output -->
+    <div class="table-card" id="uni-rpt-card" style="display:none;">
       <div class="table-header" style="flex-wrap:wrap;gap:8px;">
-        <h3 id="idr-title">Report</h3>
-        <button class="btn btn-sm" style="background:#1D6F42;color:white;border:none;" onclick="exportIdrExcel()">📥 Excel</button>
+        <h3 id="uni-rpt-title" style="font-size:0.9rem;">Report</h3>
+        <button onclick="exportUniExcel()" style="padding:7px 14px;background:#1D6F42;color:white;border:none;border-radius:8px;font-weight:700;font-size:0.82rem;cursor:pointer;">📥 Excel</button>
       </div>
-      <div id="idr-body"></div>
+      <!-- Summary Cards -->
+      <div id="uni-rpt-summary" style="padding:12px;border-bottom:1px solid var(--border);display:none;"></div>
+      <!-- Table -->
+      <div id="uni-rpt-body"></div>
+    </div>
+
+    <!-- Excel Downloads -->
+    <div class="form-card">
+      <h3>📥 Quick Downloads</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" style="flex:1;" onclick="exportAllExcel()">📥 Full Report</button>
+          <button class="btn btn-primary" style="flex:1;" onclick="exportDemandExcel()">📦 Aaj ki Demand</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;background:var(--cream);border-radius:10px;padding:10px;border:1.5px solid var(--border);">
+          <span style="font-size:0.78rem;font-weight:700;color:var(--muted);white-space:nowrap;">📅 Mahina:</span>
+          <input type="month" id="demand-month-export" style="flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;outline:none;">
+          <button class="btn btn-primary btn-sm" onclick="exportMonthlyDemandExcel()">📥 Excel</button>
+        </div>
+      </div>
     </div>
 
     <!-- Tax Invoice History -->
@@ -697,17 +672,22 @@
       </div>
       <table>
         <thead>
-          <tr>
-            <th>Invoice No</th><th>Distributor</th><th>Period</th>
-            <th>Entries</th><th>Amount</th><th>GST 5%</th>
-            <th>Grand Total</th><th>Print</th><th>Del</th>
-          </tr>
+          <tr><th>Invoice No</th><th>Distributor</th><th>Period</th><th>Entries</th><th>Amount</th><th>GST 5%</th><th>Grand Total</th><th>Print</th><th>Del</th></tr>
         </thead>
         <tbody id="tax-invoice-history-table">
           <tr><td colspan="9" class="empty">Koi Tax Invoice nahi bani abhi tak.</td></tr>
         </tbody>
       </table>
     </div>
+
+    <!-- Hidden legacy inputs for old functions -->
+    <input type="hidden" id="report-from"><input type="hidden" id="report-to">
+    <input type="hidden" id="dem-rpt-from"><input type="hidden" id="dem-rpt-to">
+    <input type="hidden" id="idr-from"><input type="hidden" id="idr-to">
+    <div style="display:none;"><select id="idr-dist"></select></div>
+    <div id="range-report-card" style="display:none;"><div id="range-report-body"></div><h3 id="range-report-title"></h3></div>
+    <div id="dem-rpt-card"   style="display:none;"><div id="dem-rpt-body"></div><h3 id="dem-rpt-title"></h3></div>
+    <div id="idr-card"       style="display:none;"><div id="idr-body"></div><h3 id="idr-title"></h3></div>
   </div>
 
   <!-- PRODUCTS -->
@@ -1089,6 +1069,8 @@
       document.getElementById('demand-month-export').value = today().slice(0,7);
       const t = new Date();
       const firstDay = new Date(t.getFullYear(), t.getMonth(), 1).toISOString().split('T')[0];
+      document.getElementById('rpt-from').value = firstDay;
+      document.getElementById('rpt-to').value = today();
       document.getElementById('report-from').value = firstDay;
       document.getElementById('report-to').value = today();
     }
@@ -4344,16 +4326,170 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
 
   // PWA — Install Prompt
   // ══ DEMAND REPORTS ══
-  // ── INDIVIDUAL DISTRIBUTOR REPORT ─────────────────────────
-  function populateIdrDist() {
-    const sel = document.getElementById('idr-dist');
-    if (!sel) return;
-    const cur = sel.value;
-    sel.innerHTML = '<option value="">— Distributor Select Karo —</option>' +
-      (data.customers||[]).map(c => `<option value="${c.name}">${c.name}${c.code?' ('+c.code+')':''}</option>`).join('');
-    if (cur) sel.value = cur;
+  // ══ UNIFIED REPORT SYSTEM ══════════════════════════════
+  let _uniTab = 'individual';   // 'individual' | 'all'
+  let _allMode = 'dist';        // 'dist' | 'item' | 'table'
+
+  function switchRptTab(tab) {
+    _uniTab = tab;
+    const isInd = tab === 'individual';
+    document.getElementById('rpt-tab-individual').style.background = isInd ? 'var(--brown)' : 'transparent';
+    document.getElementById('rpt-tab-individual').style.color = isInd ? 'white' : '#888';
+    document.getElementById('rpt-tab-all').style.background = !isInd ? 'var(--brown)' : 'transparent';
+    document.getElementById('rpt-tab-all').style.color = !isInd ? 'white' : '#888';
+    document.getElementById('rpt-individual-opts').style.display = isInd ? 'block' : 'none';
+    document.getElementById('rpt-all-opts').style.display = !isInd ? 'block' : 'none';
+    document.getElementById('uni-rpt-card').style.display = 'none';
   }
 
+  function setAllRptMode(mode) {
+    _allMode = mode;
+    ['dist','item','table'].forEach(m => {
+      const btn = document.getElementById('rpt-mode-' + m);
+      if (btn) { btn.style.background = m===mode ? 'var(--brown)' : 'white'; btn.style.color = m===mode ? 'white' : 'var(--muted)'; }
+    });
+  }
+
+  function onRptDistChange() { document.getElementById('uni-rpt-card').style.display = 'none'; }
+
+  function setUniRptRange(days) {
+    const to = today(), from = new Date();
+    from.setDate(from.getDate() - days + 1);
+    document.getElementById('rpt-from').value = from.toISOString().split('T')[0];
+    document.getElementById('rpt-to').value = to;
+  }
+  function setUniRptMonth() {
+    const now = new Date(), yr = now.getFullYear(), mo = String(now.getMonth()+1).padStart(2,'0');
+    document.getElementById('rpt-from').value = `${yr}-${mo}-01`;
+    document.getElementById('rpt-to').value = today();
+  }
+
+  function generateUniReport() {
+    const from = document.getElementById('rpt-from').value;
+    const to   = document.getElementById('rpt-to').value;
+    if (!from || !to) { alert('Date range select karo!'); return; }
+    if (_uniTab === 'individual') {
+      // Sync to idr fields and run
+      document.getElementById('idr-from').value = from;
+      document.getElementById('idr-to').value   = to;
+      document.getElementById('idr-dist').value = document.getElementById('rpt-dist').value;
+      const d = _getIdrData();
+      if (!d) return;
+      _showUniIndividual(d);
+    } else {
+      // Sync to dem-rpt fields and run
+      document.getElementById('dem-rpt-from').value = from;
+      document.getElementById('dem-rpt-to').value   = to;
+      _showUniAll(from, to, _allMode);
+    }
+  }
+
+  function _showUniIndividual(d) {
+    const card  = document.getElementById('uni-rpt-card');
+    const body  = document.getElementById('uni-rpt-body');
+    const title = document.getElementById('uni-rpt-title');
+    const sumEl = document.getElementById('uni-rpt-summary');
+    card.style.display = 'block';
+    card.scrollIntoView({ behavior:'smooth', block:'start' });
+    title.textContent = `👤 ${d.distName} — ${formatDate(d.from)} → ${formatDate(d.to)}`;
+
+    if (!d.orderedDays) {
+      sumEl.style.display = 'none';
+      body.innerHTML = '<div class="empty" style="padding:24px;">Is period mein koi demand nahi</div>';
+      return;
+    }
+
+    // Summary cards
+    sumEl.style.display = 'block';
+    sumEl.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;">
+        <div style="background:var(--green-light);border-radius:10px;padding:11px;border:1px solid #A5D6A7;">
+          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;">Kul Amount</div>
+          <div style="font-size:1.2rem;font-weight:900;color:var(--green);">₹${Math.round(d.grandTotal).toLocaleString('en-IN')}</div>
+        </div>
+        <div style="background:#FFF3E0;border-radius:10px;padding:11px;border:1px solid #FFCC80;">
+          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;">Avg / Din</div>
+          <div style="font-size:1.2rem;font-weight:900;color:var(--amber);">₹${d.avgPerDay.toLocaleString('en-IN')}</div>
+        </div>
+        <div style="background:var(--blue-light);border-radius:10px;padding:11px;border:1px solid #BBCEF8;">
+          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;">Order Diye</div>
+          <div style="font-size:1.2rem;font-weight:900;color:var(--blue);">${d.orderedDays}<span style="font-size:0.75rem;font-weight:500;"> / ${d.totalDays} din</span></div>
+        </div>
+        <div style="background:${d.missingDays>0?'var(--red-light)':'var(--green-light)'};border-radius:10px;padding:11px;border:1px solid ${d.missingDays>0?'#FFCDD2':'#A5D6A7'};">
+          <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;">Chhoote Din</div>
+          <div style="font-size:1.2rem;font-weight:900;color:${d.missingDays>0?'var(--red)':'var(--green)'};">${d.missingDays}</div>
+        </div>
+      </div>
+      ${d.bestProd?`<div style="padding:8px 12px;background:#F3E5F5;border-radius:8px;font-size:0.8rem;color:#6A1B9A;">🏆 Sabse zyada: <strong>${d.bestProd.name} ${d.bestProd.size}</strong> — ${Math.round(d.bestQty*100)/100} units</div>`:''}`;
+
+    // Table
+    body.innerHTML = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
+      <thead><tr style="background:var(--brown);color:white;">
+        <th style="padding:7px 10px;text-align:left;white-space:nowrap;">Date</th>
+        <th style="padding:5px 8px;text-align:center;min-width:55px;">Status</th>
+        ${d.cols.map(c=>`<th style="padding:5px 6px;text-align:center;min-width:46px;">${c.name}<br><span style="font-weight:400;opacity:0.8;font-size:0.62rem;">${c.size}</span></th>`).join('')}
+        <th style="padding:7px 10px;text-align:right;min-width:70px;">Amount</th>
+      </tr></thead>
+      <tbody>${d.rows.map((r,i)=>{
+        if(r.missing) return `<tr style="background:#FFF8F8;"><td style="padding:6px 10px;color:#bbb;white-space:nowrap;">${formatDate(r.date)}</td><td style="text-align:center;padding:4px;"><span style="font-size:0.68rem;background:#FFCDD2;color:#C62828;padding:2px 6px;border-radius:8px;font-weight:700;">Chhoot Gaya</span></td>${d.cols.map(()=>'<td style="text-align:center;color:#ddd;">—</td>').join('')}<td style="text-align:right;padding:5px 10px;color:#ddd;">—</td></tr>`;
+        return `<tr style="${i%2?'background:var(--cream)':''}"><td style="padding:6px 10px;font-weight:600;white-space:nowrap;">${formatDate(r.date)}</td><td style="text-align:center;padding:4px;"><span style="font-size:0.68rem;background:${r.completed?'#E8F5EE':'#FFF3E0'};color:${r.completed?'var(--green)':'var(--amber)'};padding:2px 6px;border-radius:8px;font-weight:700;">${r.completed?'✓ Done':'Pending'}</span></td>${r.cells.map(c=>`<td style="text-align:center;padding:5px 6px;font-family:var(--mono);">${c.qty>0?`<strong>${c.qty}</strong>`:'-'}</td>`).join('')}<td style="padding:5px 10px;text-align:right;font-family:var(--mono);font-weight:700;color:var(--amber);">₹${Math.round(r.rowTotal).toLocaleString('en-IN')}</td></tr>`;
+      }).join('')}</tbody>
+      <tfoot><tr style="background:var(--brown);color:white;"><td colspan="2" style="padding:7px 10px;font-weight:800;">TOTAL</td>${d.cols.map(c=>`<td style="text-align:center;padding:5px 6px;font-family:var(--mono);font-weight:800;">${d.colTotals[c.pid]>0?Math.round(d.colTotals[c.pid]*100)/100:'-'}</td>`).join('')}<td style="padding:7px 10px;text-align:right;font-family:var(--mono);font-weight:900;">₹${Math.round(d.grandTotal).toLocaleString('en-IN')}</td></tr></tfoot>
+    </table></div>`;
+  }
+
+  function _showUniAll(from, to, mode) {
+    document.getElementById('dem-rpt-from').value = from;
+    document.getElementById('dem-rpt-to').value = to;
+    const modeMap = { dist:'dist', item:'item', table:'all' };
+    const card  = document.getElementById('uni-rpt-card');
+    const body  = document.getElementById('uni-rpt-body');
+    const title = document.getElementById('uni-rpt-title');
+    const sumEl = document.getElementById('uni-rpt-summary');
+    sumEl.style.display = 'none';
+    card.style.display = 'block';
+    card.scrollIntoView({ behavior:'smooth', block:'start' });
+    // Reuse existing showDemRpt logic but render into uni-rpt-body
+    showDemRpt(modeMap[mode] || 'dist');
+    // Copy result
+    setTimeout(() => {
+      const src = document.getElementById('dem-rpt-body');
+      const ttl = document.getElementById('dem-rpt-title');
+      if (src) body.innerHTML = src.innerHTML;
+      if (ttl) title.textContent = ttl.textContent;
+      document.getElementById('dem-rpt-card').style.display = 'none';
+    }, 50);
+  }
+
+  function exportUniExcel() {
+    const from = document.getElementById('rpt-from').value;
+    const to   = document.getElementById('rpt-to').value;
+    if (!from || !to) { alert('Pehle report generate karo!'); return; }
+    if (_uniTab === 'individual') {
+      document.getElementById('idr-from').value = from;
+      document.getElementById('idr-to').value   = to;
+      document.getElementById('idr-dist').value = document.getElementById('rpt-dist').value;
+      exportIdrExcel();
+    } else {
+      document.getElementById('dem-rpt-from').value = from;
+      document.getElementById('dem-rpt-to').value   = to;
+      exportDemRpt();
+    }
+  }
+
+  function populateIdrDist() {
+    // Populate both rpt-dist and idr-dist
+    ['rpt-dist','idr-dist'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">— Distributor Select Karo —</option>' +
+        (data.customers||[]).map(c=>`<option value="${c.name}">${c.name}${c.code?' ('+c.code+')':''}</option>`).join('');
+      if (cur) sel.value = cur;
+    });
+  }
+
+  let _demRptMode = 'dist';
   function setIdrRange(days) {
     const to = today(), from = new Date();
     from.setDate(from.getDate() - days + 1);
