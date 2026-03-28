@@ -218,6 +218,7 @@
   <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
   <button onclick="showTab('demand')">📦 Demand</button>
   <button onclick="showTab('sales')">💰 Sales</button>
+  <button onclick="showTab('expenses')">🧾 Expenses</button>
   <button onclick="showTab('customers')">🏪 Distributors</button>
   <button onclick="showTab('products')">🧀 Products</button>
   <button onclick="showTab('reports')">📈 Reports</button>
@@ -362,83 +363,140 @@
 
   <!-- SALES -->
   <div class="section" id="sales">
-    <div class="form-card">
-      <h3>💰 Add Sale Record</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Date</label>
-          <input type="date" id="sale-date" onchange="onSaleCustomerChange()">
-        </div>
-        <div class="form-group">
-          <label>Distributor Name</label>
-          <input type="text" id="sale-customer" placeholder="Distributor name" list="customer-list"
-            oninput="onSaleCustomerChange()" onchange="onSaleCustomerChange()">
-          <datalist id="customer-list"></datalist>
-        </div>
-        <!-- Demand Amount Preview -->
-        <div class="form-group" id="sale-demand-preview" style="display:none;grid-column:1/-1;">
-          <div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-            <div>
-              <div style="font-size:0.78rem;font-weight:700;color:var(--green);margin-bottom:2px;">📦 Is date ki Demand Amount</div>
-              <div id="sale-demand-breakdown" style="font-size:0.75rem;color:var(--muted);"></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span id="sale-demand-amt" style="font-family:var(--mono);font-size:1.1rem;font-weight:900;color:var(--green);">₹0</span>
-              <button onclick="fillSaleFromDemand()" 
-                style="padding:6px 12px;border-radius:8px;border:1.5px solid #2A7A4A;background:#2A7A4A;color:white;font-size:0.78rem;font-weight:800;cursor:pointer;">
-                ↙ Fill
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Product</label>
-          <select id="sale-product">
-            <option>Milk</option>
-            <option>Milk Products</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Quantity — <span id="sale-qty-label" style="color:var(--amber);">L/Kg/Pkt</span></label>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <button id="sale-unit-toggle" onclick="toggleSaleUnit()"
-              style="padding:8px 12px;border-radius:8px;border:1.5px solid var(--amber);background:#FFF3E0;color:var(--amber);font-size:0.82rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">
-              PKT
-            </button>
-            <input type="number" id="sale-qty" placeholder="0.0" step="0.1" min="0" style="flex:1;">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Rate (₹ per L/Kg)</label>
-          <input type="number" id="sale-rate" placeholder="0" min="0">
-        </div>
-        <div class="form-group">
-          <label>Total Amount (₹)</label>
-          <input type="number" id="sale-amount" placeholder="Auto-calculated" min="0">
-        </div>
-        <div class="form-group">
-          <label>Payment</label>
-          <select id="sale-payment">
-            <option>Paid</option>
-            <option>Pending</option>
-            <option>Partial</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Notes</label>
-          <input type="text" id="sale-notes" placeholder="Optional notes">
-        </div>
+    <div class="today-bar">
+      <div class="emoji">💰</div>
+      <div><h2>Sales — Udhari</h2><p style="font-size:0.8rem;color:#C8A882;">Distributor ko kitna diya, kitna mila</p></div>
+    </div>
+
+    <!-- Summary -->
+    <div class="cards" style="margin-bottom:14px;">
+      <div class="card green">
+        <div class="card-icon">✅</div>
+        <div class="card-label">Total Mila</div>
+        <div class="card-value green" id="s-total-paid">₹0</div>
       </div>
-      <div style="margin-top:14px;">
-        <button class="btn btn-primary" onclick="addSale()">+ Add Sale</button>
+      <div class="card red">
+        <div class="card-icon">⏳</div>
+        <div class="card-label">Baaki Hai</div>
+        <div class="card-value red" id="s-total-pending">₹0</div>
       </div>
     </div>
 
+    <!-- Add Sale Form -->
+    <div class="form-card">
+      <h3>➕ Naya Sale</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="s-date">
+        </div>
+        <div class="form-group">
+          <label>Distributor</label>
+          <select id="s-dist" style="padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:1rem;background:var(--cream);outline:none;">
+            <option value="">— Select —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" id="s-amount" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="s-status" style="padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:1rem;background:var(--cream);outline:none;">
+            <option value="Pending">Pending</option>
+            <option value="Paid">Paid</option>
+            <option value="Partial">Partial</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Note (Optional)</label>
+          <input type="text" id="s-note" placeholder="e.g. March payment">
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="addSimpleSale()">+ Add Sale</button>
+      </div>
+    </div>
+
+    <!-- Sales List -->
     <div class="table-card">
-      <div class="table-header"><h3>💵 Sales History</h3></div>
+      <div class="table-header" style="justify-content:space-between;">
+        <h3>📋 Sales History</h3>
+        <input type="text" id="s-search" placeholder="Search..." oninput="renderSimpleSales()"
+          style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82rem;width:120px;outline:none;">
+      </div>
       <table>
-        <thead><tr><th>Date</th><th>Distributor</th><th>Product</th><th>Qty</th><th>Amount</th><th>Status</th><th>Del</th></tr></thead>
-        <tbody id="sales-table"><tr><td colspan="7" class="empty">No sales records yet.</td></tr></tbody>
+        <thead><tr><th>Date</th><th>Distributor</th><th>Amount</th><th>Status</th><th>Del</th></tr></thead>
+        <tbody id="s-table"><tr><td colspan="5" class="empty">Koi sale nahi abhi tak.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXPENSES -->
+  <div class="section" id="expenses">
+    <div class="today-bar">
+      <div class="emoji">🧾</div>
+      <div><h2>Expenses — Kharcha</h2><p style="font-size:0.8rem;color:#C8A882;">Petrol, salary, maintenance, etc.</p></div>
+    </div>
+
+    <!-- Summary -->
+    <div class="cards" style="margin-bottom:14px;">
+      <div class="card red">
+        <div class="card-icon">📤</div>
+        <div class="card-label">Is Mahine</div>
+        <div class="card-value red" id="exp-month-total">₹0</div>
+      </div>
+      <div class="card amber">
+        <div class="card-icon">📊</div>
+        <div class="card-label">Kul Kharcha</div>
+        <div class="card-value amber" id="exp-all-total">₹0</div>
+      </div>
+    </div>
+
+    <!-- Add Expense -->
+    <div class="form-card">
+      <h3>➕ Naya Kharcha</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="exp-date">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="exp-cat" style="padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:1rem;background:var(--cream);outline:none;">
+            <option>Petrol/Diesel</option>
+            <option>Salary</option>
+            <option>Vehicle Maintenance</option>
+            <option>Bijli</option>
+            <option>Packing Material</option>
+            <option>Office</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" id="exp-amount" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Kisko Diya</label>
+          <input type="text" id="exp-paid" placeholder="Name (optional)">
+        </div>
+        <div class="form-group full">
+          <label>Note</label>
+          <input type="text" id="exp-note" placeholder="Detail likhein">
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="addExpense()">+ Add Expense</button>
+      </div>
+    </div>
+
+    <!-- Expense List -->
+    <div class="table-card">
+      <div class="table-header"><h3>📋 Kharcha List</h3></div>
+      <table>
+        <thead><tr><th>Date</th><th>Category</th><th>Note</th><th>Amount</th><th>Del</th></tr></thead>
+        <tbody id="exp-table"><tr><td colspan="5" class="empty">Koi kharcha nahi abhi tak.</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -881,6 +939,7 @@
           data.demandEntries = data.demandEntries ? Object.values(data.demandEntries).filter(e => e && e.id) : [];
         }
         renderSales(); renderCustomers(); renderProducts();
+        renderSimpleSales(); renderExpenses();
         updateCustomerList(); updateDistList(); updateDashboard();
         const vd = document.getElementById('demand-view-date');
         if (vd) renderDemandSummaryPage(vd.value || today());
@@ -946,6 +1005,10 @@
       renderSales();
       renderCustomers();
       renderProducts();
+      if (!Array.isArray(data.simpleSales)) data.simpleSales = [];
+      if (!Array.isArray(data.expenses))    data.expenses    = [];
+      renderSimpleSales();
+      renderExpenses();
       updateCustomerList();
       updateDistList();
       updateDashboard();
@@ -1054,11 +1117,19 @@
     if (tab === 'dashboard') updateDashboard();
     if (tab === 'demand') {
       renderDemandEntryGrid();
-      // Only set date if not already set — don't override user's selected date
       const vdEl = document.getElementById('demand-view-date');
       if (!vdEl.value) vdEl.value = today();
       renderDemandSummaryPage(vdEl.value);
       updateDistList();
+    }
+    if (tab === 'sales') {
+      document.getElementById('s-date').value = today();
+      populateSalesDist();
+      renderSimpleSales();
+    }
+    if (tab === 'expenses') {
+      document.getElementById('exp-date').value = today();
+      renderExpenses();
     }
     if (tab === 'reports') {
       renderTaxInvoiceHistory();
@@ -1171,6 +1242,123 @@
         <td><span class="badge ${r.payment==='Paid'?'badge-green':r.payment==='Pending'?'badge-red':'badge-amber'}">${r.payment}</span></td>
         <td><button class="btn btn-danger btn-sm" onclick="delRecord('sales',${r.id})">✕</button></td>
       </tr>`).join('');
+  }
+
+  // ── SIMPLE SALES ──────────────────────────────────────────
+  function populateSalesDist() {
+    const sel = document.getElementById('s-dist');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— Select —</option>' +
+      (data.customers||[]).map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+  }
+
+  function addSimpleSale() {
+    const date   = document.getElementById('s-date').value || today();
+    const dist   = document.getElementById('s-dist').value;
+    const amount = parseFloat(document.getElementById('s-amount').value) || 0;
+    const status = document.getElementById('s-status').value;
+    const note   = document.getElementById('s-note').value.trim();
+    if (!dist)   { alert('Distributor select karo!'); return; }
+    if (!amount) { alert('Amount daalo!'); return; }
+    if (!data.simpleSales) data.simpleSales = [];
+    data.simpleSales.unshift({ id: Date.now(), date, dist, amount, status, note });
+    if (dbRef) dbRef.update({ simpleSales: data.simpleSales });
+    document.getElementById('s-amount').value = '';
+    document.getElementById('s-note').value = '';
+    renderSimpleSales();
+  }
+
+  function renderSimpleSales() {
+    const tb  = document.getElementById('s-table');
+    if (!tb) return;
+    const q   = (document.getElementById('s-search')?.value || '').toLowerCase();
+    const all = (data.simpleSales || []).filter(s =>
+      !q || s.dist.toLowerCase().includes(q) || (s.note||'').toLowerCase().includes(q)
+    );
+    // Summary
+    const paid    = all.filter(s => s.status === 'Paid').reduce((t,s) => t+s.amount, 0);
+    const pending = all.filter(s => s.status !== 'Paid').reduce((t,s) => t+s.amount, 0);
+    const paidEl  = document.getElementById('s-total-paid');
+    const pendEl  = document.getElementById('s-total-pending');
+    if (paidEl) paidEl.textContent  = '₹' + Math.round(paid).toLocaleString('en-IN');
+    if (pendEl) pendEl.textContent  = '₹' + Math.round(pending).toLocaleString('en-IN');
+    if (!all.length) {
+      tb.innerHTML = '<tr><td colspan="5" class="empty">Koi sale nahi.</td></tr>'; return;
+    }
+    tb.innerHTML = all.map(s => `
+      <tr>
+        <td>${formatDate(s.date)}</td>
+        <td style="font-size:0.85rem;">${s.dist}</td>
+        <td><strong>₹${s.amount.toLocaleString('en-IN')}</strong>${s.note?`<br><span style="font-size:0.72rem;color:var(--muted);">${s.note}</span>`:''}</td>
+        <td><span class="badge ${s.status==='Paid'?'badge-green':s.status==='Pending'?'badge-red':'badge-amber'}">${s.status}</span>
+            ${s.status!=='Paid'?`<button onclick="markSalePaid(${s.id})" style="display:block;margin-top:4px;padding:2px 8px;background:var(--green);color:white;border:none;border-radius:6px;font-size:0.7rem;cursor:pointer;">✓ Paid</button>`:''}
+        </td>
+        <td><button class="btn btn-danger btn-sm" onclick="delSimpleSale(${s.id})">✕</button></td>
+      </tr>`).join('');
+  }
+
+  function markSalePaid(id) {
+    const s = (data.simpleSales||[]).find(x => x.id === id);
+    if (!s) return;
+    s.status = 'Paid';
+    if (dbRef) dbRef.update({ simpleSales: data.simpleSales });
+    renderSimpleSales();
+  }
+
+  function delSimpleSale(id) {
+    if (!confirm('Delete karein?')) return;
+    data.simpleSales = (data.simpleSales||[]).filter(s => s.id !== id);
+    if (dbRef) dbRef.update({ simpleSales: data.simpleSales });
+    renderSimpleSales();
+  }
+
+  // ── EXPENSES ──────────────────────────────────────────────
+  function addExpense() {
+    const date   = document.getElementById('exp-date').value || today();
+    const cat    = document.getElementById('exp-cat').value;
+    const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
+    const paid   = document.getElementById('exp-paid').value.trim();
+    const note   = document.getElementById('exp-note').value.trim();
+    if (!amount) { alert('Amount daalo!'); return; }
+    if (!data.expenses) data.expenses = [];
+    data.expenses.unshift({ id: Date.now(), date, cat, amount, paid, note });
+    if (dbRef) dbRef.update({ expenses: data.expenses });
+    document.getElementById('exp-amount').value = '';
+    document.getElementById('exp-paid').value   = '';
+    document.getElementById('exp-note').value   = '';
+    renderExpenses();
+  }
+
+  function renderExpenses() {
+    const tb = document.getElementById('exp-table');
+    if (!tb) return;
+    const all = data.expenses || [];
+    // Monthly total
+    const m = today().slice(0, 7);
+    const monthTotal = all.filter(e => e.date && e.date.startsWith(m)).reduce((t,e) => t+e.amount, 0);
+    const allTotal   = all.reduce((t,e) => t+e.amount, 0);
+    const mEl  = document.getElementById('exp-month-total');
+    const aEl  = document.getElementById('exp-all-total');
+    if (mEl) mEl.textContent = '₹' + Math.round(monthTotal).toLocaleString('en-IN');
+    if (aEl) aEl.textContent = '₹' + Math.round(allTotal).toLocaleString('en-IN');
+    if (!all.length) {
+      tb.innerHTML = '<tr><td colspan="5" class="empty">Koi kharcha nahi.</td></tr>'; return;
+    }
+    tb.innerHTML = all.map(e => `
+      <tr>
+        <td>${formatDate(e.date)}</td>
+        <td><span class="badge badge-amber">${e.cat}</span>${e.paid?`<br><span style="font-size:0.7rem;color:var(--muted);">${e.paid}</span>`:''}</td>
+        <td style="font-size:0.82rem;color:var(--muted);">${e.note||'-'}</td>
+        <td><strong style="color:var(--red);">₹${e.amount.toLocaleString('en-IN')}</strong></td>
+        <td><button class="btn btn-danger btn-sm" onclick="delExpense(${e.id})">✕</button></td>
+      </tr>`).join('');
+  }
+
+  function delExpense(id) {
+    if (!confirm('Delete karein?')) return;
+    data.expenses = (data.expenses||[]).filter(e => e.id !== id);
+    if (dbRef) dbRef.update({ expenses: data.expenses });
+    renderExpenses();
   }
 
   // CUSTOMERS
