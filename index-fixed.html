@@ -655,6 +655,40 @@
       <div id="dem-rpt-body"></div>
     </div>
 
+    <!-- INDIVIDUAL DISTRIBUTOR REPORT -->
+    <div class="form-card">
+      <h3>👤 Individual Distributor Report</h3>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Distributor Chunein</label>
+        <select id="idr-dist" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.95rem;outline:none;background:var(--cream);">
+          <option value="">— Distributor Select Karo —</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+        <button onclick="setIdrRange(7)"  class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">7 Din</button>
+        <button onclick="setIdrRange(15)" class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">15 Din</button>
+        <button onclick="setIdrRange(30)" class="btn btn-sm" style="background:#EEF2FF;color:#3949AB;border:1px solid #9FA8DA;font-size:0.75rem;">30 Din</button>
+        <button onclick="setIdrMonth()"   class="btn btn-sm" style="background:#E8F5E9;color:#2A7A4A;border:1px solid #A5D6A7;font-size:0.75rem;">Is Mahina</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+        <input type="date" id="idr-from" style="flex:1;min-width:130px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;">
+        <span style="color:var(--muted);">→</span>
+        <input type="date" id="idr-to"   style="flex:1;min-width:130px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;">
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="showIdrReport()">📊 Report Dekho</button>
+        <button class="btn btn-sm" style="background:#1D6F42;color:white;border:none;" onclick="exportIdrExcel()">📥 Excel</button>
+      </div>
+    </div>
+
+    <div class="table-card" id="idr-card" style="display:none;">
+      <div class="table-header" style="flex-wrap:wrap;gap:8px;">
+        <h3 id="idr-title">Report</h3>
+        <button class="btn btn-sm" style="background:#1D6F42;color:white;border:none;" onclick="exportIdrExcel()">📥 Excel</button>
+      </div>
+      <div id="idr-body"></div>
+    </div>
+
     <!-- Tax Invoice History -->
     <div class="table-card">
       <div class="table-header" style="flex-wrap:wrap;gap:8px;">
@@ -1051,6 +1085,7 @@
     }
     if (tab === 'reports') {
       renderTaxInvoiceHistory();
+      populateIdrDist();
       document.getElementById('demand-month-export').value = today().slice(0,7);
       const t = new Date();
       const firstDay = new Date(t.getFullYear(), t.getMonth(), 1).toISOString().split('T')[0];
@@ -4311,6 +4346,152 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
 
   // PWA — Install Prompt
   // ══ DEMAND REPORTS ══
+  // ── INDIVIDUAL DISTRIBUTOR REPORT ─────────────────────────
+  function populateIdrDist() {
+    const sel = document.getElementById('idr-dist');
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— Distributor Select Karo —</option>' +
+      (data.customers||[]).map(c => `<option value="${c.name}">${c.name}${c.code?' ('+c.code+')':''}</option>`).join('');
+    if (cur) sel.value = cur;
+  }
+
+  function setIdrRange(days) {
+    const to = today(), from = new Date();
+    from.setDate(from.getDate() - days + 1);
+    document.getElementById('idr-from').value = from.toISOString().split('T')[0];
+    document.getElementById('idr-to').value = to;
+  }
+  function setIdrMonth() {
+    const now = new Date(), yr = now.getFullYear(), mo = String(now.getMonth()+1).padStart(2,'0');
+    document.getElementById('idr-from').value = `${yr}-${mo}-01`;
+    document.getElementById('idr-to').value = today();
+  }
+
+  function _getIdrData() {
+    const distName = document.getElementById('idr-dist').value;
+    const from     = document.getElementById('idr-from').value;
+    const to       = document.getElementById('idr-to').value;
+    if (!distName) { alert('Pehle distributor select karo!'); return null; }
+    if (!from || !to) { alert('Date range select karo!'); return null; }
+    const dist    = (data.customers||[]).find(c => c.name === distName);
+    const entries = (data.demandEntries||[]).filter(e => e.distName === distName && e.date >= from && e.date <= to);
+    const allProds = getAllProductsForExport ? getAllProductsForExport() : getAllProducts();
+
+    // collect all product ids used
+    const usedPids = new Set();
+    entries.forEach(e => Object.keys(e.items||{}).forEach(p => usedPids.add(p)));
+
+    const PREF = ['fcm500','fcm1l','fcm6l','fcm200','fcm135','std500','std1l','ton500','ton1l','ton6l',
+      'dtm500','dtm150','dtm170','cow','regular','chach300','chach400','matka5','matka15',
+      'curd_kg','curd140','curd5','curd15','chhach300','paneer1kg','ghee1l','butter500'];
+    const cols = [...usedPids].sort((a,b) => {
+      const ia = PREF.indexOf(a), ib = PREF.indexOf(b);
+      return ia===-1&&ib===-1?0:ia===-1?1:ib===-1?-1:ia-ib;
+    }).map(pid => {
+      const p = allProds.find(x => String(x.id)===String(pid));
+      return { pid, name: p?p.name:pid, size: p?p.size||'':'' };
+    });
+
+    // build rows: one per date
+    const allDates = [...new Set(entries.map(e => e.date))].sort();
+    const colTotals = {}; cols.forEach(c => colTotals[c.pid] = 0);
+    let grandTotal = 0;
+
+    const rows = allDates.map(date => {
+      const dayEntry = entries.find(e => e.date === date);
+      let rowTotal = 0;
+      const cells = cols.map(col => {
+        if (!dayEntry) return { qty: 0, val: 0 };
+        const itemData = (dayEntry.items||{})[col.pid];
+        if (!itemData) return { qty: 0, val: 0 };
+        const qty    = typeof itemData==='object'?(itemData.qty||0):Number(itemData);
+        const kgltr  = typeof itemData==='object'?(itemData.kgltr||0):0;
+        const savedUnit = typeof itemData==='object'?(itemData.unit||'PKT'):'PKT';
+        const rawRate = (dist&&dist.productRates&&dist.productRates[col.pid])
+          ? parseFloat(dist.productRates[col.pid])
+          : (allProds.find(p=>String(p.id)===String(col.pid))?.rate||0);
+        const rDiv = {'fcm6l':6,'ton6l':6}[col.pid]||1;
+        const pRate = rDiv>1 ? Math.round(rawRate/rDiv*100)/100 : rawRate;
+        const dq = rDiv>1 ? (kgltr||qty*rDiv) : savedUnit==='PKT' ? qty : (kgltr||qty);
+        const val = rDiv>1
+          ? Math.round(pRate*(kgltr||qty*rDiv)*100)/100
+          : savedUnit==='PKT'
+            ? Math.round(rawRate*(qty||kgltr)*100)/100
+            : Math.round(pRate*kgltr*100)/100;
+        colTotals[col.pid] += dq;
+        rowTotal += val;
+        return { qty: Math.round(dq*100)/100, val };
+      });
+      grandTotal += rowTotal;
+      return { date, cells, rowTotal };
+    });
+
+    return { distName, from, to, cols, rows, colTotals, grandTotal, allDates };
+  }
+
+  function showIdrReport() {
+    const d = _getIdrData();
+    if (!d) return;
+    const card  = document.getElementById('idr-card');
+    const body  = document.getElementById('idr-body');
+    const title = document.getElementById('idr-title');
+    card.style.display = 'block';
+    card.scrollIntoView({ behavior:'smooth', block:'start' });
+
+    if (!d.rows.length) {
+      title.textContent = `👤 ${d.distName}`;
+      body.innerHTML = '<div class="empty" style="padding:24px;">Is period mein koi demand nahi</div>';
+      return;
+    }
+
+    const days = Math.round((new Date(d.to)-new Date(d.from))/86400000)+1;
+    title.textContent = `👤 ${d.distName} — ${formatDate(d.from)} → ${formatDate(d.to)} (${days} din)`;
+
+    body.innerHTML = `<div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
+        <thead>
+          <tr style="background:var(--brown);color:white;">
+            <th style="padding:7px 10px;text-align:left;white-space:nowrap;min-width:80px;">Date</th>
+            ${d.cols.map(c=>`<th style="padding:5px 6px;text-align:center;min-width:48px;white-space:nowrap;">${c.name}<br><span style="font-weight:400;opacity:0.8;font-size:0.65rem;">${c.size}</span></th>`).join('')}
+            <th style="padding:7px 10px;text-align:right;min-width:70px;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${d.rows.map((r,i)=>`
+            <tr style="${i%2?'background:var(--cream)':''}">
+              <td style="padding:6px 10px;font-weight:600;white-space:nowrap;">${formatDate(r.date)}</td>
+              ${r.cells.map(c=>`<td style="text-align:center;padding:5px 6px;font-family:var(--mono);">${c.qty>0?`<strong>${c.qty}</strong>`:'-'}</td>`).join('')}
+              <td style="padding:5px 10px;text-align:right;font-family:var(--mono);font-weight:700;color:var(--amber);">₹${Math.round(r.rowTotal).toLocaleString('en-IN')}</td>
+            </tr>`).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="background:var(--brown);color:white;">
+            <td style="padding:7px 10px;font-weight:800;">TOTAL</td>
+            ${d.cols.map(c=>`<td style="text-align:center;padding:5px 6px;font-family:var(--mono);font-weight:800;">${d.colTotals[c.pid]>0?Math.round(d.colTotals[c.pid]*100)/100:'-'}</td>`).join('')}
+            <td style="padding:7px 10px;text-align:right;font-family:var(--mono);font-weight:900;">₹${Math.round(d.grandTotal).toLocaleString('en-IN')}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>`;
+  }
+
+  function exportIdrExcel() {
+    const d = _getIdrData();
+    if (!d) return;
+    if (!d.rows.length) { alert('Koi data nahi!'); return; }
+    if (typeof XLSX === 'undefined') { alert('Excel library load nahi hui!'); return; }
+    const wb = XLSX.utils.book_new();
+    const header = ['Date', ...d.cols.map(c=>c.name+' '+c.size), 'Total Amount'];
+    const sheetRows = [header];
+    d.rows.forEach(r => {
+      sheetRows.push([r.date, ...r.cells.map(c=>c.qty>0?c.qty:''), Math.round(r.rowTotal)]);
+    });
+    sheetRows.push(['TOTAL', ...d.cols.map(c=>d.colTotals[c.pid]>0?Math.round(d.colTotals[c.pid]*100)/100:''), Math.round(d.grandTotal)]);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheetRows), d.distName.slice(0,31));
+    XLSX.writeFile(wb, `${d.distName}_Demand_${d.from}_${d.to}.xlsx`);
+  }
+
   let _demRptMode = 'dist';
 
   function setDemRptRange(days) {
