@@ -1094,6 +1094,7 @@
       if (!Array.isArray(data.expenses))    data.expenses    = [];
       renderSimpleSales();
       renderExpenses();
+      populateSalesDist();
       updateCustomerList();
       updateDistList();
       updateDashboard();
@@ -1371,7 +1372,7 @@
     const nextInv = (data.simpleSales||[]).length > 0
       ? Math.max(...(data.simpleSales||[]).map(s=>s.invoiceNo||0)) + 1 : 1;
     document.getElementById('sv-inv-no').textContent = nextInv;
-    // Populate party
+    // Populate party dropdown from customers
     populateSalesDist();
     if (partyName) { document.getElementById('sv-party').value = partyName; onSvPartyChange(); }
   }
@@ -1529,6 +1530,7 @@
 
   function renderSvList() {
     renderSvStats();
+    populateSalesDist();
     const q = (document.getElementById('sv-search')?.value||'').toLowerCase();
     if (_svTab === 'parties') {
       const list = document.getElementById('sv-parties-list');
