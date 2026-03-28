@@ -154,19 +154,32 @@
       <button onclick="viewMyDemand()" style="width:100%;padding:11px;background:#1A5FAB;color:white;border:none;border-radius:10px;font-size:0.88rem;font-weight:700;cursor:pointer;margin-top:8px;">👁️ Apni Purani Demand Dekho</button>
     </div>
 
+    <!-- Today already submitted notice -->
+    <div id="already-submitted-bar" style="display:none;background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:12px;padding:12px 16px;margin-bottom:14px;">
+      <div style="font-size:0.85rem;font-weight:700;color:#2A7A4A;">✅ Aaj ki demand pehle se submit hai</div>
+      <div id="already-submitted-info" style="font-size:0.75rem;color:#555;margin-top:2px;"></div>
+      <button onclick="clearTodayPrefill()" style="margin-top:8px;padding:5px 12px;background:var(--orange);color:white;border:none;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">✏️ Edit / Update Karo</button>
+    </div>
+
     <div class="card" id="products-card">
-      <h3>🥛 Products — Quantity Daalo</h3>
-      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">Sirf jo chahiye uska quantity daalo, baaki 0 rehne do</p>
-      
-      <!-- Add Row Button - TOP -->
-      <button onclick="addDemandRow()" style="width:100%;padding:13px;background:#C97A2A;color:white;border:none;border-radius:10px;font-size:0.95rem;font-weight:800;cursor:pointer;margin-bottom:14px;">➕ Product Row Add Karo</button>
-      
-      <!-- Extra rows at top -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <h3 style="margin-bottom:0;">🥛 Products</h3>
+        <!-- Running Total -->
+        <div style="text-align:right;">
+          <div style="font-size:0.7rem;color:var(--muted);font-weight:700;">TOTAL AMOUNT</div>
+          <div id="running-total" style="font-size:1.2rem;font-weight:900;color:var(--green);">₹0</div>
+        </div>
+      </div>
+      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:12px;">Sirf jo chahiye uska quantity daalo</p>
+
+      <!-- Product list (fixed products) -->
+      <div id="prod-list"></div>
+
+      <!-- Extra rows -->
       <div id="extra-rows"></div>
 
-      <div style="background:#FFF3E0;border:1px solid #F0D8A0;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:0.82rem;color:var(--brown);text-align:center;">
-        
-      </div>
+      <!-- Add Row Button -->
+      <button onclick="addDemandRow()" style="width:100%;padding:11px;background:#FFF3E0;color:var(--orange);border:1.5px dashed var(--orange);border-radius:10px;font-size:0.88rem;font-weight:800;cursor:pointer;margin-top:8px;margin-bottom:14px;">➕ Aur Product Add Karo</button>
       
       <button class="btn-submit" onclick="submitDemand()">✅ Demand Submit Karo</button>
     </div>
@@ -188,6 +201,7 @@
     <h2>Demand Submit Ho Gayi!</h2>
     <p id="success-msg">Aapki demand successfully register ho gayi hai.</p>
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
+      <button class="btn-new" onclick="shareOnWhatsApp()" style="background:#25D366;">📲 WhatsApp pe Share Karo</button>
       <button class="btn-new" onclick="viewMyDemandFromSuccess()">👁️ Apni Demand Dekho</button>
       <button class="btn-new" onclick="resetForm()" style="background:var(--brown);">+ Nayi Demand</button>
     </div>
@@ -231,7 +245,7 @@
         </select>
         <div id="${rowId}-rate" style="font-size:0.75rem;color:var(--muted);margin-top:3px;"></div>
       </div>
-      <input type="number" id="${rowId}-qty" class="qty-input" placeholder="Qty" min="0">
+      <input type="number" id="${rowId}-qty" class="qty-input" placeholder="Qty" min="0" oninput="calcRunningTotal()">
       <button onclick="removeRow('${rowId}')"
         style="background:var(--red);color:white;border:none;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:0.85rem;">✕</button>
     `;
@@ -395,16 +409,57 @@
     if (inp) { inp.value = ''; inp.placeholder = isUnit ? info.unit.toUpperCase() : '0'; }
   }
 
+  let lastSubmittedEntry = null; // for WhatsApp share
+
+  function calcRunningTotal() {
+    let total = 0;
+    if (!currentDist) { document.getElementById('running-total').textContent = '₹0'; return; }
+    const dist = currentDist;
+    allProds.forEach(p => {
+      const inp = document.getElementById('qty-' + p.id);
+      if (!inp) return;
+      const val = parseFloat(inp.value) || 0;
+      if (!val) return;
+      const rate = (dist.productRates && dist.productRates[p.id]) ? parseFloat(dist.productRates[p.id]) : (p.rate||0);
+      const info = getLtrKgSize(p.id);
+      const mode = demModes[p.id] || 'pkt';
+      let qty = val;
+      if (mode !== 'pkt' && info) qty = Math.round(val / info.size);
+      const rDiv = {'fcm6l':6,'ton6l':6}[p.id]||1;
+      const pRate = rDiv>1 ? Math.round(rate/rDiv*100)/100 : rate;
+      const amount = rDiv>1 ? pRate*(val) : rate*qty;
+      total += amount;
+    });
+    // Extra rows
+    for (let i = 1; i <= extraRowCount; i++) {
+      const rowId = 'extra-' + i;
+      const sel = document.getElementById(rowId + '-sel');
+      const qtyInp = document.getElementById(rowId + '-qty');
+      if (!sel || !qtyInp || !sel.value) continue;
+      const qty = parseFloat(qtyInp.value) || 0;
+      if (!qty) continue;
+      const pid = sel.value;
+      const prod = allProds.find(p => String(p.id)===String(pid));
+      const rate = (dist.productRates && dist.productRates[pid]) ? parseFloat(dist.productRates[pid]) : (prod?.rate||0);
+      total += rate * qty;
+    }
+    document.getElementById('running-total').textContent = '₹' + Math.round(total).toLocaleString('en-IN');
+  }
+
   function loadProducts(distName) {
     const dist = (appData.customers || []).find(c => c.name === distName);
     const prodList = document.getElementById('prod-list');
 
     if (!allProds.length) {
-      prodList.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">Koi product nahi mila. Admin se contact karo.</p>';
+      prodList.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;text-align:center;padding:16px;">Koi product nahi mila. Admin se contact karo.</p>';
       return;
     }
 
-    prodList.innerHTML = allProds.map(p => {
+    // Separate Milk and Milk Products
+    const milkProds = allProds.filter(p => (p.cat||'Milk') === 'Milk');
+    const otherProds = allProds.filter(p => p.cat && p.cat !== 'Milk');
+
+    function makeRow(p) {
       const distRate = dist && dist.productRates && dist.productRates[p.id] ? dist.productRates[p.id] : (p.rate || '');
       const info = getLtrKgSize(p.id);
       return `<div class="prod-row">
@@ -413,12 +468,69 @@
           ${distRate ? `<div class="prod-size">Rate: ₹${distRate}</div>` : ''}
         </div>
         ${info ? `<button id="dem-toggle-${p.id}" onclick="toggleDemMode('${p.id}')"
-          style="padding:6px 10px;border-radius:8px;border:1.5px solid #FFCC80;background:#FFF3E0;color:#C97A2A;font-size:0.75rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">
-          PKT
-        </button>` : ''}
-        <input type="number" class="qty-input" id="qty-${p.id}" placeholder="0" min="0" style="${info?'width:70px;':''}">
+          style="padding:6px 10px;border-radius:8px;border:1.5px solid #FFCC80;background:#FFF3E0;color:#C97A2A;font-size:0.75rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">PKT</button>` : ''}
+        <input type="number" class="qty-input" id="qty-${p.id}" placeholder="0" min="0"
+          style="${info?'width:70px;':''}" oninput="calcRunningTotal()">
       </div>`;
-    }).join('');
+    }
+
+    let html = '';
+    if (milkProds.length) {
+      html += `<div style="font-size:0.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:8px 0 6px;padding-left:4px;">🥛 Milk</div>`;
+      html += milkProds.map(makeRow).join('');
+    }
+    if (otherProds.length) {
+      html += `<div style="font-size:0.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:14px 0 6px;padding-left:4px;">🧀 Milk Products</div>`;
+      html += otherProds.map(makeRow).join('');
+    }
+    prodList.innerHTML = html;
+
+    // Auto-prefill aaj ki demand agar already hai
+    const todayEntry = (appData.demandEntries||[]).find(e => e.date === today() && e.distName === distName);
+    const bar = document.getElementById('already-submitted-bar');
+    const info2 = document.getElementById('already-submitted-info');
+    if (todayEntry) {
+      const prodCount = Object.keys(todayEntry.items||{}).length;
+      bar.style.display = 'block';
+      info2.textContent = `${prodCount} products · ${Object.keys(todayEntry.items||{}).map(pid=>{const p=allProds.find(x=>String(x.id)===String(pid));return(p?p.name:pid)+': '+todayEntry.items[pid];}).slice(0,3).join(', ')}${prodCount>3?' ...':''}`;
+      // Prefill quantities
+      setTimeout(() => {
+        Object.entries(todayEntry.items||{}).forEach(([pid, qty]) => {
+          const inp = document.getElementById('qty-' + pid);
+          if (inp) inp.value = qty;
+        });
+        if (todayEntry.deposit) document.getElementById('d-deposit').value = todayEntry.deposit;
+        calcRunningTotal();
+      }, 100);
+    } else {
+      bar.style.display = 'none';
+    }
+    calcRunningTotal();
+  }
+
+  function clearTodayPrefill() {
+    document.getElementById('already-submitted-bar').style.display = 'none';
+    allProds.forEach(p => {
+      const inp = document.getElementById('qty-' + p.id);
+      if (inp) inp.value = '';
+    });
+    document.getElementById('d-deposit').value = '';
+    calcRunningTotal();
+  }
+
+  function shareOnWhatsApp() {
+    if (!lastSubmittedEntry) return;
+    const e = lastSubmittedEntry;
+    let msg = `🥛 *Parag Milk — Demand*\n`;
+    msg += `📅 Date: ${e.date}\n`;
+    msg += `🏪 ${e.distName}\n\n`;
+    Object.entries(e.items||{}).forEach(([pid, qty]) => {
+      const prod = allProds.find(p => String(p.id)===String(pid));
+      msg += `• ${prod ? prod.name+' '+( prod.size||'') : pid}: *${qty}*\n`;
+    });
+    if (e.deposit) msg += `\n💰 Deposit: ₹${e.deposit}`;
+    const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+    window.open(url, '_blank');
   }
 
   function submitDemand() {
@@ -487,6 +599,7 @@
     }
 
     dbRef.set(appData).then(() => {
+      lastSubmittedEntry = entry;
       // Show success
       document.getElementById('demand-form').style.display = 'none';
       document.getElementById('d-deposit').value = '';
