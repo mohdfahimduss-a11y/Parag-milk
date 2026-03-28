@@ -1735,13 +1735,11 @@
     if (!sel) return;
     const current = sel.value;
     const names = data.customers.map(c => c.name);
-    (data.demandEntries||[]).forEach(e => { if (!names.includes(e.distName)) names.push(e.distName); });
     sel.innerHTML = '<option value="">-- Select Distributor --</option>' +
       names.map(n => `<option value="${n}" ${n===current?'selected':''}>${n}</option>`).join('');
     if (!names.length) {
       sel.innerHTML = '<option value="">-- Pehle Distributor add karein --</option>';
     }
-
   }
 
   function onDistSelect(sel) {
