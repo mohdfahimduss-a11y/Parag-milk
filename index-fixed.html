@@ -1436,19 +1436,28 @@
   function addSaleItem() {
     _svItemCount++;
     const id = 'svi-' + _svItemCount;
-    const allProds = getAllProducts();
-    const opts = allProds.map(p=>`<option value="${p.id}" data-rate="${p.rate||0}">${p.name} ${p.size||''}</option>`).join('');
+    const allProds = (getAllProductsForExport ? getAllProductsForExport() : getAllProducts())
+      .filter(p => p.active !== false);
+    if (!allProds.length) { alert('Pehle Products tab mein products add karo!'); return; }
+
+    // Group by category
+    const milk  = allProds.filter(p => !p.cat || p.cat==='Milk');
+    const other = allProds.filter(p => p.cat && p.cat!=='Milk');
+    let opts = '<option value="">— Product —</option>';
+    if (milk.length)  opts += '<optgroup label="🥛 Milk">'  + milk.map(p=>`<option value="${p.id}" data-rate="${p.rate||0}">${p.name} ${p.size||''}</option>`).join('') + '</optgroup>';
+    if (other.length) opts += '<optgroup label="🧀 Other">' + other.map(p=>`<option value="${p.id}" data-rate="${p.rate||0}">${p.name} ${p.size||''}</option>`).join('') + '</optgroup>';
+
     const div = document.createElement('div');
     div.id = id;
-    div.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:8px;';
+    div.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap;';
     div.innerHTML = `
-      <select onchange="calcSvTotal()" style="flex:1;padding:8px;border:1.5px solid #ddd;border-radius:8px;font-size:0.85rem;outline:none;">
-        <option value="">— Product —</option>${opts}
+      <select onchange="calcSvTotal()" style="flex:1;min-width:150px;padding:8px;border:1.5px solid #ddd;border-radius:8px;font-size:0.85rem;outline:none;background:white;">
+        ${opts}
       </select>
-      <input type="number" placeholder="Qty" min="0" oninput="calcSvTotal()"
-        style="width:65px;padding:8px;border:1.5px solid #ddd;border-radius:8px;font-size:0.9rem;font-weight:700;text-align:center;outline:none;">
+      <input type="number" placeholder="Qty" min="0" step="0.1" oninput="calcSvTotal()"
+        style="width:70px;padding:8px;border:1.5px solid #ddd;border-radius:8px;font-size:0.9rem;font-weight:700;text-align:center;outline:none;">
       <button onclick="document.getElementById('${id}').remove();calcSvTotal();"
-        style="background:#C62828;color:white;border:none;border-radius:8px;padding:8px 9px;cursor:pointer;font-size:0.85rem;">✕</button>`;
+        style="background:#C62828;color:white;border:none;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:0.85rem;flex-shrink:0;">✕</button>`;
     document.getElementById('sv-items-list').appendChild(div);
   }
 
