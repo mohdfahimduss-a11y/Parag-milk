@@ -363,73 +363,158 @@
 
   <!-- SALES -->
   <div class="section" id="sales">
-    <div class="today-bar">
-      <div class="emoji">💰</div>
-      <div><h2>Sales — Udhari</h2><p style="font-size:0.8rem;color:#C8A882;">Distributor ko kitna diya, kitna mila</p></div>
-    </div>
 
-    <!-- Summary -->
-    <div class="cards" style="margin-bottom:14px;">
-      <div class="card green">
-        <div class="card-icon">✅</div>
-        <div class="card-label">Total Mila</div>
-        <div class="card-value green" id="s-total-paid">₹0</div>
-      </div>
-      <div class="card red">
-        <div class="card-icon">⏳</div>
-        <div class="card-label">Baaki Hai</div>
-        <div class="card-value red" id="s-total-pending">₹0</div>
-      </div>
-    </div>
+    <!-- MAIN VIEW -->
+    <div id="sv-main" style="padding-bottom:90px;">
 
-    <!-- Add Sale Form -->
-    <div class="form-card">
-      <h3>➕ Naya Sale</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Date</label>
-          <input type="date" id="s-date">
+      <!-- Stats -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,0.08);">
+          <div style="font-size:0.72rem;color:#888;font-weight:600;margin-bottom:5px;">↓ You'll Get</div>
+          <div id="sv-youll-get" style="font-size:1.18rem;font-weight:900;color:#2A7A4A;">₹0</div>
         </div>
-        <div class="form-group">
-          <label>Distributor</label>
-          <select id="s-dist" style="padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:1rem;background:var(--cream);outline:none;">
-            <option value="">— Select —</option>
+        <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,0.08);">
+          <div style="font-size:0.72rem;color:#888;font-weight:600;margin-bottom:5px;">📅 Sale (This Month)</div>
+          <div id="sv-month-total" style="font-size:1.18rem;font-weight:900;color:var(--amber);">₹0</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;border:1.5px solid #ddd;border-radius:25px;overflow:hidden;background:white;margin-bottom:14px;">
+        <button onclick="svTab('parties')" id="svt-parties" style="flex:1;padding:9px 4px;border:none;background:#C62828;color:white;font-weight:700;font-size:0.82rem;cursor:pointer;border-radius:23px;">Parties</button>
+        <button onclick="svTab('txn')"     id="svt-txn"     style="flex:1;padding:9px 4px;border:none;background:transparent;color:#888;font-weight:600;font-size:0.82rem;cursor:pointer;">Transactions</button>
+      </div>
+
+      <!-- Search -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="flex:1;display:flex;align-items:center;gap:8px;background:white;border:1.5px solid #ddd;border-radius:8px;padding:9px 12px;">
+          <span style="color:#1565C0;">🔍</span>
+          <input type="text" id="sv-search" placeholder="SEARCH PARTY" oninput="renderSvList()"
+            style="border:none;outline:none;font-size:0.82rem;font-weight:600;letter-spacing:0.5px;background:transparent;flex:1;color:#888;">
+        </div>
+      </div>
+
+      <!-- Lists -->
+      <div id="sv-parties-view"><div id="sv-parties-list" style="background:white;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,0.07);overflow:hidden;"></div></div>
+      <div id="sv-txn-view" style="display:none;"><div id="sv-txn-list" style="background:white;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,0.07);overflow:hidden;"></div></div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div id="sv-bottom-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:white;border-top:1px solid #eee;padding:10px 14px 14px;display:flex;align-items:center;gap:10px;">
+      <button onclick="openTakePayment()" style="flex:1;padding:13px;background:#1565C0;color:white;border:none;border-radius:30px;font-weight:800;font-size:0.9rem;cursor:pointer;">Take Payment</button>
+      <button onclick="openAddSale()" style="width:50px;height:50px;flex-shrink:0;background:white;border:2px solid #1565C0;color:#1565C0;border-radius:50%;font-size:1.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+      <button onclick="openAddSale()" style="flex:1;padding:13px;background:#C62828;color:white;border:none;border-radius:30px;font-weight:800;font-size:0.9rem;cursor:pointer;">Add Sale</button>
+    </div>
+
+    <!-- ADD SALE OVERLAY -->
+    <div id="sv-add-form" style="display:none;position:fixed;inset:0;background:#f5f5f5;z-index:300;overflow-y:auto;">
+      <!-- Header -->
+      <div style="background:white;padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;position:sticky;top:0;z-index:10;">
+        <button onclick="closeAddSale()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#333;">←</button>
+        <span style="font-size:1.05rem;font-weight:800;flex:1;">Sale</span>
+        <div style="display:flex;background:#f0f0f0;border-radius:20px;padding:3px;">
+          <button id="sv-credit-btn" onclick="setSaleMode('Credit')" style="padding:5px 14px;border:none;border-radius:18px;font-weight:700;font-size:0.8rem;cursor:pointer;background:#1565C0;color:white;">Credit</button>
+          <button id="sv-cash-btn"   onclick="setSaleMode('Cash')"   style="padding:5px 14px;border:none;border-radius:18px;font-weight:700;font-size:0.8rem;cursor:pointer;background:transparent;color:#999;">Cash</button>
+        </div>
+      </div>
+
+      <!-- Invoice + Date -->
+      <div style="background:white;display:flex;border-bottom:1px solid #eee;margin-bottom:2px;">
+        <div style="flex:1;padding:14px 16px;border-right:1px solid #eee;">
+          <div style="font-size:0.72rem;color:#aaa;margin-bottom:5px;">Invoice No.</div>
+          <div id="sv-inv-no" style="font-size:0.98rem;font-weight:700;">1</div>
+        </div>
+        <div style="flex:1;padding:14px 16px;">
+          <div style="font-size:0.72rem;color:#aaa;margin-bottom:5px;">Date</div>
+          <input type="date" id="sv-date" style="border:none;outline:none;font-size:0.95rem;font-weight:700;color:#111;background:transparent;width:100%;padding:0;">
+        </div>
+      </div>
+
+      <!-- Firm Name -->
+      <div style="background:white;padding:13px 16px;border-bottom:1px solid #eee;margin-bottom:2px;">
+        <span style="font-size:0.82rem;color:#888;">Firm Name: </span>
+        <span style="font-size:0.82rem;font-weight:600;">Moradabad Dugdh Utpadak Sahakari Sangh Ltd.</span>
+      </div>
+
+      <!-- Party -->
+      <div style="background:white;padding:16px;border-bottom:1px solid #eee;margin-bottom:2px;">
+        <div style="border:2px solid #1565C0;border-radius:8px;padding:10px 14px;position:relative;">
+          <div style="position:absolute;top:-10px;left:12px;background:white;padding:0 4px;font-size:0.72rem;color:#1565C0;font-weight:700;">Party *</div>
+          <select id="sv-party" onchange="onSvPartyChange()" style="border:none;outline:none;font-size:1rem;width:100%;color:#111;background:transparent;padding:0;appearance:none;">
+            <option value="">— Distributor Chunein —</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Amount (₹)</label>
-          <input type="number" id="s-amount" placeholder="0" min="0">
-        </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select id="s-status" style="padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:1rem;background:var(--cream);outline:none;">
-            <option value="Pending">Pending</option>
-            <option value="Paid">Paid</option>
-            <option value="Partial">Partial</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label>Note (Optional)</label>
-          <input type="text" id="s-note" placeholder="e.g. March payment">
+      </div>
+
+      <!-- Items -->
+      <div style="background:white;padding:14px 16px;border-bottom:1px solid #eee;margin-bottom:2px;">
+        <div id="sv-items-list" style="margin-bottom:8px;"></div>
+        <button onclick="addSaleItem()" style="width:100%;padding:11px;background:#EEF2FF;color:#1565C0;border:1.5px dashed #9FA8DA;border-radius:8px;font-size:0.88rem;font-weight:700;cursor:pointer;">+ Add Item</button>
+      </div>
+
+      <!-- Demand preview -->
+      <div id="sv-demand-bar" style="display:none;background:white;padding:12px 16px;border-bottom:1px solid #eee;margin-bottom:2px;">
+        <div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:0.75rem;font-weight:700;color:#2A7A4A;">📦 Aaj ki Demand</div>
+            <div id="sv-demand-breakdown" style="font-size:0.72rem;color:#666;margin-top:2px;"></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="sv-demand-amt" style="font-weight:900;color:#2A7A4A;">₹0</span>
+            <button onclick="fillFromDemand()" style="padding:5px 10px;border-radius:6px;border:none;background:#2A7A4A;color:white;font-size:0.75rem;font-weight:800;cursor:pointer;">↙ Fill</button>
+          </div>
         </div>
       </div>
-      <div style="margin-top:14px;">
-        <button class="btn btn-primary" onclick="addSimpleSale()">+ Add Sale</button>
+
+      <!-- Note -->
+      <div style="background:white;padding:14px 16px;border-bottom:1px solid #eee;margin-bottom:2px;">
+        <input type="text" id="sv-note" placeholder="Note (optional)" style="border:1.5px solid #ddd;border-radius:8px;padding:11px 14px;font-size:0.95rem;width:100%;outline:none;box-sizing:border-box;">
+      </div>
+
+      <!-- Total -->
+      <div style="background:white;padding:16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;margin-bottom:2px;">
+        <span style="font-size:0.95rem;font-weight:800;">Total Amount</span>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <span style="color:#888;">₹</span>
+          <input type="number" id="sv-total" placeholder="0" min="0" oninput="svTotalEdited=true"
+            style="border:none;border-bottom:1.5px dashed #bbb;outline:none;font-size:1.1rem;font-weight:700;width:130px;text-align:right;background:transparent;">
+        </div>
+      </div>
+
+      <input type="hidden" id="sv-mode" value="Credit">
+      <div style="height:70px;"></div>
+
+      <!-- Save bar -->
+      <div style="position:sticky;bottom:0;background:white;border-top:1px solid #eee;display:flex;">
+        <button onclick="saveSaleAndNew()" style="flex:1;padding:16px;border:none;background:transparent;color:#999;font-weight:700;font-size:0.88rem;cursor:pointer;border-right:1px solid #eee;">Save &amp; New</button>
+        <button onclick="saveSale()" style="flex:2;padding:16px;background:#1565C0;color:white;border:none;font-weight:800;font-size:1rem;cursor:pointer;">Save</button>
       </div>
     </div>
 
-    <!-- Sales List -->
-    <div class="table-card">
-      <div class="table-header" style="justify-content:space-between;">
-        <h3>📋 Sales History</h3>
-        <input type="text" id="s-search" placeholder="Search..." oninput="renderSimpleSales()"
-          style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82rem;width:120px;outline:none;">
+    <!-- TAKE PAYMENT MODAL -->
+    <div id="sv-tp-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:400;align-items:flex-end;" onclick="if(event.target===this)closeTakePayment()">
+      <div style="background:white;border-radius:20px 20px 0 0;padding:20px 16px 28px;width:100%;">
+        <div style="width:40px;height:4px;background:#ddd;border-radius:4px;margin:0 auto 16px;"></div>
+        <h3 style="font-size:1rem;font-weight:800;margin-bottom:16px;">💵 Take Payment</h3>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:0.75rem;color:#888;font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px;">Party</label>
+          <select id="tp-party" style="width:100%;padding:12px;border:1.5px solid #ddd;border-radius:10px;font-size:0.95rem;outline:none;background:white;"></select>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:0.75rem;color:#888;font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px;">Amount (₹)</label>
+          <input type="number" id="tp-amount" placeholder="0" style="width:100%;padding:12px;border:1.5px solid #ddd;border-radius:10px;font-size:1.05rem;font-weight:700;outline:none;box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:18px;">
+          <label style="font-size:0.75rem;color:#888;font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px;">Date</label>
+          <input type="date" id="tp-date" style="width:100%;padding:12px;border:1.5px solid #ddd;border-radius:10px;font-size:0.95rem;outline:none;box-sizing:border-box;">
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button onclick="closeTakePayment()" style="flex:1;padding:14px;border:1.5px solid #ddd;border-radius:12px;background:white;font-weight:700;cursor:pointer;">Cancel</button>
+          <button onclick="confirmTakePayment()" style="flex:2;padding:14px;background:#1565C0;color:white;border:none;border-radius:12px;font-weight:800;font-size:1rem;cursor:pointer;">Confirm</button>
+        </div>
       </div>
-      <table>
-        <thead><tr><th>Date</th><th>Distributor</th><th>Amount</th><th>Status</th><th>Del</th></tr></thead>
-        <tbody id="s-table"><tr><td colspan="5" class="empty">Koi sale nahi abhi tak.</td></tr></tbody>
-      </table>
     </div>
+
   </div>
 
   <!-- EXPENSES -->
@@ -1123,9 +1208,12 @@
       updateDistList();
     }
     if (tab === 'sales') {
-      document.getElementById('s-date').value = today();
       populateSalesDist();
-      renderSimpleSales();
+      renderSvList();
+      document.getElementById('sv-bottom-bar').style.display = 'flex';
+    } else {
+      const bar = document.getElementById('sv-bottom-bar');
+      if (bar) bar.style.display = 'none';
     }
     if (tab === 'expenses') {
       document.getElementById('exp-date').value = today();
@@ -1244,73 +1332,274 @@
       </tr>`).join('');
   }
 
-  // ── SIMPLE SALES ──────────────────────────────────────────
+  // ── SALES (VYAPAR STYLE) ──────────────────────────────────
+  let _svTab = 'parties';
+  let _svMode = 'Credit';
+  let _svItemCount = 0;
+  let svTotalEdited = false;
+
+  function svTab(tab) {
+    _svTab = tab;
+    document.getElementById('svt-parties').style.background = tab==='parties' ? '#C62828' : 'transparent';
+    document.getElementById('svt-parties').style.color      = tab==='parties' ? 'white'   : '#888';
+    document.getElementById('svt-txn').style.background     = tab==='txn'     ? '#1565C0' : 'transparent';
+    document.getElementById('svt-txn').style.color          = tab==='txn'     ? 'white'   : '#888';
+    document.getElementById('sv-parties-view').style.display = tab==='parties' ? 'block' : 'none';
+    document.getElementById('sv-txn-view').style.display     = tab==='txn'     ? 'block' : 'none';
+    renderSvList();
+  }
+
+  function setSaleMode(mode) {
+    _svMode = mode;
+    document.getElementById('sv-credit-btn').style.background = mode==='Credit' ? '#1565C0' : 'transparent';
+    document.getElementById('sv-credit-btn').style.color      = mode==='Credit' ? 'white'   : '#999';
+    document.getElementById('sv-cash-btn').style.background   = mode==='Cash'   ? '#1565C0' : 'transparent';
+    document.getElementById('sv-cash-btn').style.color        = mode==='Cash'   ? 'white'   : '#999';
+    document.getElementById('sv-mode').value = mode;
+  }
+
+  function openAddSale(partyName) {
+    document.getElementById('sv-add-form').style.display = 'block';
+    document.getElementById('sv-bottom-bar').style.display = 'none';
+    document.getElementById('sv-date').value = today();
+    document.getElementById('sv-total').value = '';
+    document.getElementById('sv-note').value = '';
+    document.getElementById('sv-items-list').innerHTML = '';
+    document.getElementById('sv-demand-bar').style.display = 'none';
+    _svItemCount = 0; svTotalEdited = false;
+    // Invoice number
+    const nextInv = (data.simpleSales||[]).length > 0
+      ? Math.max(...(data.simpleSales||[]).map(s=>s.invoiceNo||0)) + 1 : 1;
+    document.getElementById('sv-inv-no').textContent = nextInv;
+    // Populate party
+    populateSalesDist();
+    if (partyName) { document.getElementById('sv-party').value = partyName; onSvPartyChange(); }
+  }
+
+  function closeAddSale() {
+    document.getElementById('sv-add-form').style.display = 'none';
+    document.getElementById('sv-bottom-bar').style.display = 'flex';
+  }
+
   function populateSalesDist() {
-    const sel = document.getElementById('s-dist');
-    if (!sel) return;
-    sel.innerHTML = '<option value="">— Select —</option>' +
-      (data.customers||[]).map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+    ['sv-party','s-dist','tp-party'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const cur = sel.value;
+      const opts = (data.customers||[]).map(c=>`<option value="${c.name}">${c.name}${c.code?' ('+c.code+')':''}</option>`).join('');
+      if (id === 'tp-party') {
+        // Only parties with pending
+        const pending = _svGetPending();
+        sel.innerHTML = '<option value="">— Select Party —</option>' +
+          Object.entries(pending).filter(([,d])=>d.pending>0)
+            .sort((a,b)=>b[1].pending-a[1].pending)
+            .map(([name,d])=>`<option value="${name}">${name} — ₹${Math.round(d.pending).toLocaleString('en-IN')}</option>`).join('');
+      } else {
+        sel.innerHTML = '<option value="">— Distributor Chunein —</option>' + opts;
+      }
+      if (cur) sel.value = cur;
+    });
   }
 
-  function addSimpleSale() {
-    const date   = document.getElementById('s-date').value || today();
-    const dist   = document.getElementById('s-dist').value;
-    const amount = parseFloat(document.getElementById('s-amount').value) || 0;
-    const status = document.getElementById('s-status').value;
-    const note   = document.getElementById('s-note').value.trim();
-    if (!dist)   { alert('Distributor select karo!'); return; }
-    if (!amount) { alert('Amount daalo!'); return; }
-    if (!data.simpleSales) data.simpleSales = [];
-    data.simpleSales.unshift({ id: Date.now(), date, dist, amount, status, note });
-    if (dbRef) dbRef.update({ simpleSales: data.simpleSales });
-    document.getElementById('s-amount').value = '';
-    document.getElementById('s-note').value = '';
-    renderSimpleSales();
+  function onSvPartyChange() {
+    const party = document.getElementById('sv-party').value;
+    const date  = document.getElementById('sv-date').value || today();
+    const bar   = document.getElementById('sv-demand-bar');
+    if (!party) { bar.style.display = 'none'; return; }
+    // Check demand
+    const entry = (data.demandEntries||[]).find(e => e.date===date && e.distName===party);
+    if (!entry) { bar.style.display = 'none'; return; }
+    const allProds = getAllProducts();
+    const dist = (data.customers||[]).find(c=>c.name===party);
+    let total = 0; const items = [];
+    Object.entries(entry.items||{}).forEach(([pid,itemData])=>{
+      const prod = allProds.find(p=>String(p.id)===String(pid)); if(!prod) return;
+      const qty = typeof itemData==='object'?(itemData.qty||0):Number(itemData);
+      const rate = (dist?.productRates?.[pid]) ? parseFloat(dist.productRates[pid]) : (prod.rate||0);
+      const val = rate*qty; total+=val;
+      if(val>0) items.push(`${prod.name}: ${qty}`);
+    });
+    document.getElementById('sv-demand-amt').textContent = '₹'+Math.round(total).toLocaleString('en-IN');
+    document.getElementById('sv-demand-breakdown').textContent = items.slice(0,3).join(' · ')+(items.length>3?' ...':'');
+    bar.dataset.amt = Math.round(total);
+    bar.style.display = 'block';
   }
 
-  function renderSimpleSales() {
-    const tb  = document.getElementById('s-table');
-    if (!tb) return;
-    const q   = (document.getElementById('s-search')?.value || '').toLowerCase();
-    const all = (data.simpleSales || []).filter(s =>
-      !q || s.dist.toLowerCase().includes(q) || (s.note||'').toLowerCase().includes(q)
-    );
-    // Summary
-    const paid    = all.filter(s => s.status === 'Paid').reduce((t,s) => t+s.amount, 0);
-    const pending = all.filter(s => s.status !== 'Paid').reduce((t,s) => t+s.amount, 0);
-    const paidEl  = document.getElementById('s-total-paid');
-    const pendEl  = document.getElementById('s-total-pending');
-    if (paidEl) paidEl.textContent  = '₹' + Math.round(paid).toLocaleString('en-IN');
-    if (pendEl) pendEl.textContent  = '₹' + Math.round(pending).toLocaleString('en-IN');
-    if (!all.length) {
-      tb.innerHTML = '<tr><td colspan="5" class="empty">Koi sale nahi.</td></tr>'; return;
+  function fillFromDemand() {
+    const amt = parseFloat(document.getElementById('sv-demand-bar').dataset.amt)||0;
+    if (!amt) return;
+    document.getElementById('sv-total').value = amt;
+    svTotalEdited = true;
+  }
+
+  function addSaleItem() {
+    _svItemCount++;
+    const id = 'svi-' + _svItemCount;
+    const allProds = getAllProducts();
+    const opts = allProds.map(p=>`<option value="${p.id}" data-rate="${p.rate||0}">${p.name} ${p.size||''}</option>`).join('');
+    const div = document.createElement('div');
+    div.id = id;
+    div.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:8px;';
+    div.innerHTML = `
+      <select onchange="calcSvTotal()" style="flex:1;padding:8px;border:1.5px solid #ddd;border-radius:8px;font-size:0.85rem;outline:none;">
+        <option value="">— Product —</option>${opts}
+      </select>
+      <input type="number" placeholder="Qty" min="0" oninput="calcSvTotal()"
+        style="width:65px;padding:8px;border:1.5px solid #ddd;border-radius:8px;font-size:0.9rem;font-weight:700;text-align:center;outline:none;">
+      <button onclick="document.getElementById('${id}').remove();calcSvTotal();"
+        style="background:#C62828;color:white;border:none;border-radius:8px;padding:8px 9px;cursor:pointer;font-size:0.85rem;">✕</button>`;
+    document.getElementById('sv-items-list').appendChild(div);
+  }
+
+  function calcSvTotal() {
+    if (svTotalEdited) return;
+    const party = document.getElementById('sv-party').value;
+    const dist  = (data.customers||[]).find(c=>c.name===party);
+    const allProds = getAllProducts();
+    let total = 0;
+    document.querySelectorAll('#sv-items-list > div').forEach(row => {
+      const sel = row.querySelector('select');
+      const inp = row.querySelector('input');
+      if (!sel?.value || !inp) return;
+      const qty = parseFloat(inp.value)||0; if(!qty) return;
+      const prod = allProds.find(p=>String(p.id)===String(sel.value));
+      const rate = dist?.productRates?.[sel.value] ? parseFloat(dist.productRates[sel.value]) : (prod?.rate||0);
+      total += rate*qty;
+    });
+    document.getElementById('sv-total').value = total ? Math.round(total) : '';
+  }
+
+  function _doSaveSale(andNew) {
+    const party  = document.getElementById('sv-party').value;
+    const date   = document.getElementById('sv-date').value || today();
+    const total  = parseFloat(document.getElementById('sv-total').value)||0;
+    const mode   = document.getElementById('sv-mode').value;
+    const note   = document.getElementById('sv-note').value.trim();
+    const invNo  = parseInt(document.getElementById('sv-inv-no').textContent)||1;
+    if (!party) { alert('Party select karo!'); return; }
+    if (!total) { alert('Amount daalo!'); return; }
+    // Collect items
+    const items = {};
+    document.querySelectorAll('#sv-items-list > div').forEach(row => {
+      const sel = row.querySelector('select');
+      const inp = row.querySelector('input');
+      if (sel?.value && inp) { const q = parseFloat(inp.value)||0; if(q) items[sel.value]=q; }
+    });
+    const rec = { id:Date.now(), invoiceNo:invNo, date, party, amount:total,
+      status: mode==='Cash'?'Paid':'Pending', note, items };
+    if (!data.simpleSales) data.simpleSales=[];
+    data.simpleSales.unshift(rec);
+    if(dbRef) dbRef.update({simpleSales: data.simpleSales});
+    renderSvList(); renderSvStats();
+    if (andNew) {
+      document.getElementById('sv-party').value='';
+      document.getElementById('sv-total').value='';
+      document.getElementById('sv-note').value='';
+      document.getElementById('sv-items-list').innerHTML='';
+      document.getElementById('sv-demand-bar').style.display='none';
+      _svItemCount=0; svTotalEdited=false;
+      document.getElementById('sv-inv-no').textContent = invNo+1;
+    } else { closeAddSale(); }
+  }
+  function saveSale()       { _doSaveSale(false); }
+  function saveSaleAndNew() { _doSaveSale(true);  }
+
+  function _svGetPending() {
+    const map = {};
+    (data.simpleSales||[]).forEach(s => {
+      if(!map[s.party]) map[s.party]={total:0,paid:0,lastDate:s.date||''};
+      map[s.party].total += s.amount||0;
+      if(s.status==='Paid') map[s.party].paid += s.amount||0;
+      if((s.date||'') > map[s.party].lastDate) map[s.party].lastDate=s.date;
+    });
+    Object.keys(map).forEach(k=>{ map[k].pending = map[k].total - map[k].paid; });
+    return map;
+  }
+
+  function renderSvStats() {
+    const pending = _svGetPending();
+    const youllGet = Object.values(pending).reduce((s,d)=>s+Math.max(0,d.pending),0);
+    const m = today().slice(0,7);
+    const monthTotal = (data.simpleSales||[]).filter(s=>s.date?.startsWith(m)).reduce((s,r)=>s+(r.amount||0),0);
+    const yEl = document.getElementById('sv-youll-get');
+    const mEl = document.getElementById('sv-month-total');
+    if(yEl) yEl.textContent = '₹'+Math.round(youllGet).toLocaleString('en-IN');
+    if(mEl) mEl.textContent = '₹'+Math.round(monthTotal).toLocaleString('en-IN');
+  }
+
+  function renderSvList() {
+    renderSvStats();
+    const q = (document.getElementById('sv-search')?.value||'').toLowerCase();
+    if (_svTab === 'parties') {
+      const list = document.getElementById('sv-parties-list');
+      const pending = _svGetPending();
+      const entries = Object.entries(pending)
+        .filter(([name])=>!q||name.toLowerCase().includes(q))
+        .sort((a,b)=>b[1].lastDate.localeCompare(a[1].lastDate));
+      if(!entries.length){list.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted);">Koi party nahi</div>';return;}
+      list.innerHTML = entries.map(([name,d],i)=>{
+        const p=Math.round(d.pending); const isGet=p>=0;
+        return `<div style="padding:14px 16px;${i>0?'border-top:1px solid #f0f0f0':''}display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="svTab('txn');document.getElementById('sv-search').value='${name.replace(/'/g,"\\'")}';renderSvList();">
+          <div><div style="font-weight:700;font-size:0.95rem;">${name}</div><div style="font-size:0.78rem;color:#aaa;margin-top:2px;">${formatDate(d.lastDate)}</div></div>
+          <div style="text-align:right;"><div style="font-weight:800;font-size:0.95rem;color:${isGet?'#2A7A4A':'#C93A2A'};">₹ ${Math.abs(p).toLocaleString('en-IN')}</div><div style="font-size:0.72rem;color:${isGet?'#2A7A4A':'#C93A2A'};font-weight:700;">${isGet?"You'll Get":"You'll Give"}</div></div>
+        </div>`;
+      }).join('');
+    } else {
+      const list = document.getElementById('sv-txn-list');
+      const filtered = (data.simpleSales||[]).filter(s=>!q||(s.party||'').toLowerCase().includes(q)||(s.note||'').toLowerCase().includes(q));
+      if(!filtered.length){list.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted);">Koi transaction nahi</div>';return;}
+      list.innerHTML = filtered.map((r,i)=>`
+        <div style="padding:12px 16px;${i>0?'border-top:1px solid #f0f0f0':''}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+            <div><div style="font-weight:700;font-size:0.92rem;">${r.party||'-'}</div><div style="font-size:0.78rem;color:#aaa;">${formatDate(r.date)}${r.note?' · '+r.note:''}${r.invoiceNo?' · Inv #'+r.invoiceNo:''}</div></div>
+            <div style="text-align:right;"><div style="font-weight:800;color:${r.status==='Paid'?'var(--green)':'#C93A2A'};">₹${(r.amount||0).toLocaleString('en-IN')}</div>
+            <span style="font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:10px;background:${r.status==='Paid'?'#E8F5EE':'#FFF0EE'};color:${r.status==='Paid'?'var(--green)':'var(--red)'};">${r.status}</span></div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            ${r.status!=='Paid'?`<button onclick="markSalePaid(${r.id})" style="padding:5px 12px;border-radius:20px;border:none;background:#1565C0;color:white;font-size:0.75rem;font-weight:700;cursor:pointer;">💵 Mark Paid</button>`:''}
+            <button onclick="delSimpleSale(${r.id})" style="padding:5px 10px;border-radius:20px;border:1px solid #ddd;background:white;color:#C93A2A;font-size:0.75rem;font-weight:700;cursor:pointer;">✕ Del</button>
+          </div>
+        </div>`).join('');
     }
-    tb.innerHTML = all.map(s => `
-      <tr>
-        <td>${formatDate(s.date)}</td>
-        <td style="font-size:0.85rem;">${s.dist}</td>
-        <td><strong>₹${s.amount.toLocaleString('en-IN')}</strong>${s.note?`<br><span style="font-size:0.72rem;color:var(--muted);">${s.note}</span>`:''}</td>
-        <td><span class="badge ${s.status==='Paid'?'badge-green':s.status==='Pending'?'badge-red':'badge-amber'}">${s.status}</span>
-            ${s.status!=='Paid'?`<button onclick="markSalePaid(${s.id})" style="display:block;margin-top:4px;padding:2px 8px;background:var(--green);color:white;border:none;border-radius:6px;font-size:0.7rem;cursor:pointer;">✓ Paid</button>`:''}
-        </td>
-        <td><button class="btn btn-danger btn-sm" onclick="delSimpleSale(${s.id})">✕</button></td>
-      </tr>`).join('');
   }
 
   function markSalePaid(id) {
-    const s = (data.simpleSales||[]).find(x => x.id === id);
-    if (!s) return;
-    s.status = 'Paid';
-    if (dbRef) dbRef.update({ simpleSales: data.simpleSales });
-    renderSimpleSales();
+    const s = (data.simpleSales||[]).find(x=>x.id===id); if(!s) return;
+    s.status='Paid';
+    if(dbRef) dbRef.update({simpleSales:data.simpleSales});
+    renderSvList();
+  }
+  function delSimpleSale(id) {
+    if(!confirm('Delete karein?')) return;
+    data.simpleSales=(data.simpleSales||[]).filter(s=>s.id!==id);
+    if(dbRef) dbRef.update({simpleSales:data.simpleSales});
+    renderSvList();
   }
 
-  function delSimpleSale(id) {
-    if (!confirm('Delete karein?')) return;
-    data.simpleSales = (data.simpleSales||[]).filter(s => s.id !== id);
-    if (dbRef) dbRef.update({ simpleSales: data.simpleSales });
-    renderSimpleSales();
+  // Take Payment
+  function openTakePayment() {
+    document.getElementById('sv-tp-modal').style.display='flex';
+    document.getElementById('tp-date').value=today();
+    populateSalesDist();
   }
+  function closeTakePayment() { document.getElementById('sv-tp-modal').style.display='none'; }
+  function confirmTakePayment() {
+    const party  = document.getElementById('tp-party').value;
+    const amount = parseFloat(document.getElementById('tp-amount').value)||0;
+    const date   = document.getElementById('tp-date').value||today();
+    if(!party){alert('Party chunein!');return;}
+    if(!amount){alert('Amount daalo!');return;}
+    if(!data.simpleSales) data.simpleSales=[];
+    data.simpleSales.unshift({id:Date.now(),invoiceNo:null,date,party,amount,status:'Paid',note:'Payment received',items:{}});
+    if(dbRef) dbRef.update({simpleSales:data.simpleSales});
+    closeTakePayment();
+    renderSvList();
+    alert('✅ Payment received! ₹'+amount.toLocaleString('en-IN'));
+  }
+
+  // Legacy compat
+  function addSimpleSale() { openAddSale(); }
+  function renderSimpleSales() { renderSvList(); }
 
   // ── EXPENSES ──────────────────────────────────────────────
   function addExpense() {
