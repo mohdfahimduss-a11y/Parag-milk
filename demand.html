@@ -2,717 +2,562 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Parag Milk - Demand Entry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#3D1F00">
+<title>Parag Milk - Demand</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   :root {
-    --brown: #3D1F00;
-    --orange: #C97A2A;
-    --cream: #FFF8EE;
-    --border: #E8D5B0;
-    --green: #2A7A4A;
-    --red: #C0392B;
-    --muted: #8B6A4A;
-    --font: 'Segoe UI', sans-serif;
+    --brown:#3D1F00; --orange:#C97A2A; --cream:#FFF8EE;
+    --border:#E8D5B0; --green:#2A7A4A; --red:#C0392B;
+    --muted:#8B6A4A; --blue:#1565C0; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   }
-  body { background: var(--cream); font-family: var(--font); min-height: 100vh; }
+  html { overflow-x:hidden; }
+  body { background:#F2EDE6; font-family:var(--font); min-height:100vh; font-size:16px; overflow-x:hidden; }
 
+  /* HEADER */
   .header {
-    background: linear-gradient(135deg, var(--brown), #6B3A10);
-    color: white;
-    padding: 16px 20px;
-    text-align: center;
+    background:linear-gradient(135deg,#3D1F00,#6B3A10);
+    color:white; padding:env(safe-area-inset-top,14px) 20px 14px;
+    padding-top:calc(env(safe-area-inset-top,0px) + 14px);
+    text-align:center; position:sticky; top:0; z-index:50;
+    box-shadow:0 2px 14px rgba(0,0,0,0.3);
   }
-  .header h1 { font-size: 1.3rem; font-weight: 800; }
-  .header p { font-size: 0.8rem; opacity: 0.75; margin-top: 4px; }
+  .header h1 { font-size:1.3rem; font-weight:900; letter-spacing:-0.5px; }
+  .header p { font-size:0.75rem; opacity:0.65; margin-top:2px; }
 
-  .main { max-width: 500px; margin: 0 auto; padding: 16px; }
+  .main { padding:12px 12px 120px; max-width:480px; margin:0 auto; }
 
+  /* CARD */
   .card {
-    background: white;
-    border-radius: 14px;
-    border: 1.5px solid var(--border);
-    padding: 18px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 8px rgba(61,31,0,0.06);
+    background:white; border-radius:18px;
+    border:1px solid rgba(0,0,0,0.06);
+    padding:16px; margin-bottom:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.07);
   }
-  .card h3 { font-size: 1rem; font-weight: 800; color: var(--brown); margin-bottom: 14px; }
+  .card-title { font-size:0.9rem; font-weight:800; color:var(--brown); margin-bottom:14px; display:flex; align-items:center; gap:6px; }
 
-  label { font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px; }
-
-  select, input {
-    width: 100%;
-    padding: 11px 14px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    font-size: 0.9rem;
-    background: var(--cream);
-    color: var(--brown);
-    font-family: var(--font);
-    margin-bottom: 14px;
+  /* INPUTS — bigger touch targets */
+  .field { margin-bottom:12px; }
+  .field label { font-size:0.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; display:block; margin-bottom:5px; }
+  .field input {
+    width:100%; padding:13px 14px; border:1.5px solid var(--border);
+    border-radius:12px; font-size:1rem; background:var(--cream);
+    color:var(--brown); font-family:var(--font); outline:none;
+    -webkit-appearance:none; appearance:none;
+    transition:border-color 0.2s, box-shadow 0.2s;
   }
-  select:focus, input:focus { outline: none; border-color: var(--orange); }
+  .field input:focus { border-color:var(--orange); background:white; box-shadow:0 0 0 3px rgba(201,122,42,0.12); }
 
+  /* PRODUCT ROWS */
   .prod-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    margin-bottom: 8px;
-    background: var(--cream);
+    background:#FAFAF8; border:1.5px solid #EAE0D0;
+    border-radius:14px; padding:10px 10px 8px; margin-bottom:10px;
+    transition:border-color 0.2s, box-shadow 0.2s;
   }
-  .prod-info { flex: 1; }
-  .prod-name { font-weight: 700; font-size: 0.88rem; color: var(--brown); }
-  .prod-size { font-size: 0.75rem; color: var(--muted); }
-  .qty-input {
-    width: 80px;
-    padding: 8px;
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    font-size: 0.9rem;
-    text-align: center;
-    margin-bottom: 0;
-    background: white;
+  .prod-row:focus-within { border-color:var(--orange); box-shadow:0 0 0 3px rgba(201,122,42,0.1); background:white; }
+  .prod-row-top { display:flex; align-items:center; gap:8px; }
+  .prod-row select {
+    flex:1; padding:11px 10px; border:1.5px solid #ddd;
+    border-radius:10px; font-size:0.95rem; background:white;
+    color:var(--brown); font-family:var(--font); outline:none;
+    -webkit-appearance:none; appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238B6A4A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 10px center;
+    padding-right:30px;
   }
-  .qty-input:focus { outline: none; border-color: var(--orange); }
+  .prod-row select:focus { border-color:var(--orange); }
+  .prod-row .qty-inp {
+    width:76px; flex-shrink:0; padding:11px 8px;
+    text-align:center; font-size:1.1rem; font-weight:700;
+    border:1.5px solid #ddd; border-radius:10px;
+    background:white; color:var(--brown); outline:none;
+    -webkit-appearance:none; appearance:none;
+  }
+  .prod-row .qty-inp:focus { border-color:var(--orange); }
+  .remove-btn {
+    width:40px; height:40px; flex-shrink:0;
+    background:#FFF0EE; color:var(--red);
+    border:1.5px solid #FFCDD2; border-radius:10px;
+    cursor:pointer; font-size:1rem; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    transition:background 0.15s;
+  }
+  .remove-btn:active { background:#FFCDD2; }
+  .row-meta { display:flex; align-items:center; justify-content:space-between; margin-top:6px; padding:0 2px; }
+  .row-rate { font-size:0.72rem; color:var(--muted); font-weight:600; }
+  .row-amt  { font-size:0.82rem; font-weight:800; color:var(--green); }
 
-  .btn-submit {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, var(--brown), #6B3A10);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 800;
-    cursor: pointer;
-    margin-top: 8px;
+  /* BUTTONS */
+  .btn-primary {
+    width:100%; padding:15px; border:none; border-radius:14px;
+    font-size:1rem; font-weight:800; cursor:pointer; color:white;
+    background:linear-gradient(135deg,#3D1F00,#6B3A10);
+    box-shadow:0 3px 10px rgba(61,31,0,0.3);
+    transition:opacity 0.2s, transform 0.1s;
+    -webkit-appearance:none;
   }
-  .btn-submit:active { opacity: 0.85; }
-
-  .success-screen {
-    display: none;
-    text-align: center;
-    padding: 40px 20px;
+  .btn-primary:active { opacity:0.88; transform:scale(0.98); }
+  .btn-add {
+    width:100%; padding:13px; background:white;
+    color:var(--orange); border:2px dashed var(--orange);
+    border-radius:14px; font-size:0.95rem; font-weight:800;
+    cursor:pointer; margin-bottom:12px;
+    transition:background 0.15s;
+    -webkit-appearance:none;
   }
-  .success-screen .emoji { font-size: 4rem; }
-  .success-screen h2 { font-size: 1.4rem; font-weight: 800; color: var(--green); margin: 12px 0 8px; }
-  .success-screen p { color: var(--muted); font-size: 0.9rem; }
-  .btn-new { display: inline-block; margin-top: 20px; padding: 12px 28px; background: var(--orange); color: white; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+  .btn-add:active { background:#FFF3E0; }
+  .btn-outline {
+    width:100%; padding:12px; background:white;
+    color:var(--blue); border:1.5px solid #BBCEF8;
+    border-radius:12px; font-size:0.9rem; font-weight:700;
+    cursor:pointer; -webkit-appearance:none;
+    transition:background 0.15s;
+  }
+  .btn-outline:active { background:#EEF4FF; }
 
-  #loading { text-align: center; padding: 30px; color: var(--muted); }
-  .badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:0.7rem; font-weight:700; background:#FFF3E0; color:var(--orange); margin-left:4px; }
+  /* STICKY BOTTOM */
+  .total-bar {
+    position:fixed; bottom:0; left:0; right:0;
+    background:white; border-top:1.5px solid #eee;
+    padding:12px 16px; padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+    display:none; align-items:center; justify-content:space-between;
+    z-index:60; box-shadow:0 -4px 20px rgba(0,0,0,0.1);
+  }
+  .total-bar-label { font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+  .total-bar-amount { font-size:1.4rem; font-weight:900; color:var(--green); line-height:1.1; }
+  .total-bar-btn {
+    padding:12px 20px; background:var(--green); color:white;
+    border:none; border-radius:25px; font-weight:800;
+    font-size:0.9rem; cursor:pointer; white-space:nowrap;
+    box-shadow:0 2px 8px rgba(42,122,74,0.35);
+    -webkit-appearance:none;
+  }
+  .total-bar-btn:active { opacity:0.85; }
+
+  /* LOGGED IN BAR */
+  .logged-bar {
+    background:linear-gradient(135deg,#3D1F00,#5C2E0A);
+    color:white; border-radius:16px; padding:13px 16px;
+    margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;
+    box-shadow:0 2px 10px rgba(61,31,0,0.2);
+  }
+
+  /* INFO BAR */
+  .info-bar { background:#EEF4FF; border:1.5px solid #BBCEF8; border-radius:14px; padding:13px 14px; margin-bottom:12px; }
+
+  /* SUCCESS */
+  .success-screen { display:none; text-align:center; padding:40px 16px 120px; }
+  .success-screen .big-emoji { font-size:5rem; line-height:1; margin-bottom:14px; }
+  .success-screen h2 { font-size:1.6rem; font-weight:900; color:var(--green); margin-bottom:6px; }
+  .success-screen p { color:var(--muted); font-size:0.9rem; margin-bottom:20px; line-height:1.5; }
+  .btn-wa { background:#25D366; color:white; border:none; width:100%; padding:14px; border-radius:14px; font-size:0.95rem; font-weight:800; cursor:pointer; margin-bottom:10px; box-shadow:0 2px 8px rgba(37,211,102,0.3); -webkit-appearance:none; }
+  .btn-sec { background:white; color:var(--brown); border:1.5px solid var(--border); width:100%; padding:13px; border-radius:14px; font-size:0.9rem; font-weight:700; cursor:pointer; margin-bottom:10px; -webkit-appearance:none; }
+
+  /* HISTORY */
+  .hist-card { border:1.5px solid #EAE0D0; border-radius:14px; padding:14px; margin-bottom:12px; background:#FAFAF8; }
+  .hist-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .hist-item { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f0ebe0; font-size:0.88rem; }
+  .hist-item:last-child { border-bottom:none; }
+
+  /* CHIPS */
+  .chip { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+  .chip-green { background:#E8F5EE; color:var(--green); }
+  .chip-blue  { background:#EEF4FF; color:var(--blue); }
+
+  /* LOGIN */
+  .login-wrap { text-align:center; padding:20px 0 10px; }
+  .login-wrap .icon { font-size:4rem; line-height:1; margin-bottom:10px; }
+  .login-wrap h2 { font-size:1.3rem; font-weight:900; color:var(--brown); }
+  .login-wrap p  { font-size:0.82rem; color:var(--muted); margin-top:4px; }
+  .code-input {
+    font-size:1.4rem !important; font-weight:800 !important;
+    text-align:center !important; letter-spacing:4px !important;
+    padding:14px !important;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+  .card { animation:slideUp 0.25s ease; }
 </style>
 </head>
 <body>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
 <div class="header">
   <h1>🥛 Parag Milk</h1>
-  <p>Apni daily demand yahan daalo</p>
+  <p>Daily Demand Portal</p>
 </div>
 
 <div class="main">
 
-  <div id="loading" style="display:none;">⏳ Loading...</div>
-
-  <!-- Step 1: Login with Code -->
-  <div id="login-step" class="card">
-    <h3>🔐 Apna Code Daalo</h3>
-    <p style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">Apna distributor code daalo — sirf aapki demand dikhegi</p>
-    <label>Distributor Code</label>
-    <input type="text" id="login-code" placeholder="e.g. 0177, D001" style="text-transform:uppercase;">
-    <button onclick="verifyCode()" style="width:100%;padding:13px;background:var(--brown);color:white;border:none;border-radius:10px;font-size:1rem;font-weight:800;cursor:pointer;">🔓 Login</button>
-    <p id="login-error" style="color:var(--red);font-size:0.82rem;text-align:center;margin-top:8px;display:none;"></p>
+  <!-- LOADING -->
+  <div id="loading-msg" style="display:none;text-align:center;padding:80px 20px;">
+    <div style="font-size:3.5rem;margin-bottom:16px;animation:pulse 1.5s infinite;">🥛</div>
+    <div style="font-weight:800;font-size:1.1rem;color:var(--brown);margin-bottom:6px;">Loading...</div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:24px;">Data fetch ho raha hai</div>
+    <button onclick="showLogin()" style="padding:12px 28px;background:var(--orange);color:white;border:none;border-radius:25px;font-weight:700;cursor:pointer;font-size:0.95rem;-webkit-appearance:none;">⚡ Skip karo</button>
   </div>
 
-  <div id="demand-form" style="display:none;">
-    <!-- Logged in info bar -->
-    <div style="background:var(--brown);color:white;border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <div style="font-weight:800;font-size:0.95rem;" id="logged-dist-name"></div>
-        <div style="font-size:0.75rem;opacity:0.75;" id="logged-dist-info"></div>
+  <!-- LOGIN -->
+  <div id="login-step" style="display:block;">
+    <div class="login-wrap">
+      <div class="icon">🏪</div>
+      <h2>Login Karo</h2>
+      <p>Apna distributor code daalo</p>
+    </div>
+    <div class="card">
+      <div class="field">
+        <label>Distributor Code</label>
+        <input type="text" id="login-code" class="code-input"
+          placeholder="0177" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+          onkeydown="if(event.key==='Enter')verifyCode()">
       </div>
-      <button onclick="logoutDist()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.8rem;cursor:pointer;">🚪 Logout</button>
+      <button onclick="verifyCode()" class="btn-primary" style="margin-top:4px;">🔓 Login</button>
+      <p id="login-error" style="color:var(--red);font-size:0.85rem;text-align:center;margin-top:12px;display:none;font-weight:700;padding:10px;background:#FFF0EE;border-radius:10px;"></p>
+    </div>
+  </div>
+
+  <!-- DEMAND FORM -->
+  <div id="demand-form" style="display:none;">
+
+    <div class="logged-bar">
+      <div>
+        <div style="font-weight:800;font-size:1rem;" id="logged-dist-name"></div>
+        <div style="font-size:0.72rem;opacity:0.7;margin-top:3px;" id="logged-dist-info"></div>
+      </div>
+      <button onclick="logoutDist()" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 14px;font-size:0.82rem;cursor:pointer;font-weight:600;-webkit-appearance:none;">🚪 Logout</button>
+    </div>
+
+    <div id="already-bar" style="display:none;" class="info-bar">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <span style="font-size:1.1rem;">✅</span>
+        <span style="font-size:0.88rem;font-weight:800;color:var(--blue);">Aaj ki demand submit hai</span>
+      </div>
+      <div id="already-info" style="font-size:0.75rem;color:#555;margin-bottom:10px;line-height:1.4;"></div>
+      <button onclick="loadPrevDemand()" style="padding:8px 16px;background:var(--orange);color:white;border:none;border-radius:10px;font-size:0.85rem;font-weight:700;cursor:pointer;-webkit-appearance:none;">✏️ Edit / Update</button>
     </div>
 
     <div class="card">
-      <h3>📋 Demand Form</h3>
-      <label>Aaj Ki Taareekh</label>
-      <input type="date" id="d-date">
-      <label>Vehicle Number</label>
-      <input type="text" id="d-vehicle" placeholder="Vehicle Number" style="text-transform:uppercase;">
-      <label style="margin-top:10px;">💰 Deposit Amount (₹)</label>
-      <input type="number" id="d-deposit" placeholder="0" min="0" style="font-size:1rem;font-weight:700;color:#2A7A4A;">
-      <!-- View Previous Demand Button -->
-      <button onclick="viewMyDemand()" style="width:100%;padding:11px;background:#1A5FAB;color:white;border:none;border-radius:10px;font-size:0.88rem;font-weight:700;cursor:pointer;margin-top:8px;">👁️ Apni Purani Demand Dekho</button>
-    </div>
-
-    <!-- Today already submitted notice -->
-    <div id="already-submitted-bar" style="display:none;background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:12px;padding:12px 16px;margin-bottom:14px;">
-      <div style="font-size:0.85rem;font-weight:700;color:#2A7A4A;">✅ Aaj ki demand pehle se submit hai</div>
-      <div id="already-submitted-info" style="font-size:0.75rem;color:#555;margin-top:2px;"></div>
-      <button onclick="clearTodayPrefill()" style="margin-top:8px;padding:5px 12px;background:var(--orange);color:white;border:none;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">✏️ Edit / Update Karo</button>
-    </div>
-
-    <div class="card" id="products-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-        <h3 style="margin-bottom:0;">🥛 Products</h3>
-        <!-- Running Total -->
-        <div style="text-align:right;">
-          <div style="font-size:0.7rem;color:var(--muted);font-weight:700;">TOTAL AMOUNT</div>
-          <div id="running-total" style="font-size:1.2rem;font-weight:900;color:var(--green);">₹0</div>
+      <div class="card-title">📋 Details</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="field" style="margin-bottom:0;">
+          <label>📅 Taareekh</label>
+          <input type="date" id="d-date" onchange="checkAlreadySubmitted()">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>🚛 Vehicle</label>
+          <input type="text" id="d-vehicle" placeholder="UP32 AB" autocapitalize="characters">
         </div>
       </div>
-      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:12px;">Sirf jo chahiye uska quantity daalo</p>
+      <div class="field" style="margin-top:10px;margin-bottom:10px;">
+        <label>💰 Deposit (₹)</label>
+        <input type="number" id="d-deposit" placeholder="0" min="0" inputmode="numeric" style="font-weight:700;color:var(--green);">
+      </div>
+      <button onclick="viewMyDemand()" class="btn-outline">📋 Purani Demand History</button>
+    </div>
 
-      <!-- Product list (fixed products) -->
-      <div id="prod-list"></div>
-
-      <!-- Extra rows -->
-      <div id="extra-rows"></div>
-
-      <!-- Add Row Button -->
-      <button onclick="addDemandRow()" style="width:100%;padding:11px;background:#FFF3E0;color:var(--orange);border:1.5px dashed var(--orange);border-radius:10px;font-size:0.88rem;font-weight:800;cursor:pointer;margin-top:8px;margin-bottom:14px;">➕ Aur Product Add Karo</button>
-      
-      <button class="btn-submit" onclick="submitDemand()">✅ Demand Submit Karo</button>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div class="card-title" style="margin-bottom:0;">🥛 Products</div>
+        <div id="row-count-badge" style="font-size:0.72rem;font-weight:700;color:var(--muted);background:#F5F0E8;padding:4px 12px;border-radius:20px;border:1px solid var(--border);">0 items</div>
+      </div>
+      <div id="demand-rows"></div>
+      <button onclick="addRow()" class="btn-add">➕ Product Add Karo</button>
+      <button onclick="submitDemand()" class="btn-primary">✅ Demand Submit Karo</button>
     </div>
   </div>
 
-  <!-- View Demand Screen -->
+  <!-- HISTORY -->
   <div id="view-demand-screen" style="display:none;">
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <h3 style="margin-bottom:0;">👁️ Meri Demand</h3>
-        <button onclick="closeViewDemand()" style="background:var(--red);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.82rem;font-weight:700;cursor:pointer;">✕ Band Karo</button>
+        <div class="card-title" style="margin-bottom:0;">📋 Demand History</div>
+        <button onclick="closeViewDemand()" style="background:#FFF0EE;color:var(--red);border:1.5px solid #FFCDD2;border-radius:10px;padding:8px 14px;font-size:0.82rem;font-weight:700;cursor:pointer;-webkit-appearance:none;">✕ Band Karo</button>
       </div>
       <div id="view-demand-content"></div>
     </div>
   </div>
 
+  <!-- SUCCESS -->
   <div class="success-screen" id="success-screen">
-    <div class="emoji">🎉</div>
-    <h2>Demand Submit Ho Gayi!</h2>
-    <p id="success-msg">Aapki demand successfully register ho gayi hai.</p>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
-      <button class="btn-new" onclick="shareOnWhatsApp()" style="background:#25D366;">📲 WhatsApp pe Share Karo</button>
-      <button class="btn-new" onclick="viewMyDemandFromSuccess()">👁️ Apni Demand Dekho</button>
-      <button class="btn-new" onclick="resetForm()" style="background:var(--brown);">+ Nayi Demand</button>
-    </div>
+    <div class="big-emoji">🎉</div>
+    <h2>Submit Ho Gayi!</h2>
+    <p id="success-msg">Aapki demand register ho gayi.</p>
+    <button class="btn-wa" onclick="shareOnWhatsApp()">📲 WhatsApp Share Karo</button>
+    <button class="btn-sec" onclick="viewMyDemandFromSuccess()">📋 Demand Dekho</button>
+    <button class="btn-sec" onclick="resetForm()" style="background:var(--brown);color:white;border:none;">+ Nayi Demand</button>
   </div>
 
 </div>
 
+<!-- STICKY TOTAL BAR -->
+<div class="total-bar" id="total-bar">
+  <div>
+    <div class="total-bar-label">Total Amount</div>
+    <div class="total-bar-amount" id="running-total">₹0</div>
+  </div>
+  <button onclick="submitDemand()" class="total-bar-btn">Submit ✅</button>
+</div>
+
 <script>
   const firebaseConfig = {
-    apiKey: "AIzaSyC6I01bVVQvR0ChtcvWoH6unciAR9cbGtY",
-    authDomain: "parag-milk-af613.firebaseapp.com",
-    databaseURL: "https://parag-milk-af613-default-rtdb.firebaseio.com",
-    projectId: "parag-milk-af613",
-    storageBucket: "parag-milk-af613.firebasestorage.app",
-    messagingSenderId: "972291445809",
-    appId: "1:972291445809:web:bec6ee42bd03f10dbf7110"
+    apiKey:"AIzaSyC6I01bVVQvR0ChtcvWoH6unciAR9cbGtY",
+    authDomain:"parag-milk-af613.firebaseapp.com",
+    databaseURL:"https://parag-milk-af613-default-rtdb.firebaseio.com",
+    projectId:"parag-milk-af613",
+    storageBucket:"parag-milk-af613.firebasestorage.app",
+    messagingSenderId:"972291445809",
+    appId:"1:972291445809:web:bec6ee42bd03f10dbf7110"
   };
-
   firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const dbRef = db.ref('sharedData');
+  const db=firebase.database(), dbRef=db.ref('sharedData');
+  let appData={},allProds=[],currentDist=null,rowCount=0,lastEntry=null;
 
-  let extraRowCount = 0;
+  function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  function fmtDate(d){if(!d)return'';const dt=new Date(d+'T12:00:00');return dt.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
 
-  function addDemandRow() {
-    extraRowCount++;
-    const rowId = 'extra-' + extraRowCount;
-    const options = allProds.map(p =>
-      `<option value="${p.id}" data-rate="${p.rate||0}">${p.name} ${p.size||''}</option>`
-    ).join('');
-    const div = document.createElement('div');
-    div.id = rowId;
-    div.className = 'prod-row';
-    div.style.marginBottom = '8px';
-    div.innerHTML = `
-      <div style="flex:1;">
-        <select id="${rowId}-sel" onchange="updateExtraRate('${rowId}')"
-          style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;background:white;color:var(--brown);">
-          <option value="">-- Product Select --</option>
-          ${options}
-        </select>
-        <div id="${rowId}-rate" style="font-size:0.75rem;color:var(--muted);margin-top:3px;"></div>
-      </div>
-      <input type="number" id="${rowId}-qty" class="qty-input" placeholder="Qty" min="0" oninput="calcRunningTotal()">
-      <button onclick="removeRow('${rowId}')"
-        style="background:var(--red);color:white;border:none;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:0.85rem;">✕</button>
-    `;
-    document.getElementById('extra-rows').appendChild(div);
-  }
+  function showLogin(){document.getElementById('loading-msg').style.display='none';document.getElementById('login-step').style.display='block';}
+  
+  // Turant login dikhao — Firebase ka wait NAHI
+  showLogin();
+  
+  // Background mein data load karo
+  dbRef.once('value').then(snap=>{appData=snap.val()||{};fixDemandEntries();allProds=(appData.products||[]).filter(p=>p.active!==false);}).catch(()=>{});
+  function fixDemandEntries(){if(appData.demandEntries&&!Array.isArray(appData.demandEntries))appData.demandEntries=Object.values(appData.demandEntries).filter(e=>e&&e.id);if(!appData.demandEntries)appData.demandEntries=[];}
 
-  function updateExtraRate(rowId) {
-    const sel = document.getElementById(rowId + '-sel');
-    const opt = sel.options[sel.selectedIndex];
-    const pid = opt.value;
-    const dist = currentDist;
-    let rate = opt.dataset.rate || 0;
-    if (dist && dist.productRates && dist.productRates[pid]) rate = dist.productRates[pid];
-    const rateEl = document.getElementById(rowId + '-rate');
-    rateEl.textContent = rate ? 'Rate: ₹' + rate : '';
-  }
+  function verifyCode(){
+    const code=document.getElementById('login-code').value.trim().toUpperCase();
+    const errEl=document.getElementById('login-error');
+    if(!code){errEl.textContent='Code daalo!';errEl.style.display='block';return;}
 
-  function removeRow(rowId) {
-    const el = document.getElementById(rowId);
-    if (el) el.remove();
-  }
-
-  // Today's date
-  function today() {
-    return new Date().toISOString().split('T')[0];
-  }
-
-  let appData = {};
-  let allProds = [];
-  let currentDist = null;
-
-  // Load data on start
-  dbRef.once('value').then(snap => {
-    appData = snap.val() || {};
-
-    // 30 din purani demand auto delete
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const cutoffDate = thirtyDaysAgo.toISOString().split('T')[0];
-    if (appData.demandEntries && appData.demandEntries.length) {
-      const before = appData.demandEntries.length;
-      appData.demandEntries = appData.demandEntries.filter(e => e.date >= cutoffDate);
-      if (appData.demandEntries.length < before) {
-        dbRef.set(appData); // Save cleaned data
-      }
-    }
-
-    allProds = (appData.products || []).filter(p => p.active !== false);
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('login-step').style.display = 'block';
-  }).catch(e => {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('login-step').style.display = 'block';
-  });
-
-  // Timeout - 5 sec mein load na ho toh bhi show karo
-  setTimeout(() => {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('login-step').style.display = 'block';
-  }, 5000);
-
-  function verifyCode() {
-    const code  = document.getElementById('login-code').value.trim().toUpperCase();
-    const errEl = document.getElementById('login-error');
-
-    if (!code) { errEl.textContent = 'Code daalo!'; errEl.style.display = 'block'; return; }
-
-    const dist = (appData.customers || []).find(c =>
-      c.code && c.code.toString().toUpperCase() === code
-    );
-
-    if (!dist) {
-      errEl.textContent = '❌ Code galat hai! Admin se contact karo.';
-      errEl.style.display = 'block';
-      return;
-    }
-
-    currentDist = dist;
-    errEl.style.display = 'none';
-    document.getElementById('login-step').style.display = 'none';
-    document.getElementById('demand-form').style.display = 'block';
-
-    document.getElementById('logged-dist-name').textContent = '🏪 ' + dist.name;
-    document.getElementById('logged-dist-info').textContent = 'Code: ' + dist.code;
-    document.getElementById('d-date').value = today();
-
-    loadProducts(dist.name);
-  }
-
-  function logoutDist() {
-    currentDist = null;
-    document.getElementById('demand-form').style.display = 'none';
-    document.getElementById('login-step').style.display = 'block';
-    document.getElementById('login-code').value = '';
-    document.getElementById('view-demand-screen').style.display = 'none';
-    document.getElementById('success-screen').style.display = 'none';
-  }
-
-  // LTR/KG size map - check by both ID and name+size
-  const demSizeInLtr = {
-    'fcm1l':1,'fcm6l':6,'std500':0.5,'std1l':1,
-    'ton500':0.5,'ton6l':6,'cow':1,
-  };
-  const demSizeInKg = {
-    'curd5':5,'curd15':15,'curd140':0.14,
-    'curd_kg':1,'pan1kg':1,
-  };
-  const demModes = {};
-
-  function getDemUnit(pid) {
-    const id = String(pid).toLowerCase();
-    // Check LTR products by ID or name pattern
-    if (demSizeInLtr[id]) return 'ltr';
-    if (demSizeInKg[id]) return 'kg';
-    // Also check by product name+size in allProds
-    const prod = allProds.find(p => String(p.id) === String(pid));
-    if (prod) {
-      const size = (prod.size||'').toUpperCase();
-      const name = (prod.name||'').toUpperCase();
-      if (size.includes('LTR') || size.includes('ML')) {
-        // Milk liquid products
-        if (name.includes('FCM') || name.includes('STD') || name.includes('TONED') || name.includes('COW')) return 'ltr';
-      }
-      if (size.includes('KG') && (name.includes('CURD') || name.includes('PANEER'))) return 'kg';
-    }
-    return null;
-  }
-
-  function getLtrKgSize(pid) {
-    const id = String(pid).toLowerCase();
-    if (demSizeInLtr[id]) return { unit:'ltr', size: demSizeInLtr[id] };
-    if (demSizeInKg[id]) return { unit:'kg', size: demSizeInKg[id] };
-    const prod = allProds.find(p => String(p.id) === String(pid));
-    if (prod) {
-      const size = (prod.size||'').toUpperCase();
-      const match = size.match(/([\d.]+)\s*(ML|LTR|KG)/);
-      if (match) {
-        let sz = parseFloat(match[1]);
-        if (match[2] === 'ML') return { unit:'ltr', size: sz/1000 };
-        if (match[2] === 'LTR') return { unit:'ltr', size: sz };
-        if (match[2] === 'KG') return { unit:'kg', size: sz };
-      }
-    }
-    return null;
-  }
-
-  function toggleDemMode(pid) {
-    const info = getLtrKgSize(pid);
-    if (!info) return;
-    const cur = demModes[pid] || 'pkt';
-    demModes[pid] = cur === 'pkt' ? info.unit : 'pkt';
-    const btn = document.getElementById('dem-toggle-'+pid);
-    const inp = document.getElementById('qty-'+pid);
-    const isUnit = demModes[pid] !== 'pkt';
-    if (btn) {
-      btn.textContent = isUnit ? info.unit.toUpperCase() : 'PKT';
-      btn.style.background = isUnit ? '#E8F5E9' : '#FFF3E0';
-      btn.style.color = isUnit ? '#2A7A4A' : '#C97A2A';
-      btn.style.borderColor = isUnit ? '#A5D6A7' : '#FFCC80';
-    }
-    if (inp) { inp.value = ''; inp.placeholder = isUnit ? info.unit.toUpperCase() : '0'; }
-  }
-
-  let lastSubmittedEntry = null; // for WhatsApp share
-
-  function calcRunningTotal() {
-    let total = 0;
-    if (!currentDist) { document.getElementById('running-total').textContent = '₹0'; return; }
-    const dist = currentDist;
-    allProds.forEach(p => {
-      const inp = document.getElementById('qty-' + p.id);
-      if (!inp) return;
-      const val = parseFloat(inp.value) || 0;
-      if (!val) return;
-      const rate = (dist.productRates && dist.productRates[p.id]) ? parseFloat(dist.productRates[p.id]) : (p.rate||0);
-      const info = getLtrKgSize(p.id);
-      const mode = demModes[p.id] || 'pkt';
-      let qty = val;
-      if (mode !== 'pkt' && info) qty = Math.round(val / info.size);
-      const rDiv = {'fcm6l':6,'ton6l':6}[p.id]||1;
-      const pRate = rDiv>1 ? Math.round(rate/rDiv*100)/100 : rate;
-      const amount = rDiv>1 ? pRate*(val) : rate*qty;
-      total += amount;
-    });
-    // Extra rows
-    for (let i = 1; i <= extraRowCount; i++) {
-      const rowId = 'extra-' + i;
-      const sel = document.getElementById(rowId + '-sel');
-      const qtyInp = document.getElementById(rowId + '-qty');
-      if (!sel || !qtyInp || !sel.value) continue;
-      const qty = parseFloat(qtyInp.value) || 0;
-      if (!qty) continue;
-      const pid = sel.value;
-      const prod = allProds.find(p => String(p.id)===String(pid));
-      const rate = (dist.productRates && dist.productRates[pid]) ? parseFloat(dist.productRates[pid]) : (prod?.rate||0);
-      total += rate * qty;
-    }
-    document.getElementById('running-total').textContent = '₹' + Math.round(total).toLocaleString('en-IN');
-  }
-
-  function loadProducts(distName) {
-    const dist = (appData.customers || []).find(c => c.name === distName);
-    const prodList = document.getElementById('prod-list');
-
-    if (!allProds.length) {
-      prodList.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;text-align:center;padding:16px;">Koi product nahi mila. Admin se contact karo.</p>';
-      return;
-    }
-
-    // Separate Milk and Milk Products
-    const milkProds = allProds.filter(p => (p.cat||'Milk') === 'Milk');
-    const otherProds = allProds.filter(p => p.cat && p.cat !== 'Milk');
-
-    function makeRow(p) {
-      const distRate = dist && dist.productRates && dist.productRates[p.id] ? dist.productRates[p.id] : (p.rate || '');
-      const info = getLtrKgSize(p.id);
-      return `<div class="prod-row">
-        <div class="prod-info">
-          <div class="prod-name">${p.name} <span class="badge">${p.size || ''}</span></div>
-          ${distRate ? `<div class="prod-size">Rate: ₹${distRate}</div>` : ''}
-        </div>
-        ${info ? `<button id="dem-toggle-${p.id}" onclick="toggleDemMode('${p.id}')"
-          style="padding:6px 10px;border-radius:8px;border:1.5px solid #FFCC80;background:#FFF3E0;color:#C97A2A;font-size:0.75rem;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">PKT</button>` : ''}
-        <input type="number" class="qty-input" id="qty-${p.id}" placeholder="0" min="0"
-          style="${info?'width:70px;':''}" oninput="calcRunningTotal()">
-      </div>`;
-    }
-
-    let html = '';
-    if (milkProds.length) {
-      html += `<div style="font-size:0.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:8px 0 6px;padding-left:4px;">🥛 Milk</div>`;
-      html += milkProds.map(makeRow).join('');
-    }
-    if (otherProds.length) {
-      html += `<div style="font-size:0.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:14px 0 6px;padding-left:4px;">🧀 Milk Products</div>`;
-      html += otherProds.map(makeRow).join('');
-    }
-    prodList.innerHTML = html;
-
-    // Auto-prefill aaj ki demand agar already hai
-    const todayEntry = (appData.demandEntries||[]).find(e => e.date === today() && e.distName === distName);
-    const bar = document.getElementById('already-submitted-bar');
-    const info2 = document.getElementById('already-submitted-info');
-    if (todayEntry) {
-      const prodCount = Object.keys(todayEntry.items||{}).length;
-      bar.style.display = 'block';
-      info2.textContent = `${prodCount} products · ${Object.keys(todayEntry.items||{}).map(pid=>{const p=allProds.find(x=>String(x.id)===String(pid));return(p?p.name:pid)+': '+todayEntry.items[pid];}).slice(0,3).join(', ')}${prodCount>3?' ...':''}`;
-      // Prefill quantities
-      setTimeout(() => {
-        Object.entries(todayEntry.items||{}).forEach(([pid, qty]) => {
-          const inp = document.getElementById('qty-' + pid);
-          if (inp) inp.value = qty;
-        });
-        if (todayEntry.deposit) document.getElementById('d-deposit').value = todayEntry.deposit;
-        calcRunningTotal();
-      }, 100);
-    } else {
-      bar.style.display = 'none';
-    }
-    calcRunningTotal();
-  }
-
-  function clearTodayPrefill() {
-    document.getElementById('already-submitted-bar').style.display = 'none';
-    allProds.forEach(p => {
-      const inp = document.getElementById('qty-' + p.id);
-      if (inp) inp.value = '';
-    });
-    document.getElementById('d-deposit').value = '';
-    calcRunningTotal();
-  }
-
-  function shareOnWhatsApp() {
-    if (!lastSubmittedEntry) return;
-    const e = lastSubmittedEntry;
-    let msg = `🥛 *Parag Milk — Demand*\n`;
-    msg += `📅 Date: ${e.date}\n`;
-    msg += `🏪 ${e.distName}\n\n`;
-    Object.entries(e.items||{}).forEach(([pid, qty]) => {
-      const prod = allProds.find(p => String(p.id)===String(pid));
-      msg += `• ${prod ? prod.name+' '+( prod.size||'') : pid}: *${qty}*\n`;
-    });
-    if (e.deposit) msg += `\n💰 Deposit: ₹${e.deposit}`;
-    const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
-    window.open(url, '_blank');
-  }
-
-  function submitDemand() {
-
-    const date = document.getElementById('d-date').value;
-    const vehicle = document.getElementById('d-vehicle').value.trim().toUpperCase();
-    const distName = currentDist ? currentDist.name : '';
-
-    if (!distName) { alert('Pehle login karo!'); return; }
-    if (!date) { alert('Date select karo!'); return; }
-
-    const items = {};
-    allProds.forEach(p => {
-      const inp = document.getElementById('qty-' + p.id);
-      if (inp) {
-        const val = parseFloat(inp.value) || 0;
-        if (val > 0) {
-          const mode  = demModes[p.id] || 'pkt';
-          const info  = getLtrKgSize(p.id);
-          let qty = val;
-          if (mode !== 'pkt' && info) qty = Math.round(val / info.size);
-          items[p.id] = qty;
-        }
-      }
-    });
-
-    // Also collect extra rows
-    for (let i = 1; i <= extraRowCount; i++) {
-      const rowId = 'extra-' + i;
-      const sel = document.getElementById(rowId + '-sel');
-      const qtyInp = document.getElementById(rowId + '-qty');
-      if (sel && qtyInp && sel.value) {
-        const qty = parseFloat(qtyInp.value) || 0;
-        if (qty > 0) {
-          items[sel.value] = (items[sel.value] || 0) + qty;
-        }
-      }
-    }
-
-    if (!Object.keys(items).length) {
-      alert('Kam se kam ek product ki quantity daalo!');
-      return;
-    }
-
-    // Save to Firebase
-    const entry = {
-      id: Date.now(),
-      date,
-      distName,
-      vehicle: vehicle || '',
-      deposit: parseFloat(document.getElementById('d-deposit').value) || 0,
-      items,
-      submittedAt: new Date().toISOString(),
-      source: 'distributor'
+    const tryLogin = () => {
+      let customers=appData.customers||[];
+      if(!Array.isArray(customers))customers=Object.values(customers).filter(c=>c&&c.id);
+      const dist=customers.find(c=>c.code&&c.code.toString().toUpperCase()===code);
+      if(!dist){errEl.textContent='❌ Code galat hai! Admin se contact karo.';errEl.style.display='block';return;}
+      currentDist=dist;errEl.style.display='none';
+      document.getElementById('login-step').style.display='none';
+      document.getElementById('demand-form').style.display='block';
+      document.getElementById('logged-dist-name').textContent='🏪 '+dist.name;
+      document.getElementById('logged-dist-info').textContent='Code: '+dist.code+(dist.vehicle?' · 🚛 '+dist.vehicle:'');
+      if(dist.vehicle)document.getElementById('d-vehicle').value=dist.vehicle;
+      document.getElementById('d-date').value=today();
+      checkAlreadySubmitted();
     };
 
-    if (!appData.demandEntries) appData.demandEntries = [];
-
-    // Check if already exists
-    const existing = appData.demandEntries.findIndex(e => e.date === date && e.distName === distName);
-    if (existing >= 0) {
-      if (!confirm(`${distName} ki demand already hai ${date} ke liye. Update karein?`)) return;
-      appData.demandEntries[existing] = entry;
+    // Agar data load nahi hua toh pehle Firebase se lo
+    if(!appData.customers || !Object.keys(appData).length) {
+      errEl.textContent='⏳ Data load ho raha hai...';errEl.style.display='block';
+      dbRef.once('value').then(snap=>{
+        appData=snap.val()||{};fixDemandEntries();
+        allProds=(appData.products||[]).filter(p=>p.active!==false);
+        errEl.style.display='none';
+        tryLogin();
+      }).catch(()=>{errEl.textContent='❌ Internet check karo!';errEl.style.display='block';});
     } else {
-      appData.demandEntries.push(entry);
+      tryLogin();
     }
+  }
 
-    dbRef.set(appData).then(() => {
-      lastSubmittedEntry = entry;
-      // Show success
-      document.getElementById('demand-form').style.display = 'none';
-      document.getElementById('d-deposit').value = '';
-      const prodCount = Object.keys(items).length;
-      document.getElementById('success-msg').textContent =
-        `${distName} ki ${prodCount} product(s) ki demand ${date} ke liye save ho gayi!`;
-      document.getElementById('success-screen').style.display = 'block';
-    }).catch(e => {
-      alert('❌ Save nahi hua! Internet check karo aur dobara try karo.');
+  function logoutDist(){currentDist=null;['demand-form','view-demand-screen','success-screen'].forEach(id=>document.getElementById(id).style.display='none');document.getElementById('total-bar').style.display='none';document.getElementById('login-step').style.display='block';document.getElementById('login-code').value='';}
+
+  function getRateForProd(pid){const prod=allProds.find(p=>String(p.id)===String(pid));return(currentDist?.productRates?.[pid])?parseFloat(currentDist.productRates[pid]):(prod?.rate||0);}
+
+  function getProductOptions(selectedPid){
+    const milk=allProds.filter(p=>!p.cat||p.cat==='Milk');
+    const other=allProds.filter(p=>p.cat&&p.cat!=='Milk');
+    let html='<option value="">— Product Chunein —</option>';
+    if(milk.length)html+='<optgroup label="🥛 Milk">'+milk.map(p=>`<option value="${p.id}" ${String(p.id)===String(selectedPid)?'selected':''}>${p.name} ${p.size||''}</option>`).join('')+'</optgroup>';
+    if(other.length)html+='<optgroup label="🧀 Other">'+other.map(p=>`<option value="${p.id}" ${String(p.id)===String(selectedPid)?'selected':''}>${p.name} ${p.size||''}</option>`).join('')+'</optgroup>';
+    return html;
+  }
+
+  function addRow(pid,qty){
+    rowCount++;const id='row-'+rowCount;
+    const div=document.createElement('div');div.className='prod-row';div.id=id;
+    div.innerHTML=`
+      <div class="prod-row-top">
+        <select onchange="onRowChange('${id}')">${getProductOptions(pid||'')}</select>
+        <input type="number" class="qty-inp" placeholder="Qty" min="0" step="0.1" inputmode="decimal" oninput="onQtyChange('${id}')" value="${qty||''}">
+        <button class="remove-btn" onclick="removeRow('${id}')">✕</button>
+      </div>
+      <div class="row-meta">
+        <span class="row-rate" id="${id}-rate"></span>
+        <span class="row-amt"  id="${id}-amt"></span>
+      </div>`;
+    document.getElementById('demand-rows').appendChild(div);
+    if(pid)onRowChange(id,true);else setTimeout(()=>div.querySelector('select').focus(),80);
+    calcTotal();
+  }
+
+  function onRowChange(rowId,skipFocus){
+    const row=document.getElementById(rowId);if(!row)return;
+    const pid=row.querySelector('select').value;
+    const rateEl=document.getElementById(rowId+'-rate');
+    const amtEl=document.getElementById(rowId+'-amt');
+    if(!pid){rateEl.textContent='';amtEl.textContent='';calcTotal();return;}
+    const rate=getRateForProd(pid);
+    const div6={'fcm6l':6,'ton6l':6}[pid]||1;
+    const dispRate=div6>1?Math.round(rate/div6*100)/100:rate;
+    rateEl.textContent=rate?`₹${dispRate}${div6>1?' /LTR':' /pkt'}`:'';
+    if(!skipFocus)setTimeout(()=>row.querySelector('.qty-inp').focus(),80);
+    calcTotal();
+  }
+
+  function onQtyChange(rowId){
+    const row=document.getElementById(rowId);if(!row)return;
+    const pid=row.querySelector('select').value;
+    const qty=parseFloat(row.querySelector('.qty-inp').value)||0;
+    const amtEl=document.getElementById(rowId+'-amt');
+    if(pid&&qty){const rate=getRateForProd(pid);amtEl.textContent=rate?'= ₹'+Math.round(rate*qty).toLocaleString('en-IN'):'';}
+    else amtEl.textContent='';
+    calcTotal();
+  }
+
+  function removeRow(id){const el=document.getElementById(id);if(el)el.remove();calcTotal();}
+
+  function calcTotal(){
+    let total=0,count=0;
+    document.querySelectorAll('#demand-rows .prod-row').forEach(row=>{
+      const sel=row.querySelector('select');const inp=row.querySelector('.qty-inp');
+      if(!sel?.value||!inp)return;const qty=parseFloat(inp.value)||0;if(!qty)return;
+      total+=getRateForProd(sel.value)*qty;count++;
     });
+    document.getElementById('running-total').textContent='₹'+Math.round(total).toLocaleString('en-IN');
+    document.getElementById('row-count-badge').textContent=count+(count===1?' item':' items');
+    document.getElementById('total-bar').style.display=count>0?'flex':'none';
   }
 
-  function resetForm() {
-    document.getElementById('success-screen').style.display = 'none';
-    document.getElementById('view-demand-screen').style.display = 'none';
-    document.getElementById('demand-form').style.display = 'block';
-    document.getElementById('products-card').style.display = 'block';
-    document.getElementById('d-date').value = today();
-    document.getElementById('d-vehicle').value = '';
-    document.getElementById('extra-rows').innerHTML = '';
-    extraRowCount = 0;
-    if (currentDist) loadProducts(currentDist.name);
-    dbRef.once('value').then(snap => {
-      appData = snap.val() || {};
-      allProds = (appData.products || []).filter(p => p.active !== false);
+  function checkAlreadySubmitted(){
+    const date=document.getElementById('d-date').value;
+    if(!currentDist||!date)return;
+    const entry=(appData.demandEntries||[]).find(e=>e.date===date&&e.distName===currentDist.name);
+    const bar=document.getElementById('already-bar');
+    if(entry){
+      const keys=Object.keys(entry.items||{});
+      document.getElementById('already-info').textContent=`${keys.length} products — `+keys.slice(0,3).map(pid=>{const p=allProds.find(x=>String(x.id)===String(pid));return(p?p.name:pid)+': '+entry.items[pid];}).join(', ')+(keys.length>3?' ...':'');
+      bar.style.display='block';
+    } else bar.style.display='none';
+  }
+
+  function loadPrevDemand(){
+    const date=document.getElementById('d-date').value;
+    const entry=(appData.demandEntries||[]).find(e=>e.date===date&&e.distName===currentDist.name);
+    if(!entry)return;
+    document.getElementById('demand-rows').innerHTML='';rowCount=0;
+    Object.entries(entry.items||{}).forEach(([pid,qty])=>addRow(pid,qty));
+    if(entry.deposit)document.getElementById('d-deposit').value=entry.deposit;
+    if(entry.vehicle)document.getElementById('d-vehicle').value=entry.vehicle;
+    document.getElementById('already-bar').style.display='none';calcTotal();
+  }
+
+  function submitDemand(){
+    const date=document.getElementById('d-date').value;const distName=currentDist?.name||'';
+    if(!distName){alert('Pehle login karo!');return;}if(!date){alert('Date select karo!');return;}
+    const items={};let hasItem=false;
+    document.querySelectorAll('#demand-rows .prod-row').forEach(row=>{
+      const sel=row.querySelector('select');const inp=row.querySelector('.qty-inp');
+      if(!sel?.value||!inp)return;const qty=parseFloat(inp.value)||0;if(!qty)return;
+      items[sel.value]=(items[sel.value]||0)+qty;hasItem=true;
     });
+    if(!hasItem){alert('Kam se kam ek product ki quantity daalo!');return;}
+    const entry={id:Date.now(),date,distName,vehicle:document.getElementById('d-vehicle').value.trim().toUpperCase()||'',deposit:parseFloat(document.getElementById('d-deposit').value)||0,items,submittedAt:new Date().toISOString(),source:'distributor'};
+    const key='e_'+entry.id;
+    const existing=(appData.demandEntries||[]).find(e=>e.date===date&&e.distName===distName);
+    const doSave=()=>{
+      db.ref('sharedData/demandEntries/'+key).set(entry).then(()=>{
+        fixDemandEntries();const idx=appData.demandEntries.findIndex(e=>e.date===date&&e.distName===distName);
+        if(idx>=0)appData.demandEntries[idx]=entry;else appData.demandEntries.push(entry);
+        lastEntry=entry;
+        document.getElementById('success-msg').textContent=`${distName} ki ${Object.keys(items).length} product(s) ki demand ${fmtDate(date)} ke liye save ho gayi!`;
+        document.getElementById('demand-form').style.display='none';
+        document.getElementById('total-bar').style.display='none';
+        document.getElementById('success-screen').style.display='block';
+        window.scrollTo(0,0);
+      }).catch(()=>alert('❌ Save nahi hua! Internet check karo.'));
+    };
+    if(existing){if(!confirm(`${distName} ki demand already hai. Update karein?`))return;db.ref('sharedData/demandEntries/'+'e_'+existing.id).remove().then(doSave).catch(doSave);}else doSave();
   }
 
-  function viewMyDemandFromSuccess() {
-    document.getElementById('success-screen').style.display = 'none';
-    document.getElementById('demand-form').style.display = 'block';
-    viewMyDemand();
-  }
-
-  function viewMyDemand() {
-    const distName = currentDist ? currentDist.name : '';
-    const date = document.getElementById('d-date').value;
-    if (!distName) { alert('Pehle login karo!'); return; }
-
-    // Reload fresh data then show
-    dbRef.once('value').then(snap => {
-      appData = snap.val() || {};
-      allProds = appData.products || [];
-      const entries = (appData.demandEntries || []).filter(e => e.distName === distName);
-
-      const content = document.getElementById('view-demand-content');
-
-      if (!entries.length) {
-        content.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px;">Koi demand nahi mili abhi tak!</p>';
-      } else {
-        // Sort by date descending
-        entries.sort((a, b) => b.date.localeCompare(a.date));
-        content.innerHTML = entries.map(e => {
-          const items = Object.entries(e.items || {}).map(([pid, qty]) => {
-            const prod = allProds.find(p => String(p.id) === String(pid));
-            const name = prod ? `${prod.name} ${prod.size||''}` : pid;
-            const rate = prod ? (prod.rate || 0) : 0;
-            return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:0.85rem;">
-              <span><strong>${name}</strong></span>
-              <span style="color:var(--orange);">Qty: <strong>${qty}</strong> | ₹${rate*qty}</span>
-            </div>`;
+  function viewMyDemand(){
+    const distName=currentDist?.name||'';if(!distName){alert('Pehle login karo!');return;}
+    dbRef.once('value').then(snap=>{
+      appData=snap.val()||{};fixDemandEntries();allProds=appData.products||[];
+      const selectedDate=document.getElementById('d-date').value||today();
+      const entries=(appData.demandEntries||[]).filter(e=>e.distName===distName).sort((a,b)=>b.date.localeCompare(a.date));
+      const content=document.getElementById('view-demand-content');
+      if(!entries.length){content.innerHTML='<p style="color:var(--muted);text-align:center;padding:28px 0;">Koi demand nahi mili!</p>';}
+      else{
+        content.innerHTML=entries.map(e=>{
+          const itemsHtml=Object.entries(e.items||{}).map(([pid,qty])=>{
+            const prod=allProds.find(p=>String(p.id)===String(pid));
+            const name=prod?`${prod.name} ${prod.size||''}`:pid;
+            const rate=currentDist?.productRates?.[pid]||prod?.rate||0;
+            const amt=rate?Math.round(rate*qty):null;
+            return`<div class="hist-item"><span style="font-weight:600;">${name}</span><span style="color:var(--orange);font-weight:700;">×${qty}${amt?' = ₹'+amt.toLocaleString('en-IN'):''}</span></div>`;
           }).join('');
-
-          const isToday = e.date === today();
-          const selectedDate = document.getElementById('d-date')?.value || today();
-          const canEdit = e.date === selectedDate;
-          return `<div style="border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-              <div>
-                <strong style="color:var(--brown);">${e.date}</strong>
-                ${isToday ? '<span style="background:#2A7A4A;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:6px;">Aaj</span>' : ''}
+          const isToday2=e.date===today();const canEdit=e.date===selectedDate;
+          let entryTotal=0;Object.entries(e.items||{}).forEach(([pid,qty])=>{const prod=allProds.find(p=>String(p.id)===String(pid));entryTotal+=(currentDist?.productRates?.[pid]||prod?.rate||0)*qty;});
+          return`<div class="hist-card">
+            <div class="hist-header">
+              <div><span style="font-weight:800;color:var(--brown);font-size:0.9rem;">${fmtDate(e.date)}</span>${isToday2?'<span class="chip chip-green" style="margin-left:6px;">Aaj</span>':''}</div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                ${entryTotal?`<span style="font-weight:900;color:var(--green);font-size:0.95rem;">₹${Math.round(entryTotal).toLocaleString('en-IN')}</span>`:''}
+                ${canEdit?`<button onclick="editFromView('${e.distName}','${e.date}')" style="background:var(--orange);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;cursor:pointer;-webkit-appearance:none;">✏️ Edit</button>`:''}
               </div>
-              ${canEdit ? `<button onclick="editDemand('${e.distName}','${e.date}')" style="background:var(--orange);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;cursor:pointer;">✏️ Edit</button>` : ''}
             </div>
-            ${e.deposit ? `<div style="background:#E8F5E9;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:0.85rem;font-weight:700;color:#2A7A4A;">💰 Deposit: ₹${e.deposit.toLocaleString('en-IN')}</div>` : ''}
-            ${items}
+            ${e.deposit?`<div class="chip chip-green" style="margin-bottom:8px;display:inline-block;">💰 Deposit: ₹${Number(e.deposit).toLocaleString('en-IN')}</div><br>`:''}
+            ${itemsHtml}
           </div>`;
         }).join('');
       }
-
-      document.getElementById('view-demand-screen').style.display = 'block';
-      document.getElementById('view-demand-screen').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('view-demand-screen').style.display='block';
+      document.getElementById('view-demand-screen').scrollIntoView({behavior:'smooth'});
     });
   }
 
-  function closeViewDemand() {
-    document.getElementById('view-demand-screen').style.display = 'none';
+  function editFromView(distName,date){
+    document.getElementById('view-demand-screen').style.display='none';
+    document.getElementById('d-date').value=date;
+    const entry=(appData.demandEntries||[]).find(e=>e.date===date&&e.distName===distName);
+    document.getElementById('demand-rows').innerHTML='';rowCount=0;
+    if(entry){Object.entries(entry.items||{}).forEach(([pid,qty])=>addRow(pid,qty));if(entry.deposit)document.getElementById('d-deposit').value=entry.deposit;if(entry.vehicle)document.getElementById('d-vehicle').value=entry.vehicle;}
+    calcTotal();document.getElementById('demand-form').scrollIntoView({behavior:'smooth'});
   }
 
-  function editDemand(distName, date) {
-    // Close view screen
-    document.getElementById('view-demand-screen').style.display = 'none';
-    // Set form values
-    document.getElementById('d-date').value = date;
-    // Load products
-    loadProducts(distName);
-    document.getElementById('products-card').style.display = 'block';
+  function closeViewDemand(){document.getElementById('view-demand-screen').style.display='none';}
+  function viewMyDemandFromSuccess(){document.getElementById('success-screen').style.display='none';document.getElementById('demand-form').style.display='block';viewMyDemand();}
+  function resetForm(){
+    document.getElementById('success-screen').style.display='none';
+    document.getElementById('view-demand-screen').style.display='none';
+    document.getElementById('demand-form').style.display='block';
+    document.getElementById('d-date').value=today();
+    document.getElementById('d-vehicle').value=currentDist?.vehicle||'';
+    document.getElementById('d-deposit').value='';
+    document.getElementById('demand-rows').innerHTML='';rowCount=0;calcTotal();
+    dbRef.once('value').then(snap=>{appData=snap.val()||{};fixDemandEntries();allProds=(appData.products||[]).filter(p=>p.active!==false);checkAlreadySubmitted();});
+  }
 
-    // Fill existing quantities and deposit
-    const entry = (appData.demandEntries || []).find(e => e.date === date && e.distName === distName);
-    if (entry) {
-      // Fill deposit
-      const depInp = document.getElementById('d-deposit');
-      if (depInp) depInp.value = entry.deposit || '';
-
-      setTimeout(() => {
-        Object.entries(entry.items || {}).forEach(([pid, qty]) => {
-          const inp = document.getElementById('qty-' + pid);
-          if (inp) inp.value = qty;
-        });
-      }, 200);
-    }
-    document.getElementById('demand-form').scrollIntoView({ behavior: 'smooth' });
+  function shareOnWhatsApp(){
+    if(!lastEntry)return;const e=lastEntry;
+    let msg=`🥛 *Parag Milk — Demand*\n📅 ${fmtDate(e.date)}\n🏪 ${e.distName}\n\n`;
+    let total=0;
+    Object.entries(e.items||{}).forEach(([pid,qty])=>{
+      const prod=allProds.find(p=>String(p.id)===String(pid));
+      const rate=currentDist?.productRates?.[pid]||prod?.rate||0;
+      const amt=rate?Math.round(rate*qty):0;
+      msg+=`• ${prod?prod.name+' '+(prod.size||''):pid}: *${qty}*${amt?' (₹'+amt+')':''}\n`;
+      total+=amt;
+    });
+    if(total)msg+=`\n💰 *Total: ₹${total.toLocaleString('en-IN')}*`;
+    if(e.deposit)msg+=`\n💵 Deposit: ₹${e.deposit}`;
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
   }
 </script>
 </body>
