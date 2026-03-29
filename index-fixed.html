@@ -1020,6 +1020,9 @@
       if (cached) {
         const parsed = JSON.parse(cached);
         data = { ...data, ...parsed };
+        if (!Array.isArray(data.customers)) {
+          data.customers = data.customers ? Object.values(data.customers).filter(c => c && c.id) : [];
+        }
         if (!Array.isArray(data.demandEntries)) {
           data.demandEntries = data.demandEntries ? Object.values(data.demandEntries).filter(e => e && e.id) : [];
         }
@@ -1060,8 +1063,12 @@
       // Fix null/object arrays from Firebase
       if (!Array.isArray(data.products)) data.products = [];
       if (!Array.isArray(data.sales)) data.sales = [];
-      // Firebase stores arrays as objects {0:..., 1:...} or {'e_123':...}
-      // Must convert back to array — NOT reset to []
+      // Firebase stores arrays as objects — convert back
+      if (!Array.isArray(data.customers)) {
+        data.customers = data.customers
+          ? Object.values(data.customers).filter(c => c && c.id)
+          : [];
+      }
       if (!Array.isArray(data.demandEntries)) {
         data.demandEntries = data.demandEntries
           ? Object.values(data.demandEntries).filter(e => e && e.id)
