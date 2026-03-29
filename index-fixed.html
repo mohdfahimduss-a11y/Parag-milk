@@ -1093,6 +1093,10 @@
       renderSales();
       renderCustomers();
       renderProducts();
+      // Agar customers tab active hai toh dobara render karo
+      if (document.getElementById('customers')?.classList.contains('active')) {
+        renderCustomers();
+      }
       if (!Array.isArray(data.simpleSales)) data.simpleSales = [];
       if (!Array.isArray(data.expenses))    data.expenses    = [];
       renderSimpleSales();
@@ -1176,6 +1180,11 @@
     document.getElementById(tab).classList.add('active');
     event.target.classList.add('active');
     if (tab === 'dashboard') updateDashboard();
+    if (tab === 'customers') {
+      renderCustomers();
+      // Firebase slow ho toh 1.5 sec baad dobara try karo
+      setTimeout(() => renderCustomers(), 1500);
+    }
     if (tab === 'demand') {
       renderDemandEntryGrid();
       const vdEl = document.getElementById('demand-view-date');
