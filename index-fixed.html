@@ -1014,12 +1014,6 @@
     { id: 1048, code: "049", name: "ZILA JAIL(SH. SAI TRD.)", phone: "", daily: "", vehicle: "", address: "", productRates: {} }
   ];
 
-  // ✅ Turant load — Firebase ka wait nahi
-  data.customers = DEFAULT_CUSTOMERS;
-  renderCustomers();
-  updateCustomerList();
-  updateDistList();
-
   // Offline support: load from localStorage first for instant start
   function loadFromLocalCache() {
     try {
@@ -1076,11 +1070,8 @@
       }
       if (!Array.isArray(data.taxInvoices)) data.taxInvoices = [];
 
-      // Always ensure customers exist
-      if (!data.customers || !data.customers.length) {
-        data.customers = DEFAULT_CUSTOMERS;
-        saveData();
-      }
+      // customers sirf Firebase se aayenge — DEFAULT fallback nahi
+      if (!data.customers) data.customers = [];
 
       // Add missing DEFAULT_PRODUCTS (never delete user's products)
       let updated = false;
