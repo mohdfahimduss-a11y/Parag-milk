@@ -1070,8 +1070,13 @@
       }
       if (!Array.isArray(data.taxInvoices)) data.taxInvoices = [];
 
-      // customers sirf Firebase se aayenge — DEFAULT fallback nahi
-      if (!data.customers) data.customers = [];
+      // customers — Firebase object → array convert
+      if (!Array.isArray(data.customers)) {
+        data.customers = data.customers
+          ? Object.values(data.customers).filter(c => c && (c.id || c.name))
+          : [];
+      }
+      if (!data.customers.length) data.customers = [];
 
       // Add missing DEFAULT_PRODUCTS (never delete user's products)
       let updated = false;
@@ -1558,8 +1563,19 @@
 
   function renderCustomers() {
     const tb = document.getElementById('cust-table');
-    if (!data.customers.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No distributors added yet.</td></tr>'; return; }
-    tb.innerHTML = data.customers.map(r => `
+    if (!tb) return;
+
+    // Agar customers empty hai toh demand entries se unique names utha lo
+    let list = data.customers || [];
+    if (!list.length && (data.demandEntries||[]).length) {
+      const seen = new Set();
+      list = (data.demandEntries||[])
+        .filter(e => e.distName && !seen.has(e.distName) && seen.add(e.distName))
+        .map((e, i) => ({ id: i+1, code: '', name: e.distName, phone:'', vehicle:'', daily:'', address:'', productRates:{} }));
+    }
+
+    if (!list.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No distributors added yet.</td></tr>'; return; }
+    tb.innerHTML = list.map(r => `
       <tr>
         <td><span class="badge badge-amber">${r.code || '-'}</span></td>
         <td><strong>${r.name}</strong></td>
