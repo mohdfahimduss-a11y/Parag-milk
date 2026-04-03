@@ -861,7 +861,7 @@
           ? Object.values(data.customers).filter(c => c && (c.id || c.name))
           : [];
       }
-      if (!data.customers.length) data.customers = [];
+      // Note: customers khali hone par override mat karo — user ne add nahi kiye hote
 
       // Add missing DEFAULT_PRODUCTS (never delete user's products)
       let updated = false;
@@ -889,7 +889,6 @@
       renderSimpleSales();
       renderExpenses();
       renderExpCatSelect();
-      populateDispatchDist();
       populateSalesDist();
       updateCustomerList();
       updateDistList();
@@ -926,19 +925,44 @@
   // Date helpers
   function saveData(keysToSave) {
     if (dbRef) {
-      if (keysToSave) {
+      if (keysToSave && keysToSave.includes('customers')) {
+        // customers ko alag se save karo — array corruption se bachne ke liye
+        saveCustomers();
+        const otherKeys = keysToSave.filter(k => k !== 'customers');
+        if (otherKeys.length) {
+          const upd = {};
+          otherKeys.forEach(k => { upd[k] = data[k]; });
+          dbRef.update(upd).catch(e => console.log('Save error:', e));
+        }
+      } else if (keysToSave) {
         const upd = {};
         keysToSave.forEach(k => { upd[k] = data[k]; });
         dbRef.update(upd).catch(e => console.log('Save error:', e));
       } else {
+        saveCustomers();
         dbRef.update({
           products: data.products,
-          customers: data.customers,
-          sales: data.sales,
           taxInvoices: data.taxInvoices,
         }).catch(e => console.log('Save error:', e));
       }
     }
+    try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
+  }
+
+  function saveCustomers() {
+    if (!dbRef) { console.log('dbRef null!'); return; }
+    // Pehle purane customers hata do, phir naye save karo
+    db.ref('sharedData/customers').remove().then(() => {
+      const updates = {};
+      (data.customers || []).forEach(c => {
+        updates['sharedData/customers/c_' + c.id] = c;
+      });
+      if (Object.keys(updates).length) {
+        db.ref().update(updates)
+          .then(() => console.log('Customers saved:', data.customers.length))
+          .catch(e => console.log('Customers save error:', e));
+      }
+    });
     try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
   }
 
