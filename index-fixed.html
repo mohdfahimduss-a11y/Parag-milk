@@ -217,7 +217,6 @@
 <div class="nav">
   <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
   <button onclick="showTab('demand')">📦 Demand</button>
-  <button onclick="showTab('dispatch')">🚚 Dispatch</button>
   <button onclick="showTab('sales')">💰 Sales</button>
   <button onclick="showTab('expenses')">🧾 Expenses</button>
   <button onclick="showTab('customers')">🏪 Distributors</button>
@@ -259,12 +258,6 @@
         <div class="card-value green" id="dash-demand-count">0</div>
         <div class="card-sub" id="dash-demand-sub">Aaj ke</div>
       </div>
-      <div class="card" style="background:#E8EAF6;border:1.5px solid #9FA8DA;cursor:pointer;" onclick="showTab('dispatch')">
-        <div class="card-icon">🚚</div>
-        <div class="card-label">Total Dispatch</div>
-        <div class="card-value" id="dash-dispatch-count" style="color:#3949AB;">0</div>
-        <div class="card-sub">Aaj ke</div>
-      </div>
       <div class="card" style="background:var(--cream);border:1.5px solid var(--border);cursor:pointer;" onclick="showTab('customers')">
         <div class="card-icon">🏪</div>
         <div class="card-label">Distributors</div>
@@ -287,338 +280,6 @@
       </div>
       <div id="dash-demand-products" style="padding:8px 0;">
         <div class="empty">Koi demand nahi aaj</div>
-      </div>
-    </div>
-
-    <!-- Recent Dispatch -->
-    <div class="table-card">
-      <div class="table-header" style="justify-content:space-between;">
-        <h3>🚚 Recent Dispatch</h3>
-        <button class="btn btn-sm" style="background:#E8EAF6;color:#3949AB;border:1px solid #9FA8DA;" onclick="showTab('dispatch')">View All →</button>
-      </div>
-      <table>
-        <thead><tr><th>Voucher</th><th>Date</th><th>Distributor</th><th>Status</th></tr></thead>
-        <tbody id="dash-dispatch-table"><tr><td colspan="4" class="empty">Koi dispatch nahi.</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- DEMAND -->
-  <div class="section" id="demand">
-    <div class="today-bar">
-      <div class="emoji">📦</div>
-      <div>
-        <h2>Distributor Demand</h2>
-        <p id="demand-date-label">Collect demands & export to Excel for production</p>
-      </div>
-    </div>
-
-    <!-- Step 1: Select/Add Distributor -->
-    <div class="form-card" id="demand-form-card">
-      <h3>🏪 Step 1 — Enter Distributor Demand <span id="demand-edit-badge" style="display:none;background:#FF6F00;color:white;font-size:0.72rem;padding:3px 10px;border-radius:20px;margin-left:8px;">✏️ Edit Mode</span></h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Date</label>
-          <input type="date" id="demand-entry-date">
-        </div>
-        <div class="form-group">
-          <label>Distributor Name</label>
-          <select id="demand-dist-name" onchange="onDistSelect(this)">
-            <option value="">-- Select Distributor --</option>
-          </select>
-          <span id="demand-vehicle-display" style="display:block;margin-top:5px;font-size:0.82rem;font-weight:700;color:#1565C0;"></span>
-        </div>
-      </div>
-      <div style="margin-top:12px;">
-        <div style="overflow-x:auto;">
-          <table style="width:100%;border-collapse:collapse;" id="demand-rows-table">
-            <thead>
-              <tr style="background:var(--cream);">
-                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">#</th>
-                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Product</th>
-                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Size</th>
-                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);">Rate ₹</th>
-                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;border-bottom:1.5px solid var(--border);background:#E8F5EE;color:var(--green);">KG / LTR / PKT</th>
-                <th style="padding:9px 12px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:#FFF3E0;color:var(--amber);">Amount ₹</th>
-                <th style="padding:9px 12px;border-bottom:1.5px solid var(--border);text-align:center;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;">+/−</th>
-              </tr>
-            </thead>
-            <tbody id="demand-entry-grid"></tbody>
-            <tfoot>
-              <tr>
-                <td colspan="4" style="padding:10px 12px;">
-                  <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);border:1px solid #B0D8C0;" onclick="addDemandRow()">+ Nayi Row</button>
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn btn-primary" onclick="saveDemandEntry()">✅ Save Demand</button>
-        <button class="btn" style="background:var(--blue-light);color:var(--blue);border:1px solid #C0D0F0;" onclick="clearDemandForm()">🔄 Clear Form</button>
-      </div>
-    </div>
-
-    <!-- Step 2: All Demands for Today -->
-    <div class="table-card">
-      <div class="table-header" style="flex-wrap:wrap;gap:8px;">
-        <h3>📋 Demands — <span id="demand-day-label" style="color:var(--amber)"></span> <span id="demand-count-label" style="background:var(--brown);color:white;font-size:0.72rem;padding:2px 8px;border-radius:20px;margin-left:6px;"></span></h3>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <input type="date" id="demand-view-date" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;"
-            onchange="renderDemandSummaryPage(this.value)">
-          <button class="btn btn-sm" style="background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9;font-weight:700;" onclick="renderDemandSummaryPage(document.getElementById('demand-view-date').value||today())">🔄 Refresh</button>
-
-        </div>
-
-      </div>
-
-      <!-- Distributor-wise table -->
-      <div id="demand-dist-tables"></div>
-    </div>
-  </div>
-
-  <!-- DISPATCH -->
-  <div class="section" id="dispatch">
-    <div class="today-bar">
-      <div class="emoji">🚚</div>
-      <div><h2>Dispatch</h2><p style="font-size:0.8rem;color:#C8A882;">Delivery track karo</p></div>
-    </div>
-
-    <!-- Summary -->
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
-      <div class="card" style="background:#E8EAF6;border:1.5px solid #9FA8DA;">
-        <div class="card-icon">📋</div>
-        <div class="card-label">Total Dispatch</div>
-        <div class="card-value" id="disp-total-count" style="color:#3949AB;">0</div>
-      </div>
-      <div class="card" style="background:#FFF3E0;border:1.5px solid #FFCC80;">
-        <div class="card-icon">⏳</div>
-        <div class="card-label">Pending</div>
-        <div class="card-value" id="disp-pending-count" style="color:var(--amber);">0</div>
-      </div>
-    </div>
-
-    <!-- Add Dispatch -->
-    <div class="form-card">
-      <h3>🚚 Add Dispatch</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Date</label>
-          <input type="date" id="disp-date">
-        </div>
-        <div class="form-group">
-          <label>Distributor</label>
-          <select id="disp-dist" style="padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:1rem;background:var(--cream);outline:none;">
-            <option value="">— Select —</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Vehicle No.</label>
-          <input type="text" id="disp-vehicle" placeholder="UP32 AB 1234" style="text-transform:uppercase;">
-        </div>
-        <div class="form-group">
-          <label>Driver Name</label>
-          <input type="text" id="disp-driver" placeholder="Driver ka naam">
-        </div>
-        <div class="form-group">
-          <label>Amount (₹)</label>
-          <input type="number" id="disp-amount" placeholder="0" min="0">
-        </div>
-        <div class="form-group">
-          <label>Payment Mode</label>
-          <select id="disp-mode" style="padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:1rem;background:var(--cream);outline:none;">
-            <option>Cash</option>
-            <option>Cheque</option>
-            <option>Online</option>
-            <option>Credit</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label>Remarks</label>
-          <input type="text" id="disp-remarks" placeholder="Optional notes">
-        </div>
-      </div>
-      <div style="margin-top:14px;">
-        <button class="btn btn-primary" onclick="addDispatch()">+ Add Dispatch</button>
-      </div>
-    </div>
-
-    <!-- Filter -->
-    <div class="form-card" style="padding:12px 16px;">
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <input type="date" id="disp-filter-from" style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;outline:none;">
-        <span style="color:var(--muted);">→</span>
-        <input type="date" id="disp-filter-to" style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;outline:none;">
-        <button onclick="renderDispatch()" class="btn btn-sm" style="background:var(--blue);color:white;border:none;">Filter</button>
-      </div>
-    </div>
-
-    <!-- Dispatch List -->
-    <div class="table-card">
-      <div class="table-header" style="justify-content:space-between;">
-        <h3>📋 Dispatch List</h3>
-        <input type="text" id="disp-search" placeholder="Search..." oninput="renderDispatch()"
-          style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82rem;width:110px;outline:none;">
-      </div>
-      <table>
-        <thead><tr><th>Voucher</th><th>Date</th><th>Distributor</th><th>Amount</th><th>Mode</th><th>Status</th><th>Del</th></tr></thead>
-        <tbody id="disp-table"><tr><td colspan="7" class="empty">Koi dispatch nahi.</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- SALES -->
-  <div class="section" id="sales">
-
-    <!-- MAIN VIEW -->
-    <div id="sv-main" style="padding-bottom:90px;">
-
-      <!-- Stats -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-        <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,0.08);">
-          <div style="font-size:0.72rem;color:#888;font-weight:600;margin-bottom:5px;">↓ You'll Get</div>
-          <div id="sv-youll-get" style="font-size:1.18rem;font-weight:900;color:#2A7A4A;">₹0</div>
-        </div>
-        <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,0.08);">
-          <div style="font-size:0.72rem;color:#888;font-weight:600;margin-bottom:5px;">📅 Sale (This Month)</div>
-          <div id="sv-month-total" style="font-size:1.18rem;font-weight:900;color:var(--amber);">₹0</div>
-        </div>
-      </div>
-
-      <!-- Tabs -->
-      <div style="display:flex;border:1.5px solid #ddd;border-radius:25px;overflow:hidden;background:white;margin-bottom:14px;">
-        <button onclick="svTab('parties')" id="svt-parties" style="flex:1;padding:9px 4px;border:none;background:#C62828;color:white;font-weight:700;font-size:0.82rem;cursor:pointer;border-radius:23px;">Parties</button>
-        <button onclick="svTab('txn')"     id="svt-txn"     style="flex:1;padding:9px 4px;border:none;background:transparent;color:#888;font-weight:600;font-size:0.82rem;cursor:pointer;">Transactions</button>
-      </div>
-
-      <!-- Search -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-        <div style="flex:1;display:flex;align-items:center;gap:8px;background:white;border:1.5px solid #ddd;border-radius:8px;padding:9px 12px;">
-          <span style="color:#1565C0;">🔍</span>
-          <input type="text" id="sv-search" placeholder="SEARCH PARTY" oninput="renderSvList()"
-            style="border:none;outline:none;font-size:0.82rem;font-weight:600;letter-spacing:0.5px;background:transparent;flex:1;color:#888;">
-        </div>
-      </div>
-
-      <!-- Lists -->
-      <div id="sv-parties-view"><div id="sv-parties-list" style="background:white;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,0.07);overflow:hidden;"></div></div>
-      <div id="sv-txn-view" style="display:none;"><div id="sv-txn-list" style="background:white;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,0.07);overflow:hidden;"></div></div>
-    </div>
-
-    <!-- BOTTOM BAR -->
-    <div id="sv-bottom-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:white;border-top:1px solid #eee;padding:10px 14px 14px;display:flex;align-items:center;gap:10px;">
-      <button onclick="openTakePayment()" style="flex:1;padding:13px;background:#1565C0;color:white;border:none;border-radius:30px;font-weight:800;font-size:0.9rem;cursor:pointer;">Take Payment</button>
-      <button onclick="openAddSale()" style="width:50px;height:50px;flex-shrink:0;background:white;border:2px solid #1565C0;color:#1565C0;border-radius:50%;font-size:1.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
-      <button onclick="openAddSale()" style="flex:1;padding:13px;background:#C62828;color:white;border:none;border-radius:30px;font-weight:800;font-size:0.9rem;cursor:pointer;">Add Sale</button>
-    </div>
-
-    <!-- ADD SALE OVERLAY -->
-    <div id="sv-add-form" style="display:none;position:fixed;inset:0;background:#f5f5f5;z-index:300;overflow-y:auto;">
-      <!-- Header -->
-      <div style="background:white;padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;position:sticky;top:0;z-index:10;">
-        <button onclick="closeAddSale()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#333;">←</button>
-        <span style="font-size:1.05rem;font-weight:800;flex:1;">Sale</span>
-        <div style="display:flex;background:#f0f0f0;border-radius:20px;padding:3px;">
-          <button id="sv-credit-btn" onclick="setSaleMode('Credit')" style="padding:5px 14px;border:none;border-radius:18px;font-weight:700;font-size:0.8rem;cursor:pointer;background:#1565C0;color:white;">Credit</button>
-          <button id="sv-cash-btn"   onclick="setSaleMode('Cash')"   style="padding:5px 14px;border:none;border-radius:18px;font-weight:700;font-size:0.8rem;cursor:pointer;background:transparent;color:#999;">Cash</button>
-        </div>
-      </div>
-
-      <!-- Invoice + Date -->
-      <div style="background:white;display:flex;border-bottom:1px solid #eee;margin-bottom:2px;">
-        <div style="flex:1;padding:14px 16px;border-right:1px solid #eee;">
-          <div style="font-size:0.72rem;color:#aaa;margin-bottom:5px;">Invoice No.</div>
-          <div id="sv-inv-no" style="font-size:0.98rem;font-weight:700;">1</div>
-        </div>
-        <div style="flex:1;padding:14px 16px;">
-          <div style="font-size:0.72rem;color:#aaa;margin-bottom:5px;">Date</div>
-          <input type="date" id="sv-date" style="border:none;outline:none;font-size:0.95rem;font-weight:700;color:#111;background:transparent;width:100%;padding:0;">
-        </div>
-      </div>
-
-      <!-- Firm Name -->
-      <div style="background:white;padding:13px 16px;border-bottom:1px solid #eee;margin-bottom:2px;">
-        <span style="font-size:0.82rem;color:#888;">Firm Name: </span>
-        <span style="font-size:0.82rem;font-weight:600;">Moradabad Dugdh Utpadak Sahakari Sangh Ltd.</span>
-      </div>
-
-      <!-- Party -->
-      <div style="background:white;padding:16px;border-bottom:1px solid #eee;margin-bottom:2px;">
-        <div style="border:2px solid #1565C0;border-radius:8px;padding:10px 14px;position:relative;">
-          <div style="position:absolute;top:-10px;left:12px;background:white;padding:0 4px;font-size:0.72rem;color:#1565C0;font-weight:700;">Party *</div>
-          <select id="sv-party" onchange="onSvPartyChange()" style="border:none;outline:none;font-size:1rem;width:100%;color:#111;background:transparent;padding:0;appearance:none;">
-            <option value="">— Distributor Chunein —</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Items -->
-      <div style="background:white;padding:14px 16px;border-bottom:1px solid #eee;margin-bottom:2px;">
-        <div id="sv-items-list" style="margin-bottom:8px;"></div>
-        <button onclick="addSaleItem()" style="width:100%;padding:11px;background:#EEF2FF;color:#1565C0;border:1.5px dashed #9FA8DA;border-radius:8px;font-size:0.88rem;font-weight:700;cursor:pointer;">+ Add Item</button>
-      </div>
-
-      <!-- Demand preview -->
-      <div id="sv-demand-bar" style="display:none;background:white;padding:12px 16px;border-bottom:1px solid #eee;margin-bottom:2px;">
-        <div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div style="font-size:0.75rem;font-weight:700;color:#2A7A4A;">📦 Aaj ki Demand</div>
-            <div id="sv-demand-breakdown" style="font-size:0.72rem;color:#666;margin-top:2px;"></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span id="sv-demand-amt" style="font-weight:900;color:#2A7A4A;">₹0</span>
-            <button onclick="fillFromDemand()" style="padding:5px 10px;border-radius:6px;border:none;background:#2A7A4A;color:white;font-size:0.75rem;font-weight:800;cursor:pointer;">↙ Fill</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Note -->
-      <div style="background:white;padding:14px 16px;border-bottom:1px solid #eee;margin-bottom:2px;">
-        <input type="text" id="sv-note" placeholder="Note (optional)" style="border:1.5px solid #ddd;border-radius:8px;padding:11px 14px;font-size:0.95rem;width:100%;outline:none;box-sizing:border-box;">
-      </div>
-
-      <!-- Total -->
-      <div style="background:white;padding:16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;margin-bottom:2px;">
-        <span style="font-size:0.95rem;font-weight:800;">Total Amount</span>
-        <div style="display:flex;align-items:center;gap:4px;">
-          <span style="color:#888;">₹</span>
-          <input type="number" id="sv-total" placeholder="0" min="0" oninput="svTotalEdited=true"
-            style="border:none;border-bottom:1.5px dashed #bbb;outline:none;font-size:1.1rem;font-weight:700;width:130px;text-align:right;background:transparent;">
-        </div>
-      </div>
-
-      <input type="hidden" id="sv-mode" value="Credit">
-      <div style="height:70px;"></div>
-
-      <!-- Save bar -->
-      <div style="position:sticky;bottom:0;background:white;border-top:1px solid #eee;display:flex;">
-        <button onclick="saveSaleAndNew()" style="flex:1;padding:16px;border:none;background:transparent;color:#999;font-weight:700;font-size:0.88rem;cursor:pointer;border-right:1px solid #eee;">Save &amp; New</button>
-        <button onclick="saveSale()" style="flex:2;padding:16px;background:#1565C0;color:white;border:none;font-weight:800;font-size:1rem;cursor:pointer;">Save</button>
-      </div>
-    </div>
-
-    <!-- TAKE PAYMENT MODAL -->
-    <div id="sv-tp-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:400;align-items:flex-end;" onclick="if(event.target===this)closeTakePayment()">
-      <div style="background:white;border-radius:20px 20px 0 0;padding:20px 16px 28px;width:100%;">
-        <div style="width:40px;height:4px;background:#ddd;border-radius:4px;margin:0 auto 16px;"></div>
-        <h3 style="font-size:1rem;font-weight:800;margin-bottom:16px;">💵 Take Payment</h3>
-        <div style="margin-bottom:12px;">
-          <label style="font-size:0.75rem;color:#888;font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px;">Party</label>
-          <select id="tp-party" style="width:100%;padding:12px;border:1.5px solid #ddd;border-radius:10px;font-size:0.95rem;outline:none;background:white;"></select>
-        </div>
-        <div style="margin-bottom:12px;">
-          <label style="font-size:0.75rem;color:#888;font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px;">Amount (₹)</label>
-          <input type="number" id="tp-amount" placeholder="0" style="width:100%;padding:12px;border:1.5px solid #ddd;border-radius:10px;font-size:1.05rem;font-weight:700;outline:none;box-sizing:border-box;">
-        </div>
-        <div style="margin-bottom:18px;">
-          <label style="font-size:0.75rem;color:#888;font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px;">Date</label>
-          <input type="date" id="tp-date" style="width:100%;padding:12px;border:1.5px solid #ddd;border-radius:10px;font-size:0.95rem;outline:none;box-sizing:border-box;">
-        </div>
-        <div style="display:flex;gap:10px;">
-          <button onclick="closeTakePayment()" style="flex:1;padding:14px;border:1.5px solid #ddd;border-radius:12px;background:white;font-weight:700;cursor:pointer;">Cancel</button>
-          <button onclick="confirmTakePayment()" style="flex:2;padding:14px;background:#1565C0;color:white;border:none;border-radius:12px;font-weight:800;font-size:1rem;cursor:pointer;">Confirm</button>
-        </div>
       </div>
     </div>
 
@@ -1312,11 +973,6 @@
       renderCustomers();
       setTimeout(() => renderCustomers(), 1500);
     }
-    if (tab === 'dispatch') {
-      document.getElementById('disp-date').value = today();
-      populateDispatchDist();
-      renderDispatch();
-    }
     if (tab === 'demand') {
       renderDemandEntryGrid();
       const vdEl = document.getElementById('demand-view-date');
@@ -1772,7 +1428,7 @@
       added++;
     });
     if (!added) { alert('Sab already add hain!'); return; }
-    if(dbRef) dbRef.update({customers: data.customers});
+    saveData(['customers']);
     renderCustomers(); updateCustomerList();
     alert(`✅ ${added} distributors add ho gaye!`);
   }
@@ -1792,7 +1448,7 @@
     };
     if (!rec.name) { alert('Please enter distributor name!'); return; }
     data.customers.unshift(rec);
-    if(dbRef) dbRef.update({customers: data.customers});
+    saveData(['customers']);
     renderCustomers();
     updateCustomerList();
     ['cust-code','cust-name','cust-phone','cust-daily','cust-vehicle','cust-route','cust-opening','cust-address'].forEach(id => {
@@ -1951,7 +1607,7 @@
     dist.vehicle = document.getElementById('edit-dist-vehicle').value.trim().toUpperCase();
     dist.address = document.getElementById('edit-dist-address').value.trim();
     if (!dist.name) { alert('Naam zaroori hai!'); return; }
-    if(dbRef) dbRef.update({customers: data.customers});;
+    saveData(['customers']);;
     renderCustomers();
     updateCustomerList();
     updateDistList();
@@ -2085,7 +1741,7 @@
         delete dist.productRates[p.id];
       }
     });
-    if(dbRef) dbRef.update({customers: data.customers});
+    saveData(['customers']);
     document.getElementById('dist-rate-panel').style.display = 'none';
     renderCustomers();
     alert('✅ Rates save ho gaye!');
@@ -4607,27 +4263,6 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     const todayDemands = (data.demandEntries||[]).filter(e => e.date === t);
     document.getElementById('dash-demand-count').textContent = todayDemands.length;
     document.getElementById('dash-demand-sub').textContent = todayDemands.length + ' aaj ke';
-
-    // Today's dispatch
-    const todayDisp = (data.dispatches||[]).filter(d => d.date === t);
-    const dispCountEl = document.getElementById('dash-dispatch-count');
-    if (dispCountEl) dispCountEl.textContent = todayDisp.length;
-
-    // Recent dispatch table
-    const dispTb = document.getElementById('dash-dispatch-table');
-    if (dispTb) {
-      const recent = (data.dispatches||[]).slice(0, 5);
-      if (!recent.length) {
-        dispTb.innerHTML = '<tr><td colspan="4" class="empty">Koi dispatch nahi.</td></tr>';
-      } else {
-        dispTb.innerHTML = recent.map(d=>`<tr>
-          <td><span class="badge badge-blue">${d.voucher||'-'}</span></td>
-          <td>${formatDate(d.date)}</td>
-          <td style="font-size:0.85rem;">${d.dist}</td>
-          <td><span class="badge ${d.status==='Delivered'?'badge-green':'badge-amber'}">${d.status||'Dispatched'}</span></td>
-        </tr>`).join('');
-      }
-    }
 
     // Product-wise totals across all today's demands
     const prodTotals = {};
