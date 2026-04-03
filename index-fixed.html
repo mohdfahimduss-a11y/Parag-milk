@@ -217,6 +217,7 @@
 <div class="nav">
   <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
   <button onclick="showTab('demand')">📦 Demand</button>
+  <button onclick="showTab('dispatch')">🚚 Dispatch</button>
   <button onclick="showTab('sales')">💰 Sales</button>
   <button onclick="showTab('expenses')">🧾 Expenses</button>
   <button onclick="showTab('customers')">🏪 Distributors</button>
@@ -235,23 +236,36 @@
         <h2>Today's Overview</h2>
         <p id="todayDate">Loading...</p>
       </div>
+      <div id="online-badge" style="font-size:0.72rem;font-weight:700;padding:4px 10px;border-radius:20px;background:#E8F5EE;color:var(--green);">🟢 Online</div>
+    </div>
+
+    <!-- Financial Year Bar -->
+    <div style="background:linear-gradient(135deg,#1a237e,#283593);color:white;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:0.72rem;opacity:0.7;font-weight:600;text-transform:uppercase;">Financial Year</div>
+        <div style="font-size:1.1rem;font-weight:900;" id="dash-fy">2025-2026</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:0.72rem;opacity:0.7;">Admin</div>
+        <div style="font-size:0.88rem;font-weight:700;">Moradabad Dugdh</div>
+      </div>
     </div>
 
     <!-- Stat Cards -->
-    <div class="cards" style="grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
-      <div class="card green">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
+      <div class="card green" style="cursor:pointer;" onclick="showTab('demand')">
         <div class="card-icon">📦</div>
-        <div class="card-label">Aaj ki Demand</div>
+        <div class="card-label">Total Demand</div>
         <div class="card-value green" id="dash-demand-count">0</div>
-        <div class="card-sub" id="dash-demand-sub">Distributors</div>
+        <div class="card-sub" id="dash-demand-sub">Aaj ke</div>
       </div>
-      <div class="card blue">
-        <div class="card-icon">💰</div>
-        <div class="card-label">Today's Sales</div>
-        <div class="card-value blue" id="dash-income">₹0</div>
-        <div class="card-sub">Collection today</div>
+      <div class="card" style="background:#E8EAF6;border:1.5px solid #9FA8DA;cursor:pointer;" onclick="showTab('dispatch')">
+        <div class="card-icon">🚚</div>
+        <div class="card-label">Total Dispatch</div>
+        <div class="card-value" id="dash-dispatch-count" style="color:#3949AB;">0</div>
+        <div class="card-sub">Aaj ke</div>
       </div>
-      <div class="card" style="background:var(--cream);border:1.5px solid var(--border);">
+      <div class="card" style="background:var(--cream);border:1.5px solid var(--border);cursor:pointer;" onclick="showTab('customers')">
         <div class="card-icon">🏪</div>
         <div class="card-label">Distributors</div>
         <div class="card-value" id="dash-customers" style="color:var(--brown);">0</div>
@@ -269,19 +283,22 @@
     <div class="table-card" id="dash-demand-breakdown" style="margin-bottom:14px;">
       <div class="table-header" style="justify-content:space-between;">
         <h3>📦 Aaj ki Demand — Product Wise</h3>
-        <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);border:1px solid #A5D6A7;"
-          onclick="showTab('demand')">View Full →</button>
+        <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);border:1px solid #A5D6A7;" onclick="showTab('demand')">View Full →</button>
       </div>
       <div id="dash-demand-products" style="padding:8px 0;">
         <div class="empty">Koi demand nahi aaj</div>
       </div>
     </div>
 
+    <!-- Recent Dispatch -->
     <div class="table-card">
-      <div class="table-header"><h3>📅 Recent Sales</h3></div>
+      <div class="table-header" style="justify-content:space-between;">
+        <h3>🚚 Recent Dispatch</h3>
+        <button class="btn btn-sm" style="background:#E8EAF6;color:#3949AB;border:1px solid #9FA8DA;" onclick="showTab('dispatch')">View All →</button>
+      </div>
       <table>
-        <thead><tr><th>Date</th><th>Distributor</th><th>Amount</th></tr></thead>
-        <tbody id="recent-table"><tr><td colspan="3" class="empty">No records yet.</td></tr></tbody>
+        <thead><tr><th>Voucher</th><th>Date</th><th>Distributor</th><th>Status</th></tr></thead>
+        <tbody id="dash-dispatch-table"><tr><td colspan="4" class="empty">Koi dispatch nahi.</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -358,6 +375,96 @@
 
       <!-- Distributor-wise table -->
       <div id="demand-dist-tables"></div>
+    </div>
+  </div>
+
+  <!-- DISPATCH -->
+  <div class="section" id="dispatch">
+    <div class="today-bar">
+      <div class="emoji">🚚</div>
+      <div><h2>Dispatch</h2><p style="font-size:0.8rem;color:#C8A882;">Delivery track karo</p></div>
+    </div>
+
+    <!-- Summary -->
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
+      <div class="card" style="background:#E8EAF6;border:1.5px solid #9FA8DA;">
+        <div class="card-icon">📋</div>
+        <div class="card-label">Total Dispatch</div>
+        <div class="card-value" id="disp-total-count" style="color:#3949AB;">0</div>
+      </div>
+      <div class="card" style="background:#FFF3E0;border:1.5px solid #FFCC80;">
+        <div class="card-icon">⏳</div>
+        <div class="card-label">Pending</div>
+        <div class="card-value" id="disp-pending-count" style="color:var(--amber);">0</div>
+      </div>
+    </div>
+
+    <!-- Add Dispatch -->
+    <div class="form-card">
+      <h3>🚚 Add Dispatch</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="disp-date">
+        </div>
+        <div class="form-group">
+          <label>Distributor</label>
+          <select id="disp-dist" style="padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:1rem;background:var(--cream);outline:none;">
+            <option value="">— Select —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Vehicle No.</label>
+          <input type="text" id="disp-vehicle" placeholder="UP32 AB 1234" style="text-transform:uppercase;">
+        </div>
+        <div class="form-group">
+          <label>Driver Name</label>
+          <input type="text" id="disp-driver" placeholder="Driver ka naam">
+        </div>
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" id="disp-amount" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Payment Mode</label>
+          <select id="disp-mode" style="padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:1rem;background:var(--cream);outline:none;">
+            <option>Cash</option>
+            <option>Cheque</option>
+            <option>Online</option>
+            <option>Credit</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Remarks</label>
+          <input type="text" id="disp-remarks" placeholder="Optional notes">
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="addDispatch()">+ Add Dispatch</button>
+      </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="form-card" style="padding:12px 16px;">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="date" id="disp-filter-from" style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;outline:none;">
+        <span style="color:var(--muted);">→</span>
+        <input type="date" id="disp-filter-to" style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;outline:none;">
+        <button onclick="renderDispatch()" class="btn btn-sm" style="background:var(--blue);color:white;border:none;">Filter</button>
+      </div>
+    </div>
+
+    <!-- Dispatch List -->
+    <div class="table-card">
+      <div class="table-header" style="justify-content:space-between;">
+        <h3>📋 Dispatch List</h3>
+        <input type="text" id="disp-search" placeholder="Search..." oninput="renderDispatch()"
+          style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82rem;width:110px;outline:none;">
+      </div>
+      <table>
+        <thead><tr><th>Voucher</th><th>Date</th><th>Distributor</th><th>Amount</th><th>Mode</th><th>Status</th><th>Del</th></tr></thead>
+        <tbody id="disp-table"><tr><td colspan="7" class="empty">Koi dispatch nahi.</td></tr></tbody>
+      </table>
     </div>
   </div>
 
@@ -619,20 +726,29 @@
           <label>Vehicle Number</label>
           <input type="text" id="cust-vehicle" placeholder="e.g. UP32 AB 1234" style="text-transform:uppercase;">
         </div>
+        <div class="form-group">
+          <label>Route</label>
+          <input type="text" id="cust-route" placeholder="e.g. Saharanpur, Delhi NCR">
+        </div>
+        <div class="form-group">
+          <label>Opening Balance (₹)</label>
+          <input type="number" id="cust-opening" placeholder="0" min="0">
+        </div>
         <div class="form-group full">
           <label>Address</label>
           <input type="text" id="cust-address" placeholder="Address">
         </div>
       </div>
-      <div style="margin-top:14px;">
-        <button class="btn btn-primary" onclick="addCustomer()">+ Add Distributor</button>
+      <div style="margin-top:14px;display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="addCustomer()" style="flex:1;">+ Add Distributor</button>
+        <button onclick="importDefaultDistributors()" style="padding:12px 14px;background:#E8F5EE;color:var(--green);border:1.5px solid #A5D6A7;border-radius:10px;font-weight:700;font-size:0.85rem;cursor:pointer;white-space:nowrap;">📥 List Import</button>
       </div>
     </div>
 
     <div class="table-card">
       <div class="table-header"><h3>🏪 Distributor List</h3></div>
       <table>
-        <thead><tr><th>Code</th><th>Name</th><th>Phone</th><th>Vehicle</th><th>Area</th><th>Rates</th><th>Tax Invoice</th><th>Del</th></tr></thead>
+        <thead><tr><th>Code</th><th>Name</th><th>Phone</th><th>Route</th><th>Vehicle</th><th>Rates</th><th>Tax Invoice</th><th>Del</th></tr></thead>
         <tbody id="cust-table"><tr><td colspan="8" class="empty">No distributors added yet.</td></tr></tbody>
       </table>
     </div>
@@ -1108,9 +1224,11 @@
       if (!Array.isArray(data.simpleSales)) data.simpleSales = [];
       if (!Array.isArray(data.expenses))    data.expenses    = [];
       if (!Array.isArray(data.expCats))     data.expCats     = [];
+      if (!Array.isArray(data.dispatches))  data.dispatches  = [];
       renderSimpleSales();
       renderExpenses();
       renderExpCatSelect();
+      populateDispatchDist();
       populateSalesDist();
       updateCustomerList();
       updateDistList();
@@ -1192,8 +1310,12 @@
     if (tab === 'dashboard') updateDashboard();
     if (tab === 'customers') {
       renderCustomers();
-      // Firebase slow ho toh 1.5 sec baad dobara try karo
       setTimeout(() => renderCustomers(), 1500);
+    }
+    if (tab === 'dispatch') {
+      document.getElementById('disp-date').value = today();
+      populateDispatchDist();
+      renderDispatch();
     }
     if (tab === 'demand') {
       renderDemandEntryGrid();
@@ -1626,6 +1748,35 @@
   }
 
   // CUSTOMERS
+  function importDefaultDistributors() {
+    if (!confirm('Ye 38 distributors add karein? Duplicate names skip ho jaayenge.')) return;
+    const LIST = [
+      'SAI CONSTRUCTION','PTC','JAIL MBD','VEERENDRA','M.F TRADERS',
+      'POLICE ACADAMY','DEEPAK','JAIL RAMPUR','CRPF','KISHANPAL',
+      'MAA DURAGA TR.','JAIL BIJNOR','NAVODAY BIJNOR','TMU','TATA MOTORS',
+      'NEERAJ KUMAR','NAVODAY THK','AZEEM AHMED KARULA','ASHRAF ALI',
+      'NAVODAY AMROHA','MUSKAN DAIRY','NAVODAY SAMBHAL','NAVODAY BADAUN',
+      'MO.AZEEM','VIMLA DEVI','B.K TREDRS','MILK BAR','R.K CONTRACTOR',
+      'HARIWAR','AMAR SINGH','AKS GLOBALE','DUSS MATHURA','KASHIPUR',
+      'SAHARANPUR','KANAHA JI','KRISHNA FOOD','M STR.','DEHLI'
+    ];
+    const existing = new Set((data.customers||[]).map(c=>c.name.toUpperCase()));
+    let added = 0;
+    LIST.forEach((name, i) => {
+      if (existing.has(name.toUpperCase())) return;
+      data.customers.push({
+        id: Date.now() + i,
+        code: String(i+1).padStart(3,'0'),
+        name, phone:'', daily:'', vehicle:'', route:'', openingBalance:0, address:'', productRates:{}
+      });
+      added++;
+    });
+    if (!added) { alert('Sab already add hain!'); return; }
+    if(dbRef) dbRef.update({customers: data.customers});
+    renderCustomers(); updateCustomerList();
+    alert(`✅ ${added} distributors add ho gaye!`);
+  }
+
   function addCustomer() {
     const rec = {
       id: Date.now(),
@@ -1634,6 +1785,8 @@
       phone: document.getElementById('cust-phone').value,
       daily: document.getElementById('cust-daily').value,
       vehicle: document.getElementById('cust-vehicle').value.trim().toUpperCase(),
+      route: document.getElementById('cust-route').value.trim(),
+      openingBalance: parseFloat(document.getElementById('cust-opening').value) || 0,
       address: document.getElementById('cust-address').value,
       productRates: {}
     };
@@ -1642,35 +1795,29 @@
     if(dbRef) dbRef.update({customers: data.customers});
     renderCustomers();
     updateCustomerList();
-    document.getElementById('cust-code').value = '';
-    document.getElementById('cust-name').value = '';
-    document.getElementById('cust-phone').value = '';
-    document.getElementById('cust-daily').value = '';
-    document.getElementById('cust-vehicle').value = '';
-    document.getElementById('cust-address').value = '';
+    ['cust-code','cust-name','cust-phone','cust-daily','cust-vehicle','cust-route','cust-opening','cust-address'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value = '';
+    });
   }
 
   function renderCustomers() {
     const tb = document.getElementById('cust-table');
     if (!tb) return;
-
-    // Agar customers empty hai toh demand entries se unique names utha lo
     let list = data.customers || [];
     if (!list.length && (data.demandEntries||[]).length) {
       const seen = new Set();
       list = (data.demandEntries||[])
         .filter(e => e.distName && !seen.has(e.distName) && seen.add(e.distName))
-        .map((e, i) => ({ id: i+1, code: '', name: e.distName, phone:'', vehicle:'', daily:'', address:'', productRates:{} }));
+        .map((e, i) => ({ id: i+1, code: '', name: e.distName, phone:'', vehicle:'', daily:'', route:'', openingBalance:0, address:'', productRates:{} }));
     }
-
     if (!list.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No distributors added yet.</td></tr>'; return; }
     tb.innerHTML = list.map(r => `
       <tr>
         <td><span class="badge badge-amber">${r.code || '-'}</span></td>
-        <td><strong>${r.name}</strong></td>
+        <td><strong>${r.name}</strong>${r.route?`<br><span style="font-size:0.72rem;color:var(--muted);">📍${r.route}</span>`:''}</td>
         <td>${r.phone || '-'}</td>
+        <td>${r.route || r.daily || '-'}</td>
         <td>${r.vehicle || '-'}</td>
-        <td>${r.daily || '-'}</td>
         <td>
           <button class="btn btn-primary btn-sm" onclick="openDistRates(${r.id})">💰 Rates</button>
           <button class="btn btn-sm" style="background:var(--amber);color:white;" onclick="openEditDist(${r.id})">✏️ Edit</button>
@@ -1680,6 +1827,91 @@
         </td>
         <td><button class="btn btn-danger btn-sm" onclick="delRecord('customers',${r.id})">✕</button></td>
       </tr>`).join('');
+  }
+
+  // ── DISPATCH ───────────────────────────────────────────────
+  function _nextDispatchVoucher() {
+    const dispatches = data.dispatches || [];
+    if (!dispatches.length) return 'DS00001';
+    const nums = dispatches.map(d => parseInt((d.voucher||'DS00000').replace(/\D/g,''))||0);
+    return 'DS' + String(Math.max(...nums)+1).padStart(5,'0');
+  }
+
+  function populateDispatchDist() {
+    const sel = document.getElementById('disp-dist');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— Select Distributor —</option>' +
+      (data.customers||[]).map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  }
+
+  function addDispatch() {
+    const dist = document.getElementById('disp-dist').value;
+    const date = document.getElementById('disp-date').value || today();
+    const amount = parseFloat(document.getElementById('disp-amount').value) || 0;
+    const mode = document.getElementById('disp-mode').value;
+    const vehicle = document.getElementById('disp-vehicle').value.trim().toUpperCase();
+    const driver = document.getElementById('disp-driver').value.trim();
+    const remarks = document.getElementById('disp-remarks').value.trim();
+    if (!dist) { alert('Distributor select karo!'); return; }
+    if (!data.dispatches) data.dispatches = [];
+    const rec = {
+      id: Date.now(),
+      voucher: _nextDispatchVoucher(),
+      date, dist, amount, mode, vehicle, driver, remarks,
+      status: 'Dispatched'
+    };
+    data.dispatches.unshift(rec);
+    if(dbRef) dbRef.update({dispatches: data.dispatches});
+    ['disp-amount','disp-vehicle','disp-driver','disp-remarks'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    renderDispatch();
+    updateDashboard();
+    alert(`✅ Dispatch added! Voucher: ${rec.voucher}`);
+  }
+
+  function renderDispatch() {
+    const tb = document.getElementById('disp-table');
+    if (!tb) return;
+    const dispatches = data.dispatches || [];
+    const q = (document.getElementById('disp-search')?.value||'').toLowerCase();
+    const from = document.getElementById('disp-filter-from')?.value || '';
+    const to   = document.getElementById('disp-filter-to')?.value || '';
+    let filtered = dispatches.filter(d =>
+      (!q || (d.dist||'').toLowerCase().includes(q) || (d.voucher||'').toLowerCase().includes(q)) &&
+      (!from || d.date >= from) && (!to || d.date <= to)
+    );
+    // Summary
+    const totalEl = document.getElementById('disp-total-count');
+    const pendEl  = document.getElementById('disp-pending-count');
+    if(totalEl) totalEl.textContent = dispatches.length;
+    if(pendEl)  pendEl.textContent  = dispatches.filter(d=>d.status!=='Delivered').length;
+    if (!filtered.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">Koi dispatch nahi.</td></tr>'; return; }
+    tb.innerHTML = filtered.map(d=>`
+      <tr>
+        <td><span class="badge badge-blue">${d.voucher||'-'}</span></td>
+        <td>${formatDate(d.date)}</td>
+        <td style="font-size:0.85rem;"><strong>${d.dist}</strong>${d.vehicle?`<br><span style="color:var(--muted);font-size:0.72rem;">🚛${d.vehicle}</span>`:''}</td>
+        <td><strong>₹${(d.amount||0).toLocaleString('en-IN')}</strong><br><span style="font-size:0.72rem;color:var(--muted);">${d.mode||''}</span></td>
+        <td>${d.mode||'-'}</td>
+        <td>
+          <span class="badge ${d.status==='Delivered'?'badge-green':'badge-amber'}">${d.status||'Dispatched'}</span>
+          ${d.status!=='Delivered'?`<br><button onclick="markDelivered(${d.id})" style="margin-top:3px;padding:2px 8px;background:var(--green);color:white;border:none;border-radius:6px;font-size:0.7rem;cursor:pointer;">✓ Delivered</button>`:''}
+        </td>
+        <td><button class="btn btn-danger btn-sm" onclick="delDispatch(${d.id})">✕</button></td>
+      </tr>`).join('');
+  }
+
+  function markDelivered(id) {
+    const d = (data.dispatches||[]).find(x=>x.id===id); if(!d) return;
+    d.status = 'Delivered';
+    if(dbRef) dbRef.update({dispatches: data.dispatches});
+    renderDispatch(); updateDashboard();
+  }
+
+  function delDispatch(id) {
+    if(!confirm('Delete karein?')) return;
+    data.dispatches = (data.dispatches||[]).filter(d=>d.id!==id);
+    if(dbRef) dbRef.update({dispatches: data.dispatches});
+    renderDispatch(); updateDashboard();
   }
 
   function updateCustomerList() {
@@ -2436,7 +2668,7 @@
         const displayDiv6 = {'fcm6l':6,'ton6l':6};
         const rDiv = displayDiv6[pid] || 1;
         const perUnitRate = rDiv > 1 ? Math.round(rawRate/rDiv*100)/100 : rawRate;
-        return s + (kgltr > 0 ? perUnitRate * kgltr : rawRate * qty);
+        return s + (rDiv > 1 ? Math.round(perUnitRate * qty * 100)/100 : (kgltr > 0 ? perUnitRate * kgltr : rawRate * qty));
       }, 0);
       const itemCount = Object.keys(e.items||{}).length;
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;"
@@ -2575,7 +2807,7 @@
         let val;
         if (rDiv > 1) {
           // 6LTR products always use kgltr
-          val = Math.round(perUnitRate * (kgltr || qty * rDiv) * 100) / 100;
+          val = Math.round(perUnitRate * qty * 100) / 100;
         } else if (savedUnit === 'PKT') {
           val = Math.round(rawRate * (qty || kgltr) * 100) / 100;
         } else {
@@ -3584,7 +3816,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
         const displayDiv6 = {'fcm6l':6,'ton6l':6};
         const rDiv = displayDiv6[pid] || 1;
         const perUnitRate = rDiv > 1 ? Math.round(rawRate/rDiv*100)/100 : rawRate;
-        const val = kgltr > 0 ? Math.round(perUnitRate * kgltr * 100)/100 : Math.round(rawRate * qty * 100)/100;
+        const val = rDiv > 1 ? Math.round(perUnitRate * qty * 100)/100 : (kgltr > 0 ? Math.round(perUnitRate * kgltr * 100)/100 : Math.round(rawRate * qty * 100)/100);
         distTotals[e.distName].value += val;
         grandTotal += val;
       });
@@ -4288,7 +4520,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
         let rawRate = prod ? (prod.rate||0) : 0;
         const rDiv = divM[p.id] || 1;
         const perUnitRate = rDiv > 1 ? Math.round(rawRate/rDiv*100)/100 : rawRate;
-        const val = kgltrSum > 0 ? Math.round(perUnitRate * kgltrSum * 100)/100 : qty * rawRate;
+        const val = rDiv > 1 ? Math.round(perUnitRate * qty * 100)/100 : (kgltrSum > 0 ? Math.round(perUnitRate * kgltrSum * 100)/100 : qty * rawRate);
         dayTotal += val;
         monthGrandTotal += val;
         colTotalsMonth[p.id] = (colTotalsMonth[p.id]||0) + qty;
@@ -4369,15 +4601,33 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     const t = today();
     const allProds = getAllProducts();
 
-    // Sales
-    const todayIncome = data.sales.filter(r => r.date === t).reduce((s,r) => s + r.amount, 0);
-    document.getElementById('dash-income').textContent = '₹' + todayIncome.toLocaleString('en-IN');
     document.getElementById('dash-customers').textContent = data.customers.length;
 
     // Today's demands
     const todayDemands = (data.demandEntries||[]).filter(e => e.date === t);
     document.getElementById('dash-demand-count').textContent = todayDemands.length;
-    document.getElementById('dash-demand-sub').textContent = todayDemands.length === 1 ? 'Distributor' : 'Distributors';
+    document.getElementById('dash-demand-sub').textContent = todayDemands.length + ' aaj ke';
+
+    // Today's dispatch
+    const todayDisp = (data.dispatches||[]).filter(d => d.date === t);
+    const dispCountEl = document.getElementById('dash-dispatch-count');
+    if (dispCountEl) dispCountEl.textContent = todayDisp.length;
+
+    // Recent dispatch table
+    const dispTb = document.getElementById('dash-dispatch-table');
+    if (dispTb) {
+      const recent = (data.dispatches||[]).slice(0, 5);
+      if (!recent.length) {
+        dispTb.innerHTML = '<tr><td colspan="4" class="empty">Koi dispatch nahi.</td></tr>';
+      } else {
+        dispTb.innerHTML = recent.map(d=>`<tr>
+          <td><span class="badge badge-blue">${d.voucher||'-'}</span></td>
+          <td>${formatDate(d.date)}</td>
+          <td style="font-size:0.85rem;">${d.dist}</td>
+          <td><span class="badge ${d.status==='Delivered'?'badge-green':'badge-amber'}">${d.status||'Dispatched'}</span></td>
+        </tr>`).join('');
+      }
+    }
 
     // Product-wise totals across all today's demands
     const prodTotals = {};
@@ -5010,7 +5260,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
         const rDiv={'fcm6l':6,'ton6l':6}[col.pid]||1;
         const pRate=rDiv>1?Math.round(rawRate/rDiv*100)/100:rawRate;
         const dq=rDiv>1?(kgltr||qty*rDiv):savedUnit==='PKT'?qty:(kgltr||qty);
-        const val=rDiv>1?Math.round(pRate*(kgltr||qty*rDiv)*100)/100:savedUnit==='PKT'?Math.round(rawRate*(qty||kgltr)*100)/100:Math.round(pRate*kgltr*100)/100;
+        const val=rDiv>1?Math.round(pRate*qty*100)/100:savedUnit==='PKT'?Math.round(rawRate*(qty||kgltr)*100)/100:Math.round(pRate*kgltr*100)/100;
         colTotals[col.pid]+=dq; rowTotal+=val;
         return{qty:Math.round(dq*100)/100,val};
       });
@@ -5179,7 +5429,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
       const rawRate = (dist&&dist.productRates&&dist.productRates[pid])?parseFloat(dist.productRates[pid]):(prod.rate||0);
       const d6 = {'fcm6l':6,'ton6l':6}; const rDiv = d6[pid]||1;
       const pRate = rDiv>1?Math.round(rawRate/rDiv*100)/100:rawRate;
-      const val = rDiv>1?Math.round(pRate*(kgltr||qty*rDiv)*100)/100:savedUnit==='PKT'?Math.round(rawRate*(qty||kgltr)*100)/100:Math.round(pRate*kgltr*100)/100;
+      const val = rDiv>1?Math.round(pRate*qty*100)/100:savedUnit==='PKT'?Math.round(rawRate*(qty||kgltr)*100)/100:Math.round(pRate*kgltr*100)/100;
       const dq = rDiv>1?(kgltr||qty*rDiv):savedUnit==='PKT'?qty:(kgltr||qty);
       return { val, dq, savedUnit: rDiv>1?'L':savedUnit==='PKT'?'PKT':savedUnit };
     }
@@ -5259,7 +5509,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     const allProds=getAllProductsForExport?getAllProductsForExport():getAllProducts();
     const customers=data.customers||[];
     const wb=XLSX.utils.book_new();
-    function getV(pid,itemData,dist){const prod=allProds.find(p=>String(p.id)===String(pid));if(!prod)return{val:0,dq:0};const qty=typeof itemData==='object'?(itemData.qty||0):Number(itemData);const kgltr=typeof itemData==='object'?(itemData.kgltr||0):0;const su=typeof itemData==='object'?(itemData.unit||'PKT'):'PKT';const rr=(dist&&dist.productRates&&dist.productRates[pid])?parseFloat(dist.productRates[pid]):(prod.rate||0);const d6={'fcm6l':6,'ton6l':6};const rDiv=d6[pid]||1;const pr=rDiv>1?Math.round(rr/rDiv*100)/100:rr;const val=rDiv>1?Math.round(pr*(kgltr||qty*rDiv)*100)/100:su==='PKT'?Math.round(rr*(qty||kgltr)*100)/100:Math.round(pr*kgltr*100)/100;const dq=rDiv>1?(kgltr||qty*rDiv):su==='PKT'?qty:(kgltr||qty);return{val,dq};}
+    function getV(pid,itemData,dist){const prod=allProds.find(p=>String(p.id)===String(pid));if(!prod)return{val:0,dq:0};const qty=typeof itemData==='object'?(itemData.qty||0):Number(itemData);const kgltr=typeof itemData==='object'?(itemData.kgltr||0):0;const su=typeof itemData==='object'?(itemData.unit||'PKT'):'PKT';const rr=(dist&&dist.productRates&&dist.productRates[pid])?parseFloat(dist.productRates[pid]):(prod.rate||0);const d6={'fcm6l':6,'ton6l':6};const rDiv=d6[pid]||1;const pr=rDiv>1?Math.round(rr/rDiv*100)/100:rr;const val=rDiv>1?Math.round(pr*qty*100)/100:su==='PKT'?Math.round(rr*(qty||kgltr)*100)/100:Math.round(pr*kgltr*100)/100;const dq=rDiv>1?(kgltr||qty*rDiv):su==='PKT'?qty:(kgltr||qty);return{val,dq};}
     if(_demRptMode==='dist'){const map={};entries.forEach(e=>{const d=customers.find(c=>c.name===e.distName);if(!map[e.distName])map[e.distName]={total:0,days:new Set(),code:d?(d.code||''):''};map[e.distName].days.add(e.date);Object.entries(e.items||{}).forEach(([pid,id])=>{map[e.distName].total+=getV(pid,id,d).val;});});const rows=[['Distributor','Code','Din','Total Amount']];Object.entries(map).sort((a,b)=>b[1].total-a[1].total).forEach(([n,d])=>rows.push([n,d.code,d.days.size,Math.round(d.total)]));XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Distributor Wise');}
     else if(_demRptMode==='item'){const map={};entries.forEach(e=>{const d=customers.find(c=>c.name===e.distName);Object.entries(e.items||{}).forEach(([pid,id])=>{const prod=allProds.find(p=>String(p.id)===String(pid));if(!prod)return;const r=getV(pid,id,d);if(!map[pid])map[pid]={name:prod.name,size:prod.size||'',qty:0,total:0};map[pid].qty+=r.dq;map[pid].total+=r.val;});});const rows=[['Product','Size','Total Qty','Total Amount']];Object.values(map).sort((a,b)=>b.total-a.total).forEach(d=>rows.push([d.name,d.size,Math.round(d.qty*100)/100,Math.round(d.total)]));XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Item Wise');}
     else{const up=new Set();entries.forEach(e=>Object.keys(e.items||{}).forEach(pid=>up.add(pid)));const PREF=['fcm500','fcm1l','fcm6l','fcm200','fcm135','std500','std1l','ton500','ton1l','ton6l','dtm500','dtm150','dtm170','cow','regular','chach300','chach400','matka5','matka15','paneer1kg'];const cols=[...up].sort((a,b)=>{const ia=PREF.indexOf(a),ib=PREF.indexOf(b);return ia===-1&&ib===-1?0:ia===-1?1:ib===-1?-1:ia-ib;}).map(pid=>{const p=allProds.find(x=>String(x.id)===String(pid));return{pid,name:p?p.name:pid,size:p?p.size||'':''};});const dn=[...new Set(entries.map(e=>e.distName))].sort();const rows=[['Party',...cols.map(c=>c.name+' '+c.size),'Total']];dn.forEach(dn=>{const d=customers.find(c=>c.name===dn);const de=entries.filter(e=>e.distName===dn);let rt=0;const cells=cols.map(col=>{let dq=0,val=0;de.forEach(e=>{const id=(e.items||{})[col.pid];if(!id)return;const r=getV(col.pid,id,d);dq+=r.dq;val+=r.val;});rt+=val;return dq>0?Math.round(dq*100)/100:'';});rows.push([dn,...cells,Math.round(rt)]);});XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'All Party');}
