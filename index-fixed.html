@@ -905,14 +905,16 @@
     dbRef.once('value').then(snap => {
       const val = snap.val();
       if (val) {
+        const _prevCust = data.customers;
         data = { ...data, ...val };
+        if (!data.customers && Array.isArray(_prevCust) && _prevCust.length) {
+          data.customers = _prevCust;
+        }
       }
 
       // Fix null/object arrays from Firebase
       if (!Array.isArray(data.products)) data.products = [];
       if (!Array.isArray(data.sales)) data.sales = [];
-      // Firebase stores arrays as objects {0:..., 1:...} or {'e_123':...}
-      // Must convert back to array — NOT reset to []
       if (!Array.isArray(data.demandEntries)) {
         data.demandEntries = data.demandEntries
           ? Object.values(data.demandEntries).filter(e => e && e.id)
@@ -920,10 +922,15 @@
       }
       if (!Array.isArray(data.taxInvoices)) data.taxInvoices = [];
 
-      // Always ensure customers exist
-      if (!data.customers || !data.customers.length) {
+      // customers — Firebase object → array convert (c_1000, c_1001 keys)
+      if (!Array.isArray(data.customers)) {
+        data.customers = data.customers
+          ? Object.values(data.customers).filter(c => c && (c.id || c.name))
+          : [];
+      }
+      if (!data.customers.length) {
         data.customers = DEFAULT_CUSTOMERS;
-        saveData();
+        saveCustomers();
       }
 
       // Add missing DEFAULT_PRODUCTS (never delete user's products)
@@ -952,6 +959,16 @@
       console.log('Firebase load error:', e);
       renderProducts();
     });
+  }
+
+  // Customers ko string-keyed object se save karo — Firebase null issue se bachao
+  function saveCustomers() {
+    if (!dbRef) return;
+    if (!data.customers || !data.customers.length) return;
+    const obj = {};
+    data.customers.forEach(c => { obj['c_' + c.id] = c; });
+    dbRef.child('customers').set(obj).catch(e => console.log('Customer save error:', e));
+    try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
   }
 
   function loadDataFallback() {
@@ -983,7 +1000,6 @@
       } else {
         dbRef.update({
           products: data.products,
-          customers: data.customers,
           sales: data.sales,
           taxInvoices: data.taxInvoices,
         }).catch(e => console.log('Save error:', e));
@@ -1173,7 +1189,7 @@
     };
     if (!rec.name) { alert('Please enter distributor name!'); return; }
     data.customers.unshift(rec);
-    if(dbRef) dbRef.update({customers: data.customers});
+    saveCustomers();
     renderCustomers();
     updateCustomerList();
     document.getElementById('cust-code').value = '';
@@ -1242,7 +1258,7 @@
     dist.vehicle = document.getElementById('edit-dist-vehicle').value.trim().toUpperCase();
     dist.address = document.getElementById('edit-dist-address').value.trim();
     if (!dist.name) { alert('Naam zaroori hai!'); return; }
-    if(dbRef) dbRef.update({customers: data.customers});;
+    saveCustomers();
     renderCustomers();
     updateCustomerList();
     updateDistList();
@@ -1376,7 +1392,7 @@
         delete dist.productRates[p.id];
       }
     });
-    if(dbRef) dbRef.update({customers: data.customers});
+    saveCustomers();
     document.getElementById('dist-rate-panel').style.display = 'none';
     renderCustomers();
     alert('✅ Rates save ho gaye!');
@@ -1391,7 +1407,11 @@
   function delRecord(type, id) {
     if (!confirm('Delete this record?')) return;
     data[type] = data[type].filter(r => String(r.id) !== String(id));
-    const upd={}; upd[type]=data[type]; if(dbRef) dbRef.update(upd);
+    if (type === 'customers') {
+      saveCustomers();
+    } else {
+      const upd={}; upd[type]=data[type]; if(dbRef) dbRef.update(upd);
+    }
     if (type === 'production') renderProduction();
     if (type === 'sales') renderSales();
     if (type === 'customers') renderCustomers();
