@@ -875,6 +875,12 @@
         if (!Array.isArray(data.demandEntries)) {
           data.demandEntries = data.demandEntries ? Object.values(data.demandEntries).filter(e => e && e.id) : [];
         }
+        // Fix: customers object → array (Firebase format se bachao)
+        if (!Array.isArray(data.customers)) {
+          data.customers = data.customers
+            ? Object.values(data.customers).filter(c => c && (c.id || c.name))
+            : [];
+        }
         renderSales(); renderCustomers(); renderProducts();
         updateCustomerList(); updateDistList(); updateDashboard();
         const vd = document.getElementById('demand-view-date');
@@ -944,6 +950,9 @@
       if (updated) {
         if (dbRef) dbRef.update({ products: data.products });
       }
+
+      // Fix: Firebase se converted fresh data localStorage mein save karo
+      try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
 
       renderSales();
       renderCustomers();
@@ -1202,7 +1211,7 @@
 
   function renderCustomers() {
     const tb = document.getElementById('cust-table');
-    if (!data.customers.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No distributors added yet.</td></tr>'; return; }
+    if (!Array.isArray(data.customers) || !data.customers.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No distributors added yet.</td></tr>'; return; }
     tb.innerHTML = data.customers.map(r => `
       <tr>
         <td><span class="badge badge-amber">${r.code || '-'}</span></td>
