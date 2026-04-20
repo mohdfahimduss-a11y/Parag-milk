@@ -813,11 +813,22 @@
     taxInvoices: []
   };
 
-  // Safe customers getter — Firebase kabhi bhi object de sakta hai
+  // Safe customers getter — handles Firebase object or array
   function getCustomers() {
     if (!data.customers) return [];
-    if (Array.isArray(data.customers)) return data.customers.filter(c => c && (c.id || c.name));
+    if (Array.isArray(data.customers))
+      return data.customers.filter(c => c && (c.id || c.name));
     return Object.values(data.customers).filter(c => c && (c.id || c.name));
+  }
+
+  // Ensure customers always has valid data — fallback to DEFAULT_CUSTOMERS
+  function ensureCustomers() {
+    data.customers = getCustomers();
+    if (!data.customers.length) {
+      data.customers = DEFAULT_CUSTOMERS;
+      if (typeof saveCustomers === 'function') saveCustomers();
+    }
+    return data.customers;
   }
 
   const DEFAULT_CUSTOMERS = [
@@ -882,7 +893,7 @@
         if (!Array.isArray(data.demandEntries)) {
           data.demandEntries = data.demandEntries ? Object.values(data.demandEntries).filter(e => e && e.id) : [];
         }
-        data.customers = getCustomers();
+        ensureCustomers();
         renderSales(); renderCustomers(); renderProducts();
         updateCustomerList(); updateDistList(); updateDashboard();
         const vd = document.getElementById('demand-view-date');
@@ -910,7 +921,7 @@
   function loadDataFromFirebase() {
     loadFromLocalCache(); // show cached data instantly
     if (!navigator.onLine) { updateOnlineStatus(); return; } // skip Firebase if offline
-    dbRef.on('value', snap => {
+    dbRef.once('value').then(snap => {
       const val = snap.val();
       if (val) {
         const _prevCust = data.customers;
@@ -930,13 +941,10 @@
       }
       if (!Array.isArray(data.taxInvoices)) data.taxInvoices = [];
 
-      // customers — Firebase object → array convert
-      data.customers = getCustomers();
-      if (!data.customers.length) {
-        data.customers = DEFAULT_CUSTOMERS;
-        saveCustomers();
-      }
-      // localStorage mein fresh data save karo
+      // customers — Firebase object/array → clean array
+      ensureCustomers();
+      clearTimeout(window._custFailsafe);
+      // Save clean version to localStorage
       try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
 
       // Add missing DEFAULT_PRODUCTS (never delete user's products)
@@ -963,7 +971,10 @@
       if (vdEl) renderDemandSummaryPage(vdEl.value || today());
     }, e => {
       console.log('Firebase load error:', e);
-      renderProducts();
+      // Firebase fail hone par bhi DEFAULT_CUSTOMERS dikhao
+      ensureCustomers();
+      renderCustomers(); renderProducts();
+      updateCustomerList(); updateDistList(); updateDashboard();
     });
   }
 
@@ -1063,7 +1074,7 @@
     document.getElementById(tab).classList.add('active');
     event.target.classList.add('active');
     if (tab === 'dashboard') updateDashboard();
-    if (tab === 'customers') { renderCustomers(); updateCustomerList(); }
+    if (tab === 'customers') { ensureCustomers(); renderCustomers(); updateCustomerList(); }
     if (tab === 'demand') {
       renderDemandEntryGrid();
       // Only set date if not already set — don't override user's selected date
@@ -1209,7 +1220,6 @@
 
   function renderCustomers() {
     const tb = document.getElementById('cust-table');
-    if (!tb) return;
     const custs = getCustomers();
     if (!custs.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No distributors added yet.</td></tr>'; return; }
     tb.innerHTML = custs.map(r => `
@@ -1224,7 +1234,7 @@
           <button class="btn btn-sm" style="background:var(--amber);color:white;" onclick="openEditDist(${r.id})">✏️ Edit</button>
         </td>
         <td>
-          <button class="btn btn-sm" style="background:#2A4A7A;color:white;" onclick="openTaxModal('${(r.name||'').replace(/'/g,"\'")}')">🧾 Tax Invoice</button>
+          <button class="btn btn-sm" style="background:#2A4A7A;color:white;" onclick="openTaxModal('${r.name.replace(/'/g,"\\'")}')">🧾 Tax Invoice</button>
         </td>
         <td><button class="btn btn-danger btn-sm" onclick="delRecord('customers',${r.id})">✕</button></td>
       </tr>`).join('');
@@ -4526,6 +4536,14 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     warn.textContent = '⚠️ Data save nahi hoga! Private mode band karo ya Chrome mein kholo.';
     document.body.insertBefore(warn, document.body.firstChild);
   }
+
+  // Failsafe: agar 4 sec mein Firebase response na aaye → DEFAULT_CUSTOMERS dikhao
+  window._custFailsafe = setTimeout(() => {
+    if (!getCustomers().length) {
+      ensureCustomers();
+      renderCustomers(); updateCustomerList(); updateDistList(); updateDashboard();
+    }
+  }, 4000);
 
   // Init — Firebase handles data loading via onAuthStateChanged
   document.getElementById('sale-date').value = today();
