@@ -813,6 +813,13 @@
     taxInvoices: []
   };
 
+  // Safe customers getter — Firebase kabhi bhi object de sakta hai
+  function getCustomers() {
+    if (!data.customers) return [];
+    if (Array.isArray(data.customers)) return data.customers.filter(c => c && (c.id || c.name));
+    return Object.values(data.customers).filter(c => c && (c.id || c.name));
+  }
+
   const DEFAULT_CUSTOMERS = [
     { id: 1000, code: "001", name: "12 GR, SARSAWA", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
     { id: 1001, code: "002", name: "30 WING, SARSAWA", phone: "", daily: "", vehicle: "", address: "", productRates: {} },
@@ -875,11 +882,7 @@
         if (!Array.isArray(data.demandEntries)) {
           data.demandEntries = data.demandEntries ? Object.values(data.demandEntries).filter(e => e && e.id) : [];
         }
-        if (!Array.isArray(data.customers)) {
-          data.customers = data.customers ? Object.values(data.customers).filter(c => c && (c.id || c.name)) : [];
-        } else {
-          data.customers = data.customers.filter(c => c && (c.id || c.name));
-        }
+        data.customers = getCustomers();
         renderSales(); renderCustomers(); renderProducts();
         updateCustomerList(); updateDistList(); updateDashboard();
         const vd = document.getElementById('demand-view-date');
@@ -907,27 +910,6 @@
   function loadDataFromFirebase() {
     loadFromLocalCache(); // show cached data instantly
     if (!navigator.onLine) { updateOnlineStatus(); return; } // skip Firebase if offline
-
-    // Step A: Seedha customers fetch karo Firebase se (fast, targeted)
-    dbRef.child('customers').once('value').then(custSnap => {
-      const custVal = custSnap.val();
-      if (custVal) {
-        if (Array.isArray(custVal)) {
-          data.customers = custVal.filter(c => c && (c.id || c.name));
-        } else {
-          data.customers = Object.values(custVal).filter(c => c && (c.id || c.name));
-        }
-      }
-      if (!data.customers || !data.customers.length) {
-        data.customers = DEFAULT_CUSTOMERS;
-        saveCustomers();
-      }
-      renderCustomers();
-      updateCustomerList();
-      updateDistList();
-    }).catch(e => console.log('Customers fetch error:', e));
-
-    // Step B: Full data fetch
     dbRef.once('value').then(snap => {
       const val = snap.val();
       if (val) {
@@ -948,18 +930,14 @@
       }
       if (!Array.isArray(data.taxInvoices)) data.taxInvoices = [];
 
-      // customers — Firebase object → array convert (c_1000, c_1001 keys)
-      if (!Array.isArray(data.customers)) {
-        data.customers = data.customers
-          ? Object.values(data.customers).filter(c => c && (c.id || c.name))
-          : [];
-      } else {
-        data.customers = data.customers.filter(c => c && (c.id || c.name));
-      }
+      // customers — Firebase object → array convert
+      data.customers = getCustomers();
       if (!data.customers.length) {
         data.customers = DEFAULT_CUSTOMERS;
         saveCustomers();
       }
+      // localStorage mein fresh data save karo
+      try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
 
       // Add missing DEFAULT_PRODUCTS (never delete user's products)
       let updated = false;
@@ -972,8 +950,6 @@
       if (updated) {
         if (dbRef) dbRef.update({ products: data.products });
       }
-
-      try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
 
       renderSales();
       renderCustomers();
@@ -1233,12 +1209,9 @@
   function renderCustomers() {
     const tb = document.getElementById('cust-table');
     if (!tb) return;
-    if (!Array.isArray(data.customers)) {
-      data.customers = data.customers ? Object.values(data.customers).filter(c => c && (c.id || c.name)) : [];
-    }
-    if (!data.customers.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No distributors added yet.</td></tr>'; return; }
-    try {
-      tb.innerHTML = data.customers.map(r => `
+    const custs = getCustomers();
+    if (!custs.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No distributors added yet.</td></tr>'; return; }
+    tb.innerHTML = custs.map(r => `
       <tr>
         <td><span class="badge badge-amber">${r.code || '-'}</span></td>
         <td><strong>${r.name || '-'}</strong></td>
@@ -1250,19 +1223,15 @@
           <button class="btn btn-sm" style="background:var(--amber);color:white;" onclick="openEditDist(${r.id})">✏️ Edit</button>
         </td>
         <td>
-          <button class="btn btn-sm" style="background:#2A4A7A;color:white;" onclick="openTaxModal('${(r.name||'').replace(/'/g,"\\'")}')">🧾 Tax Invoice</button>
+          <button class="btn btn-sm" style="background:#2A4A7A;color:white;" onclick="openTaxModal('${(r.name||'').replace(/'/g,"\'")}')">🧾 Tax Invoice</button>
         </td>
         <td><button class="btn btn-danger btn-sm" onclick="delRecord('customers',${r.id})">✕</button></td>
       </tr>`).join('');
-    } catch(e) {
-      console.error('renderCustomers crash:', e);
-      tb.innerHTML = '<tr><td colspan="8" class="empty">Error — page refresh karo</td></tr>';
-    }
   }
 
   function updateCustomerList() {
     const dl = document.getElementById('customer-list');
-    if (dl) dl.innerHTML = data.customers.map(c => `<option value="${c.name}">`).join('');
+    if (dl) dl.innerHTML = getCustomers().map(c => `<option value="${c.name}">`).join('');
     updateDistList();
   }
 
@@ -1758,14 +1727,14 @@
     const sel = document.getElementById('demand-dist-name');
     if (!sel) return;
     const current = sel.value;
-    const custs = Array.isArray(data.customers) ? data.customers : Object.values(data.customers||{}).filter(c=>c&&c.name);
-    const names = custs.map(c => c.name).filter(Boolean);
+    const names = getCustomers().map(c => c.name).filter(Boolean);
     (data.demandEntries||[]).forEach(e => { if (!names.includes(e.distName)) names.push(e.distName); });
     sel.innerHTML = '<option value="">-- Select Distributor --</option>' +
       names.map(n => `<option value="${n}" ${n===current?'selected':''}>${n}</option>`).join('');
     if (!names.length) {
       sel.innerHTML = '<option value="">-- Pehle Distributor add karein --</option>';
     }
+
   }
 
   function onDistSelect(sel) {
@@ -3956,7 +3925,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     // Sales
     const todayIncome = data.sales.filter(r => r.date === t).reduce((s,r) => s + r.amount, 0);
     document.getElementById('dash-income').textContent = '₹' + todayIncome.toLocaleString('en-IN');
-    document.getElementById('dash-customers').textContent = data.customers.length;
+    document.getElementById('dash-customers').textContent = getCustomers().length;
 
     // Today's demands
     const todayDemands = (data.demandEntries||[]).filter(e => e.date === t);
