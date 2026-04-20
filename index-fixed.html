@@ -933,6 +933,9 @@
         data.customers = data.customers
           ? Object.values(data.customers).filter(c => c && (c.id || c.name))
           : [];
+      } else {
+        // Array hai but null entries ho sakti hain — filter karo
+        data.customers = data.customers.filter(c => c && (c.id || c.name));
       }
       if (!data.customers.length) {
         data.customers = DEFAULT_CUSTOMERS;
@@ -1211,11 +1214,19 @@
 
   function renderCustomers() {
     const tb = document.getElementById('cust-table');
-    if (!Array.isArray(data.customers) || !data.customers.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No distributors added yet.</td></tr>'; return; }
-    tb.innerHTML = data.customers.map(r => `
+    if (!tb) return;
+    // Fix: ensure array
+    if (!Array.isArray(data.customers)) {
+      data.customers = data.customers
+        ? Object.values(data.customers).filter(c => c && (c.id || c.name))
+        : [];
+    }
+    if (!data.customers.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No distributors added yet.</td></tr>'; return; }
+    try {
+      tb.innerHTML = data.customers.map(r => `
       <tr>
         <td><span class="badge badge-amber">${r.code || '-'}</span></td>
-        <td><strong>${r.name}</strong></td>
+        <td><strong>${r.name||'-'}</strong></td>
         <td>${r.phone || '-'}</td>
         <td>${r.vehicle || '-'}</td>
         <td>${r.daily || '-'}</td>
@@ -1224,10 +1235,14 @@
           <button class="btn btn-sm" style="background:var(--amber);color:white;" onclick="openEditDist(${r.id})">✏️ Edit</button>
         </td>
         <td>
-          <button class="btn btn-sm" style="background:#2A4A7A;color:white;" onclick="openTaxModal('${r.name.replace(/'/g,"\\'")}')">🧾 Tax Invoice</button>
+          <button class="btn btn-sm" style="background:#2A4A7A;color:white;" onclick="openTaxModal('${(r.name||'').replace(/'/g,"\\'")}')">🧾 Tax Invoice</button>
         </td>
         <td><button class="btn btn-danger btn-sm" onclick="delRecord('customers',${r.id})">✕</button></td>
       </tr>`).join('');
+    } catch(e) {
+      console.error('renderCustomers error:', e, data.customers);
+      tb.innerHTML = '<tr><td colspan="8" class="empty">Load error — refresh karo</td></tr>';
+    }
   }
 
   function updateCustomerList() {
@@ -1728,7 +1743,9 @@
     const sel = document.getElementById('demand-dist-name');
     if (!sel) return;
     const current = sel.value;
-    const names = data.customers.map(c => c.name);
+    // Fix: ensure customers is array before .map
+    const custs = Array.isArray(data.customers) ? data.customers : Object.values(data.customers||{}).filter(c => c && c.name);
+    const names = custs.map(c => c.name).filter(Boolean);
     (data.demandEntries||[]).forEach(e => { if (!names.includes(e.distName)) names.push(e.distName); });
     sel.innerHTML = '<option value="">-- Select Distributor --</option>' +
       names.map(n => `<option value="${n}" ${n===current?'selected':''}>${n}</option>`).join('');
