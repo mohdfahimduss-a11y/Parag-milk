@@ -875,11 +875,10 @@
         if (!Array.isArray(data.demandEntries)) {
           data.demandEntries = data.demandEntries ? Object.values(data.demandEntries).filter(e => e && e.id) : [];
         }
-        // Fix: customers object → array (Firebase format se bachao)
         if (!Array.isArray(data.customers)) {
-          data.customers = data.customers
-            ? Object.values(data.customers).filter(c => c && (c.id || c.name))
-            : [];
+          data.customers = data.customers ? Object.values(data.customers).filter(c => c && (c.id || c.name)) : [];
+        } else {
+          data.customers = data.customers.filter(c => c && (c.id || c.name));
         }
         renderSales(); renderCustomers(); renderProducts();
         updateCustomerList(); updateDistList(); updateDashboard();
@@ -908,6 +907,27 @@
   function loadDataFromFirebase() {
     loadFromLocalCache(); // show cached data instantly
     if (!navigator.onLine) { updateOnlineStatus(); return; } // skip Firebase if offline
+
+    // Step A: Seedha customers fetch karo Firebase se (fast, targeted)
+    dbRef.child('customers').once('value').then(custSnap => {
+      const custVal = custSnap.val();
+      if (custVal) {
+        if (Array.isArray(custVal)) {
+          data.customers = custVal.filter(c => c && (c.id || c.name));
+        } else {
+          data.customers = Object.values(custVal).filter(c => c && (c.id || c.name));
+        }
+      }
+      if (!data.customers || !data.customers.length) {
+        data.customers = DEFAULT_CUSTOMERS;
+        saveCustomers();
+      }
+      renderCustomers();
+      updateCustomerList();
+      updateDistList();
+    }).catch(e => console.log('Customers fetch error:', e));
+
+    // Step B: Full data fetch
     dbRef.once('value').then(snap => {
       const val = snap.val();
       if (val) {
@@ -934,7 +954,6 @@
           ? Object.values(data.customers).filter(c => c && (c.id || c.name))
           : [];
       } else {
-        // Array hai but null entries ho sakti hain — filter karo
         data.customers = data.customers.filter(c => c && (c.id || c.name));
       }
       if (!data.customers.length) {
@@ -954,7 +973,6 @@
         if (dbRef) dbRef.update({ products: data.products });
       }
 
-      // Fix: Firebase se converted fresh data localStorage mein save karo
       try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
 
       renderSales();
@@ -1215,18 +1233,15 @@
   function renderCustomers() {
     const tb = document.getElementById('cust-table');
     if (!tb) return;
-    // Fix: ensure array
     if (!Array.isArray(data.customers)) {
-      data.customers = data.customers
-        ? Object.values(data.customers).filter(c => c && (c.id || c.name))
-        : [];
+      data.customers = data.customers ? Object.values(data.customers).filter(c => c && (c.id || c.name)) : [];
     }
     if (!data.customers.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No distributors added yet.</td></tr>'; return; }
     try {
       tb.innerHTML = data.customers.map(r => `
       <tr>
         <td><span class="badge badge-amber">${r.code || '-'}</span></td>
-        <td><strong>${r.name||'-'}</strong></td>
+        <td><strong>${r.name || '-'}</strong></td>
         <td>${r.phone || '-'}</td>
         <td>${r.vehicle || '-'}</td>
         <td>${r.daily || '-'}</td>
@@ -1240,8 +1255,8 @@
         <td><button class="btn btn-danger btn-sm" onclick="delRecord('customers',${r.id})">✕</button></td>
       </tr>`).join('');
     } catch(e) {
-      console.error('renderCustomers error:', e, data.customers);
-      tb.innerHTML = '<tr><td colspan="8" class="empty">Load error — refresh karo</td></tr>';
+      console.error('renderCustomers crash:', e);
+      tb.innerHTML = '<tr><td colspan="8" class="empty">Error — page refresh karo</td></tr>';
     }
   }
 
@@ -1743,8 +1758,7 @@
     const sel = document.getElementById('demand-dist-name');
     if (!sel) return;
     const current = sel.value;
-    // Fix: ensure customers is array before .map
-    const custs = Array.isArray(data.customers) ? data.customers : Object.values(data.customers||{}).filter(c => c && c.name);
+    const custs = Array.isArray(data.customers) ? data.customers : Object.values(data.customers||{}).filter(c=>c&&c.name);
     const names = custs.map(c => c.name).filter(Boolean);
     (data.demandEntries||[]).forEach(e => { if (!names.includes(e.distName)) names.push(e.distName); });
     sel.innerHTML = '<option value="">-- Select Distributor --</option>' +
@@ -1752,7 +1766,6 @@
     if (!names.length) {
       sel.innerHTML = '<option value="">-- Pehle Distributor add karein --</option>';
     }
-
   }
 
   function onDistSelect(sel) {
