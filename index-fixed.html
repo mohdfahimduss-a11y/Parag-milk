@@ -1275,9 +1275,6 @@
   const RATES_PASSWORD = '1234'; // Change this password as needed
 
   function openDistRates(distId) {
-    const entered = prompt('🔒 Rates dekhne ke liye password daalo:');
-    if (entered === null) return;
-    if (entered !== RATES_PASSWORD) { alert('❌ Galat password!'); return; }
     const dist = data.customers.find(c => c.id === distId);
     if (!dist) return;
     currentDistId = distId;
@@ -1352,9 +1349,6 @@
   }
 
   function saveDistRates() {
-    const entered = prompt('🔒 Rates save karne ke liye password daalo:');
-    if (entered === null) return;
-    if (entered !== RATES_PASSWORD) { alert('❌ Galat password! Rates save nahi hue.'); return; }
     const dist = data.customers.find(c => c.id === currentDistId);
     if (!dist) return;
     const allProds = getAllProducts();
