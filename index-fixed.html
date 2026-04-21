@@ -1033,22 +1033,28 @@
     dbRef.once('value').then(snap => {
       const val = snap.val();
       if (val) {
-        const _prevCust = data.customers;
-        data = { ...data, ...val };
-        if (!data.customers && Array.isArray(_prevCust) && _prevCust.length) {
-          data.customers = _prevCust;
-        }
+        // Sirf non-null values ko merge karo — null se local data overwrite mat karo
+        const safeMerge = {};
+        Object.entries(val).forEach(([k, v]) => {
+          if (v !== null && v !== undefined) safeMerge[k] = v;
+        });
+        data = { ...data, ...safeMerge };
       }
 
       // Fix null/object arrays from Firebase
-      if (!Array.isArray(data.products)) data.products = [];
-      if (!Array.isArray(data.sales)) data.sales = [];
+      if (!Array.isArray(data.products)) data.products = data.products
+        ? Object.values(data.products).filter(Boolean) : [];
+      if (!Array.isArray(data.sales)) data.sales = data.sales
+        ? Object.values(data.sales).filter(Boolean) : [];
       if (!Array.isArray(data.demandEntries)) {
         data.demandEntries = data.demandEntries
           ? Object.values(data.demandEntries).filter(e => e && e.id)
           : [];
       }
-      if (!Array.isArray(data.taxInvoices)) data.taxInvoices = [];
+      if (!Array.isArray(data.taxInvoices)) data.taxInvoices = data.taxInvoices
+        ? Object.values(data.taxInvoices).filter(Boolean) : [];
+      if (!Array.isArray(data.expenses)) data.expenses = data.expenses
+        ? Object.values(data.expenses).filter(Boolean) : [];
 
       // customers — Firebase object/array → clean array
       _firebaseLoaded = true;
@@ -1251,7 +1257,7 @@
               <button onclick="openEditDist(${r.id})" style="flex:1;min-width:80px;padding:9px 12px;background:linear-gradient(135deg,#C97A2A,#E8A84A);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">
                 ✏️ Edit
               </button>
-              <button onclick="openTaxModal('${r.name.replace(/'/g,"\\'")}')'" style="flex:1;min-width:100px;padding:9px 12px;background:linear-gradient(135deg,#2A4A7A,#5C8ACA);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">
+              <button onclick="openTaxModal('${r.name.replace(/'/g,"\\'")}') " style="flex:1;min-width:100px;padding:9px 12px;background:linear-gradient(135deg,#2A4A7A,#5C8ACA);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">
                 🧾 Invoice
               </button>
             </div>
