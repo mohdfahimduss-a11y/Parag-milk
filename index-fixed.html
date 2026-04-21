@@ -77,7 +77,16 @@
     white-space: nowrap; transition: all 0.2s; flex-shrink: 0;
   }
   .nav button:active { transform: scale(0.96); }
-  .nav button.active { background: var(--amber); border-color: var(--amber); color: white; box-shadow: 0 2px 10px rgba(201,122,42,0.4); }
+  .nav button.active {
+    background: var(--nav-color, var(--amber));
+    border-color: var(--nav-color, var(--amber));
+    color: white;
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--nav-color, var(--amber)) 50%, transparent);
+  }
+  .nav button:not(.active):hover {
+    background: rgba(255,255,255,0.15);
+    color: white;
+  }
 
   /* Main Content */
   .main { padding: 14px; max-width: 900px; margin: 0 auto; }
@@ -271,13 +280,13 @@
 </div>
 
 <div class="nav">
-  <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
-  <button onclick="showTab('demand')">📦 Demand</button>
-  <button onclick="showTab('expenses')">💸 Expenses</button>
-  <button onclick="showTab('customers')">🏪 Distributors</button>
-  <button onclick="showTab('products')">🧀 Products</button>
-  <button onclick="showTab('reports')">📈 Reports</button>
-  <button onclick="logoutUser()" style="background:var(--red-light);color:var(--red);">🚪 Logout</button>
+  <button class="active" onclick="showTab('dashboard')" style="--nav-color:#C97A2A;">📊 Dashboard</button>
+  <button onclick="showTab('demand')" style="--nav-color:#2A7A4A;">📦 Demand</button>
+  <button onclick="showTab('expenses')" style="--nav-color:#C93A2A;">💸 Expenses</button>
+  <button onclick="showTab('customers')" style="--nav-color:#2A4A7A;">🏪 Distributors</button>
+  <button onclick="showTab('products')" style="--nav-color:#6A3A9A;">🧀 Products</button>
+  <button onclick="showTab('reports')" style="--nav-color:#1A6A5A;">📈 Reports</button>
+  <button onclick="logoutUser()" style="background:rgba(201,58,42,0.2);color:#FF8A80;border-color:rgba(201,58,42,0.3);">🚪 Logout</button>
 </div>
 
 <div class="main">
@@ -321,11 +330,27 @@
     </div>
 
     <!-- Quick Actions -->
-    <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;">
-      <button onclick="showTab('demand',event)" class="btn btn-sm" style="background:var(--green);color:white;flex-shrink:0;border-radius:20px;">📦 Add Demand</button>
-      <button onclick="showTab('expenses',event)" class="btn btn-sm" style="background:var(--red);color:white;flex-shrink:0;border-radius:20px;">💸 Expenses</button>
-      <button onclick="showTab('customers',event)" class="btn btn-sm" style="background:var(--amber);color:white;flex-shrink:0;border-radius:20px;">🏪 Distributors</button>
-      <button onclick="showTab('reports',event)" class="btn btn-sm" style="background:var(--brown);color:white;flex-shrink:0;border-radius:20px;">📈 Reports</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+      <button onclick="showTab('demand',event)" style="background:linear-gradient(135deg,#2A7A4A,#4CAF50);color:white;border:none;border-radius:14px;padding:16px 12px;font-size:0.88rem;font-weight:800;cursor:pointer;text-align:left;box-shadow:0 3px 12px rgba(42,122,74,0.35);">
+        <div style="font-size:1.6rem;margin-bottom:4px;">📦</div>
+        <div>Demand</div>
+        <div style="font-size:0.72rem;opacity:0.8;margin-top:2px;">Add karo</div>
+      </button>
+      <button onclick="showTab('expenses',event)" style="background:linear-gradient(135deg,#C93A2A,#E57373);color:white;border:none;border-radius:14px;padding:16px 12px;font-size:0.88rem;font-weight:800;cursor:pointer;text-align:left;box-shadow:0 3px 12px rgba(201,58,42,0.35);">
+        <div style="font-size:1.6rem;margin-bottom:4px;">💸</div>
+        <div>Expenses</div>
+        <div style="font-size:0.72rem;opacity:0.8;margin-top:2px;">Record karo</div>
+      </button>
+      <button onclick="showTab('customers',event)" style="background:linear-gradient(135deg,#2A4A7A,#5C8ACA);color:white;border:none;border-radius:14px;padding:16px 12px;font-size:0.88rem;font-weight:800;cursor:pointer;text-align:left;box-shadow:0 3px 12px rgba(42,74,122,0.35);">
+        <div style="font-size:1.6rem;margin-bottom:4px;">🏪</div>
+        <div>Distributors</div>
+        <div style="font-size:0.72rem;opacity:0.8;margin-top:2px;">Manage karo</div>
+      </button>
+      <button onclick="showTab('reports',event)" style="background:linear-gradient(135deg,#1A6A5A,#26A69A);color:white;border:none;border-radius:14px;padding:16px 12px;font-size:0.88rem;font-weight:800;cursor:pointer;text-align:left;box-shadow:0 3px 12px rgba(26,106,90,0.35);">
+        <div style="font-size:1.6rem;margin-bottom:4px;">📈</div>
+        <div>Reports</div>
+        <div style="font-size:0.72rem;opacity:0.8;margin-top:2px;">Dekho</div>
+      </button>
     </div>
 
     <!-- Today's Demand Product Breakdown -->
