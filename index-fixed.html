@@ -589,8 +589,8 @@
         </div>
       </div>
       <table>
-        <thead><tr><th>Code</th><th>Name</th><th>Phone</th><th>Vehicle</th><th>Area</th><th>Rates</th><th>Tax Invoice</th><th>Del</th></tr></thead>
-        <tbody id="cust-table"><tr><td colspan="8" class="empty">No distributors added yet.</td></tr></tbody>
+        <thead style="display:none;"></thead>
+        <tbody id="cust-table"></tbody>
       </table>
     </div>
 
@@ -1217,30 +1217,48 @@
       custs = custs.filter(c => (c.name||'').toLowerCase().includes(q) || (c.code||'').toLowerCase().includes(q) || (c.phone||'').includes(q));
     }
     if (!custs.length) {
-      tb.innerHTML = `<tr><td colspan="8" class="empty">${filter ? '🔍 Koi result nahi mila' : 'Koi distributor nahi hai'}</td></tr>`;
+      tb.innerHTML = `<tr><td colspan="2" class="empty">${filter ? '🔍 Koi result nahi mila' : 'Koi distributor nahi hai'}</td></tr>`;
       return;
     }
-    tb.innerHTML = custs.map((r, i) => `
-      <tr style="${i%2===1?'background:#FFFBF5':''}">
-        <td><span class="badge badge-amber">${r.code || '-'}</span></td>
-        <td>
-          <div style="font-weight:800;font-size:0.92rem;">${r.name || '-'}</div>
-          ${r.daily ? `<div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">📍 ${r.daily}</div>` : ''}
-        </td>
-        <td>${r.phone ? `<a href="tel:${r.phone}" style="color:var(--blue);font-weight:700;text-decoration:none;">📞 ${r.phone}</a>` : '-'}</td>
-        <td>${r.vehicle ? `<span style="font-family:var(--mono);font-size:0.8rem;background:var(--cream);padding:3px 8px;border-radius:6px;border:1px solid var(--border);">${r.vehicle}</span>` : '-'}</td>
-        <td>${r.daily || '-'}</td>
-        <td>
-          <div style="display:flex;gap:5px;flex-wrap:wrap;">
-            <button class="btn btn-primary btn-sm" onclick="openDistRates(${r.id})">💰 Rates</button>
-            <button class="btn btn-sm" style="background:var(--amber);color:white;" onclick="openEditDist(${r.id})">✏️ Edit</button>
+    tb.innerHTML = custs.map((r, i) => {
+      const rateCount = Object.keys(r.productRates||{}).length;
+      return `<tr>
+        <td colspan="2" style="padding:0;border-bottom:1.5px solid var(--border);">
+          <div style="padding:14px 16px;">
+            <!-- Top row: avatar + name + delete -->
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#C97A2A,#E8A84A);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;color:white;flex-shrink:0;">
+                ${(r.name||'?')[0].toUpperCase()}
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                  <span class="badge badge-amber">${r.code||'-'}</span>
+                  <strong style="font-size:0.95rem;">${r.name||'-'}</strong>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:4px;flex-wrap:wrap;">
+                  ${r.phone ? `<a href="tel:${r.phone}" style="color:var(--blue);font-size:0.78rem;font-weight:700;text-decoration:none;">📞 ${r.phone}</a>` : ''}
+                  ${r.daily ? `<span style="font-size:0.78rem;color:var(--muted);">📍 ${r.daily}</span>` : ''}
+                  ${r.vehicle ? `<span style="font-size:0.75rem;font-family:var(--mono);background:var(--cream);padding:1px 7px;border-radius:5px;border:1px solid var(--border);">${r.vehicle}</span>` : ''}
+                </div>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="delRecord('customers',${r.id})" style="flex-shrink:0;padding:5px 10px;">✕</button>
+            </div>
+            <!-- Action buttons row -->
+            <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+              <button onclick="openDistRates(${r.id})" style="flex:1;min-width:100px;padding:9px 12px;background:linear-gradient(135deg,#2A7A4A,#4CAF50);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">
+                💰 Rates ${rateCount > 0 ? `<span style="background:rgba(255,255,255,0.3);padding:1px 6px;border-radius:10px;font-size:0.7rem;">${rateCount}</span>` : ''}
+              </button>
+              <button onclick="openEditDist(${r.id})" style="flex:1;min-width:80px;padding:9px 12px;background:linear-gradient(135deg,#C97A2A,#E8A84A);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">
+                ✏️ Edit
+              </button>
+              <button onclick="openTaxModal('${r.name.replace(/'/g,"\\'")}')'" style="flex:1;min-width:100px;padding:9px 12px;background:linear-gradient(135deg,#2A4A7A,#5C8ACA);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;">
+                🧾 Invoice
+              </button>
+            </div>
           </div>
         </td>
-        <td>
-          <button class="btn btn-sm" style="background:#2A4A7A;color:white;" onclick="openTaxModal('${r.name.replace(/'/g,"\\'")}')">🧾 Tax Invoice</button>
-        </td>
-        <td><button class="btn btn-danger btn-sm" onclick="delRecord('customers',${r.id})">✕</button></td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   }
 
   function filterDistributors(q) {
