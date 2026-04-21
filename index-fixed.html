@@ -1029,32 +1029,46 @@
 
   function loadDataFromFirebase() {
     loadFromLocalCache(); // show cached data instantly
-    if (!navigator.onLine) { updateOnlineStatus(); return; } // skip Firebase if offline
+    if (!navigator.onLine) { updateOnlineStatus(); return; }
     dbRef.once('value').then(snap => {
-      const val = snap.val();
-      if (val) {
-        // Sirf non-null values ko merge karo — null se local data overwrite mat karo
-        const safeMerge = {};
-        Object.entries(val).forEach(([k, v]) => {
-          if (v !== null && v !== undefined) safeMerge[k] = v;
-        });
-        data = { ...data, ...safeMerge };
+      const val = snap.val() || {};
+
+      // demandEntries — Firebase object → array, merge with local (prefer more entries)
+      const fbDemand = val.demandEntries
+        ? Object.values(val.demandEntries).filter(e => e && e.id)
+        : [];
+      const localDemand = Array.isArray(data.demandEntries) ? data.demandEntries : [];
+      // Merge: Firebase + local, deduplicate by id
+      const demandMap = {};
+      [...localDemand, ...fbDemand].forEach(e => { if(e && e.id) demandMap[e.id] = e; });
+      data.demandEntries = Object.values(demandMap);
+
+      // customers — Firebase object → array
+      if (val.customers) {
+        const fbCusts = Array.isArray(val.customers)
+          ? val.customers
+          : Object.values(val.customers);
+        // Prefer Firebase customers if more, else keep local
+        const localCusts = Array.isArray(data.customers) ? data.customers : [];
+        data.customers = fbCusts.length >= localCusts.length ? fbCusts : localCusts;
       }
 
-      // Fix null/object arrays from Firebase
-      if (!Array.isArray(data.products)) data.products = data.products
-        ? Object.values(data.products).filter(Boolean) : [];
-      if (!Array.isArray(data.sales)) data.sales = data.sales
-        ? Object.values(data.sales).filter(Boolean) : [];
-      if (!Array.isArray(data.demandEntries)) {
-        data.demandEntries = data.demandEntries
-          ? Object.values(data.demandEntries).filter(e => e && e.id)
-          : [];
-      }
-      if (!Array.isArray(data.taxInvoices)) data.taxInvoices = data.taxInvoices
-        ? Object.values(data.taxInvoices).filter(Boolean) : [];
-      if (!Array.isArray(data.expenses)) data.expenses = data.expenses
-        ? Object.values(data.expenses).filter(Boolean) : [];
+      // expenses — merge same way as demand
+      const fbExp = val.expenses
+        ? (Array.isArray(val.expenses) ? val.expenses : Object.values(val.expenses)).filter(Boolean)
+        : [];
+      const localExp = Array.isArray(data.expenses) ? data.expenses : [];
+      const expMap = {};
+      [...localExp, ...fbExp].forEach(e => { if(e && e.id) expMap[e.id] = e; });
+      data.expenses = Object.values(expMap);
+
+      // products, sales, taxInvoices — simple replace if Firebase has data
+      if (val.products) data.products = Array.isArray(val.products) ? val.products : Object.values(val.products).filter(Boolean);
+      if (!Array.isArray(data.products)) data.products = [];
+      if (val.sales) data.sales = Array.isArray(val.sales) ? val.sales : Object.values(val.sales).filter(Boolean);
+      if (!Array.isArray(data.sales)) data.sales = [];
+      if (val.taxInvoices) data.taxInvoices = Array.isArray(val.taxInvoices) ? val.taxInvoices : Object.values(val.taxInvoices).filter(Boolean);
+      if (!Array.isArray(data.taxInvoices)) data.taxInvoices = [];
 
       // customers — Firebase object/array → clean array
       _firebaseLoaded = true;
@@ -1110,8 +1124,6 @@
   // Safe demand save - converts array to object for Firebase reliability
   function saveDemandEntries() {
     if (!dbRef) return;
-    // Convert array to keyed object for Firebase reliability
-    // Firebase corrupts numeric-indexed arrays on save — use string keys
     const demandObj = {};
     (data.demandEntries||[]).forEach(e => {
       const key = 'e_' + (e.id || Date.now());
@@ -1119,6 +1131,8 @@
     });
     dbRef.child('demandEntries').set(demandObj)
       .catch(e => console.log('Demand save error:', e));
+    // localStorage bhi update karo
+    try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
   }
 
 
