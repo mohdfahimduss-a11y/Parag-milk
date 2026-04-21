@@ -1117,61 +1117,30 @@
   }
 
   // Init dates
-  document.getElementById('sale-date').value = today();
   document.getElementById('demand-entry-date').value = today();
 
   const now = new Date();
   document.getElementById('headerDate').textContent = now.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' });
   document.getElementById('todayDate').textContent = now.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
-  // Auto-calculate sale amount
-  let saleUnitMode = 'pkt'; // 'pkt', 'ltr', 'kg'
-  function toggleSaleUnit() {
-    const btn = document.getElementById('sale-unit-toggle');
-    const modes = ['PKT','LTR','KG'];
-    const cur = btn.textContent.trim();
-    const next = modes[(modes.indexOf(cur)+1) % modes.length];
-    btn.textContent = next;
-    saleUnitMode = next.toLowerCase();
-    const isLtr = next === 'LTR';
-    const isKg  = next === 'KG';
-    btn.style.background  = (isLtr||isKg) ? '#E8F5E9' : '#FFF3E0';
-    btn.style.color       = (isLtr||isKg) ? 'var(--green)' : 'var(--amber)';
-    btn.style.borderColor = (isLtr||isKg) ? '#A5D6A7' : 'var(--amber)';
-    document.getElementById('sale-qty').placeholder = next === 'PKT' ? '0' : next + ' daalo';
-    document.getElementById('sale-qty-label').textContent = next;
-    calcSale();
-  }
-
-  document.getElementById('sale-qty').addEventListener('input', calcSale);
-  document.getElementById('sale-rate').addEventListener('input', calcSale);
-  function calcSale() {
-    const q = parseFloat(document.getElementById('sale-qty').value) || 0;
-    const r = parseFloat(document.getElementById('sale-rate').value) || 0;
-    if (q && r) document.getElementById('sale-amount').value = (q * r).toFixed(0);
-  }
-
   // Tab Navigation
   function showTab(tab, evt) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
     document.getElementById(tab).classList.add('active');
-    const e = evt || event;
-    if (e && e.target) {
-      const navBtn = document.querySelector(`.nav button[onclick*="'${tab}'"]`);
-      if (navBtn) navBtn.classList.add('active');
-    }
+    const navBtn = document.querySelector(`.nav button[onclick*="'${tab}'"]`);
+    if (navBtn) navBtn.classList.add('active');
     if (tab === 'dashboard') updateDashboard();
     if (tab === 'customers') { ensureCustomers(); renderCustomers(); updateCustomerList(); }
     if (tab === 'demand') {
       renderDemandEntryGrid();
-      // Only set date if not already set — don't override user's selected date
       const vdEl = document.getElementById('demand-view-date');
       if (!vdEl.value) vdEl.value = today();
       renderDemandSummaryPage(vdEl.value);
       updateDistList();
     }
     if (tab === 'expenses') { renderExpenses(); renderExpenseSummary(); }
+    if (tab === 'reports') {
       renderTaxInvoiceHistory();
       document.getElementById('demand-month-export').value = today().slice(0,7);
       const t = new Date();
@@ -1181,105 +1150,12 @@
     }
   }
 
-  // SALES
-
-  function onSaleCustomerChange() {
-    const distName = document.getElementById('sale-customer').value.trim();
-    const date     = document.getElementById('sale-date').value || today();
-    const preview  = document.getElementById('sale-demand-preview');
-    const amtEl    = document.getElementById('sale-demand-amt');
-    const breakEl  = document.getElementById('sale-demand-breakdown');
-
-    if (!distName) { preview.style.display = 'none'; return; }
-
-    // Find today's demand for this distributor
-    const entry = (data.demandEntries||[]).find(e =>
-      e.date === date && e.distName.toLowerCase() === distName.toLowerCase()
-    );
-
-    if (!entry) { preview.style.display = 'none'; return; }
-
-    // Calculate total amount
-    const allProds = getAllProducts();
-    const dist = data.customers.find(c => c.name === entry.distName);
-    let totalAmt = 0;
-    const breakdown = [];
-
-    Object.entries(entry.items||{}).forEach(([pid, itemData]) => {
-      const prod = allProds.find(p => String(p.id) === String(pid));
-      if (!prod) return;
-      const qty   = typeof itemData === 'object' ? (itemData.qty||0)   : Number(itemData);
-      const kgltr = typeof itemData === 'object' ? (itemData.kgltr||0) : 0;
-      const rawRate = (dist && dist.productRates && dist.productRates[pid])
-        ? parseFloat(dist.productRates[pid]) : (prod.rate||0);
-      const displayDiv6 = {'fcm6l':6,'ton6l':6};
-      const rDiv = displayDiv6[pid] || 1;
-      const perUnitRate = rDiv > 1 ? Math.round(rawRate/rDiv*100)/100 : rawRate;
-      const val = kgltr > 0 ? Math.round(perUnitRate * kgltr * 100)/100
-                             : Math.round(rawRate * qty * 100)/100;
-      totalAmt += val;
-      if (val > 0) breakdown.push(`${prod.name} ${prod.size||''}: ₹${Math.round(val).toLocaleString('en-IN')}`);
-    });
-
-    amtEl.textContent = '₹' + Math.round(totalAmt).toLocaleString('en-IN');
-    breakEl.textContent = breakdown.slice(0,3).join(' · ') + (breakdown.length > 3 ? ' ...' : '');
-    preview.style.display = 'block';
-
-    // Store for fillSaleFromDemand
-    preview.dataset.amt = Math.round(totalAmt);
-    preview.dataset.dist = entry.distName;
-  }
-
-  function fillSaleFromDemand() {
-    const preview = document.getElementById('sale-demand-preview');
-    const amt = parseFloat(preview.dataset.amt) || 0;
-    const distName = preview.dataset.dist || '';
-    if (!amt) return;
-    document.getElementById('sale-customer').value = distName;
-    document.getElementById('sale-amount').value = amt;
-    document.getElementById('sale-rate').value = '';
-    document.getElementById('sale-qty').value = '';
-    document.getElementById('sale-notes').value = 'Demand payment';
-  }
-
-  function addSale() {
-    const rec = {
-      id: Date.now(),
-      date: document.getElementById('sale-date').value,
-      customer: document.getElementById('sale-customer').value,
-      product: document.getElementById('sale-product').value,
-      qty: parseFloat(document.getElementById('sale-qty').value) || 0,
-      rate: parseFloat(document.getElementById('sale-rate').value) || 0,
-      amount: parseFloat(document.getElementById('sale-amount').value) || 0,
-      payment: document.getElementById('sale-payment').value,
-      notes: document.getElementById('sale-notes').value
-    };
-    if (!rec.amount) { alert('Please enter amount!'); return; }
-    data.sales.unshift(rec);
-    if(dbRef) dbRef.update({sales: data.sales});
-    renderSales();
-    updateCustomerList();
-    document.getElementById('sale-customer').value = '';
-    document.getElementById('sale-qty').value = '';
-    document.getElementById('sale-rate').value = '';
-    document.getElementById('sale-amount').value = '';
-    document.getElementById('sale-notes').value = '';
-  }
-
-  function renderSales() {
-    const tb = document.getElementById('sales-table');
-    if (!data.sales.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">No sales records yet.</td></tr>'; return; }
-    tb.innerHTML = data.sales.map(r => `
-      <tr>
-        <td>${formatDate(r.date)}</td>
-        <td>${r.customer || '-'}</td>
-        <td>${r.product}</td>
-        <td>${r.qty} L</td>
-        <td><strong>₹${r.amount}</strong></td>
-        <td><span class="badge ${r.payment==='Paid'?'badge-green':r.payment==='Pending'?'badge-red':'badge-amber'}">${r.payment}</span></td>
-        <td><button class="btn btn-danger btn-sm" onclick="delRecord('sales',${r.id})">✕</button></td>
-      </tr>`).join('');
-  }
+  // Stub sales functions (used internally by demand/tax invoice)
+  function renderSales() {}
+  function addSale() {}
+  function onSaleCustomerChange() {}
+  function fillSaleFromDemand() {}
+  function toggleSaleUnit() {}
 
   // CUSTOMERS
   function addCustomer() {
