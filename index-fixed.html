@@ -825,8 +825,8 @@
   function ensureCustomers() {
     data.customers = getCustomers();
     if (!data.customers.length) {
-      data.customers = DEFAULT_CUSTOMERS;
-      if (typeof saveCustomers === 'function') saveCustomers();
+      data.customers = DEFAULT_CUSTOMERS.map(c => ({...c}));
+      // NOTE: saveCustomers() yahan NAHI call karo — isse Firebase ka real data overwrite ho jata tha
     }
     return data.customers;
   }
@@ -981,9 +981,8 @@
   // Customers ko string-keyed object se save karo — Firebase null issue se bachao
   function saveCustomers() {
     if (!dbRef) return;
-    if (!data.customers || !data.customers.length) return;
     const obj = {};
-    data.customers.forEach(c => { obj['c_' + c.id] = c; });
+    (data.customers || []).forEach(c => { obj['c_' + c.id] = c; });
     dbRef.child('customers').set(obj).catch(e => console.log('Customer save error:', e));
     try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
   }
@@ -1433,7 +1432,7 @@
     }
     if (type === 'production') renderProduction();
     if (type === 'sales') renderSales();
-    if (type === 'customers') renderCustomers();
+    if (type === 'customers') { renderCustomers(); updateCustomerList(); }
     if (type === 'products') renderProducts();
   }
 
