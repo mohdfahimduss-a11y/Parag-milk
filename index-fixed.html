@@ -283,6 +283,7 @@
   <button class="active" onclick="showTab('dashboard')" style="--nav-color:#C97A2A;">📊 Dashboard</button>
   <button onclick="showTab('demand')" style="--nav-color:#2A7A4A;">📦 Demand</button>
   <button onclick="showTab('expenses')" style="--nav-color:#C93A2A;">💸 Expenses</button>
+  <button onclick="showTab('payments')" style="--nav-color:#1A5A8A;">💳 Payments</button>
   <button onclick="showTab('customers')" style="--nav-color:#2A4A7A;">🏪 Distributors</button>
   <button onclick="showTab('products')" style="--nav-color:#6A3A9A;">🧀 Products</button>
   <button onclick="showTab('reports')" style="--nav-color:#1A6A5A;">📈 Reports</button>
@@ -538,6 +539,87 @@
         <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Mode</th><th>Amount</th><th>Del</th></tr></thead>
         <tbody id="expenses-table"><tr><td colspan="6" class="empty">Koi kharch nahi mila.</td></tr></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- PAYMENTS -->
+  <div class="section" id="payments">
+    <div class="today-bar">
+      <div class="emoji">💳</div>
+      <div>
+        <h2>Payment Received</h2>
+        <p>Har payment record karo — slip generate karo</p>
+      </div>
+    </div>
+
+    <!-- Add Payment Form -->
+    <div class="form-card">
+      <h3>➕ Naya Payment Add Karo</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="pay-date">
+        </div>
+        <div class="form-group">
+          <label>Distributor</label>
+          <input type="text" id="pay-dist" placeholder="Naam likhein..." list="pay-dist-list">
+          <datalist id="pay-dist-list"></datalist>
+        </div>
+        <div class="form-group">
+          <label>Amount Received (₹)</label>
+          <input type="number" id="pay-amount" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Payment Mode</label>
+          <select id="pay-mode">
+            <option>💵 Cash</option>
+            <option>📱 UPI</option>
+            <option>🏦 Bank Transfer</option>
+            <option>🔁 NEFT / RTGS</option>
+            <option>💳 Cheque</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Reference No. (UPI ID / Transaction ID / Cheque No.)</label>
+          <input type="text" id="pay-ref" placeholder="Optional — UPI ref, bank UTR, cheque no...">
+        </div>
+        <div class="form-group full">
+          <label>Note</label>
+          <input type="text" id="pay-note" placeholder="Optional note...">
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="addPayment()">💳 Save Payment</button>
+      </div>
+    </div>
+
+    <!-- Outstanding Summary -->
+    <div class="form-card" id="pay-outstanding-card" style="display:none;background:linear-gradient(135deg,#FFF8EE,#FFF3E0);">
+      <h3>📊 Outstanding Balance</h3>
+      <div id="pay-outstanding-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <!-- Payment History -->
+    <div class="table-card">
+      <div class="table-header" style="justify-content:space-between;">
+        <h3>📋 Payment History <span id="pay-total-badge" style="background:var(--green);color:white;font-size:0.7rem;padding:2px 8px;border-radius:20px;margin-left:6px;"></span></h3>
+        <select id="pay-filter-dist" onchange="renderPayments()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:0.78rem;max-width:150px;">
+          <option value="">Sab</option>
+        </select>
+      </div>
+      <div id="payments-list" style="padding:0;"></div>
+    </div>
+
+    <!-- Slip Modal -->
+    <div id="slip-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:white;border-radius:16px;width:100%;max-width:400px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+        <div id="slip-content" style="padding:24px;"></div>
+        <div style="display:flex;gap:10px;padding:16px;border-top:1px solid var(--border);">
+          <button onclick="printSlip()" style="flex:1;padding:11px;background:var(--brown);color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">🖨️ Print</button>
+          <button onclick="shareSlip()" style="flex:1;padding:11px;background:var(--green);color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;">📤 Share</button>
+          <button onclick="document.getElementById('slip-modal').style.display='none'" style="padding:11px 16px;background:var(--cream);border:1.5px solid var(--border);border-radius:10px;font-weight:700;cursor:pointer;">✕</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -918,7 +1000,8 @@
     demand: [],
     demandEntries: [],
     distributors: [],
-    taxInvoices: []
+    taxInvoices: [],
+    payments: []
   };
 
   // Safe customers getter — handles Firebase object or array
@@ -1062,7 +1145,13 @@
       [...localExp, ...fbExp].forEach(e => { if(e && e.id) expMap[e.id] = e; });
       data.expenses = Object.values(expMap);
 
-      // products, sales, taxInvoices — simple replace if Firebase has data
+      // payments
+      if (val.payments) {
+        data.payments = Array.isArray(val.payments)
+          ? val.payments
+          : Object.values(val.payments).filter(Boolean);
+      }
+      if (!Array.isArray(data.payments)) data.payments = [];
       if (val.products) data.products = Array.isArray(val.products) ? val.products : Object.values(val.products).filter(Boolean);
       if (!Array.isArray(data.products)) data.products = [];
       if (val.sales) data.sales = Array.isArray(val.sales) ? val.sales : Object.values(val.sales).filter(Boolean);
@@ -1185,6 +1274,14 @@
       updateDistList();
     }
     if (tab === 'expenses') { renderExpenses(); renderExpenseSummary(); }
+    if (tab === 'payments') {
+      document.getElementById('pay-date').value = today();
+      // Update distributor datalist
+      const dl = document.getElementById('pay-dist-list');
+      if (dl) dl.innerHTML = getCustomers().map(c=>`<option value="${c.name}">`).join('');
+      renderPayments();
+      renderOutstanding();
+    }
     if (tab === 'reports') {
       renderTaxInvoiceHistory();
       document.getElementById('demand-month-export').value = today().slice(0,7);
@@ -4511,6 +4608,225 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     else if(_demRptMode==='item'){const map={};entries.forEach(e=>{const d=customers.find(c=>c.name===e.distName);Object.entries(e.items||{}).forEach(([pid,id])=>{const prod=allProds.find(p=>String(p.id)===String(pid));if(!prod)return;const r=getV(pid,id,d);if(!map[pid])map[pid]={name:prod.name,size:prod.size||'',qty:0,total:0};map[pid].qty+=r.dq;map[pid].total+=r.val;});});const rows=[['Product','Size','Total Qty','Total Amount']];Object.values(map).sort((a,b)=>b.total-a.total).forEach(d=>rows.push([d.name,d.size,Math.round(d.qty*100)/100,Math.round(d.total)]));XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Item Wise');}
     else{const up=new Set();entries.forEach(e=>Object.keys(e.items||{}).forEach(pid=>up.add(pid)));const PREF=['fcm500','fcm1l','fcm6l','fcm200','fcm135','std500','std1l','ton500','ton1l','ton6l','dtm500','dtm150','dtm170','cow','regular','chach300','chach400','matka5','matka15','paneer1kg'];const cols=[...up].sort((a,b)=>{const ia=PREF.indexOf(a),ib=PREF.indexOf(b);return ia===-1&&ib===-1?0:ia===-1?1:ib===-1?-1:ia-ib;}).map(pid=>{const p=allProds.find(x=>String(x.id)===String(pid));return{pid,name:p?p.name:pid,size:p?p.size||'':''};});const dn=[...new Set(entries.map(e=>e.distName))].sort();const rows=[['Party',...cols.map(c=>c.name+' '+c.size),'Total']];dn.forEach(dn=>{const d=customers.find(c=>c.name===dn);const de=entries.filter(e=>e.distName===dn);let rt=0;const cells=cols.map(col=>{let dq=0,val=0;de.forEach(e=>{const id=(e.items||{})[col.pid];if(!id)return;const r=getV(col.pid,id,d);dq+=r.dq;val+=r.val;});rt+=val;return dq>0?Math.round(dq*100)/100:'';});rows.push([dn,...cells,Math.round(rt)]);});XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'All Party');}
     XLSX.writeFile(wb,`DemandReport_${_demRptMode}_${from}_${to}.xlsx`);
+  }
+
+  // ============ PAYMENTS ============
+  let _slipPayment = null;
+
+  function addPayment() {
+    const date   = document.getElementById('pay-date').value;
+    const dist   = document.getElementById('pay-dist').value.trim();
+    const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
+    const mode   = document.getElementById('pay-mode').value;
+    const ref    = document.getElementById('pay-ref').value.trim();
+    const note   = document.getElementById('pay-note').value.trim();
+    if (!date)   { alert('Date daalo!'); return; }
+    if (!dist)   { alert('Distributor naam daalo!'); return; }
+    if (!amount) { alert('Amount daalo!'); return; }
+    if (!data.payments) data.payments = [];
+    // Auto slip number
+    const slipNo = 'SLP-' + String(data.payments.length + 1).padStart(4, '0');
+    const rec = { id: Date.now(), slipNo, date, dist, amount, mode, ref, note };
+    data.payments.unshift(rec);
+    if (dbRef) dbRef.child('payments').set(
+      Object.fromEntries(data.payments.map(p => ['p_'+p.id, p]))
+    ).catch(e => console.log(e));
+    try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
+    document.getElementById('pay-dist').value = '';
+    document.getElementById('pay-amount').value = '';
+    document.getElementById('pay-ref').value = '';
+    document.getElementById('pay-note').value = '';
+    renderPayments();
+    renderOutstanding();
+    updateDashboard();
+    // Auto show slip
+    showSlip(rec);
+  }
+
+  function renderPayments() {
+    const container = document.getElementById('payments-list');
+    const badge = document.getElementById('pay-total-badge');
+    const filterDist = document.getElementById('pay-filter-dist')?.value || '';
+    if (!data.payments) data.payments = [];
+    let pays = [...data.payments].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    if (filterDist) pays = pays.filter(p => p.dist === filterDist);
+    const total = pays.reduce((s,p) => s+(p.amount||0), 0);
+    if (badge) badge.textContent = '₹' + Math.round(total).toLocaleString('en-IN');
+    // Update filter dropdown
+    const sel = document.getElementById('pay-filter-dist');
+    if (sel) {
+      const dists = [...new Set((data.payments||[]).map(p => p.dist))].sort();
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">Sab</option>' + dists.map(d => `<option ${d===cur?'selected':''}>${d}</option>`).join('');
+    }
+    if (!pays.length) {
+      container.innerHTML = '<div class="empty" style="padding:28px;">Koi payment nahi mili.</div>';
+      return;
+    }
+    container.innerHTML = pays.map((p,i) => `
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);${i%2?'background:#FFFBF5':''}">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <span style="font-size:0.7rem;font-weight:700;background:#EEF2FF;color:#3949AB;padding:2px 8px;border-radius:10px;">${p.slipNo}</span>
+              <strong style="font-size:0.92rem;">${p.dist}</strong>
+            </div>
+            <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">
+              📅 ${formatDate(p.date)} &nbsp;•&nbsp; ${p.mode}
+              ${p.ref ? `&nbsp;•&nbsp; <span style="font-family:var(--mono);">${p.ref}</span>` : ''}
+            </div>
+            ${p.note ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">📝 ${p.note}</div>` : ''}
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:1.1rem;font-weight:900;color:var(--green);font-family:var(--mono);">₹${Math.round(p.amount).toLocaleString('en-IN')}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="showSlip(data.payments.find(x=>x.id===${p.id}))" style="flex:1;padding:7px;background:#EEF2FF;color:#3949AB;border:none;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;">🧾 Slip</button>
+          <button onclick="delPayment(${p.id})" style="padding:7px 12px;background:var(--red-light);color:var(--red);border:1px solid #F0C0BC;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;">✕</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function delPayment(id) {
+    if (!confirm('Yeh payment delete karein?')) return;
+    data.payments = (data.payments||[]).filter(p => p.id !== id);
+    if (dbRef) dbRef.child('payments').set(
+      Object.fromEntries((data.payments||[]).map(p => ['p_'+p.id, p]))
+    ).catch(e => console.log(e));
+    try { localStorage.setItem('paragMilkData', JSON.stringify(data)); } catch(e) {}
+    renderPayments();
+    renderOutstanding();
+  }
+
+  function renderOutstanding() {
+    const card = document.getElementById('pay-outstanding-card');
+    const list = document.getElementById('pay-outstanding-list');
+    if (!card || !list) return;
+    // Har distributor ki total demand vs total payment
+    const custs = getCustomers();
+    if (!custs.length) { card.style.display='none'; return; }
+    const rows = [];
+    custs.forEach(c => {
+      const totalDemand = (data.demandEntries||[]).reduce((s,e) => {
+        if (e.distName !== c.name) return s;
+        const dist = c;
+        let amt = 0;
+        Object.entries(e.items||{}).forEach(([pid, itemData]) => {
+          const prod = getAllProducts().find(p => String(p.id)===String(pid));
+          if (!prod) return;
+          const qty   = typeof itemData==='object'?(itemData.qty||0):Number(itemData);
+          const kgltr = typeof itemData==='object'?(itemData.kgltr||0):0;
+          const rawRate = (dist.productRates&&dist.productRates[pid])?parseFloat(dist.productRates[pid]):(prod.rate||0);
+          const ltr6x = ['fcm6l','ton6l'];
+          const rDiv = ltr6x.includes(pid)?6:1;
+          const perUnit = rDiv>1?Math.round(rawRate/rDiv*100)/100:rawRate;
+          const dq = ltr6x.includes(pid)?(kgltr||qty*6):(itemData&&typeof itemData==='object'&&itemData.unit==='PKT'?qty:(kgltr||qty));
+          amt += perUnit>0?Math.round(perUnit*dq*100)/100:0;
+        });
+        return s + amt;
+      }, 0);
+      const totalPaid = (data.payments||[]).filter(p=>p.dist===c.name).reduce((s,p)=>s+(p.amount||0),0);
+      const balance = Math.round(totalDemand - totalPaid);
+      if (totalDemand > 0 || totalPaid > 0) rows.push({ name:c.name, totalDemand:Math.round(totalDemand), totalPaid:Math.round(totalPaid), balance });
+    });
+    if (!rows.length) { card.style.display='none'; return; }
+    rows.sort((a,b) => b.balance - a.balance);
+    card.style.display = 'block';
+    list.innerHTML = rows.map(r => `
+      <div style="background:white;border-radius:10px;padding:12px 14px;border:1.5px solid ${r.balance>0?'#FFCC80':r.balance<0?'#A5D6A7':'var(--border)'};">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+          <strong style="font-size:0.88rem;">${r.name}</strong>
+          <span style="font-weight:900;font-family:var(--mono);font-size:0.95rem;color:${r.balance>0?'var(--red)':r.balance<0?'var(--green)':'var(--muted)'};">
+            ${r.balance>0?'⏳ Baaki ₹'+r.balance.toLocaleString('en-IN'):r.balance<0?'✅ Advance ₹'+Math.abs(r.balance).toLocaleString('en-IN'):'✅ Clear'}
+          </span>
+        </div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;display:flex;gap:12px;">
+          <span>📦 Demand: ₹${r.totalDemand.toLocaleString('en-IN')}</span>
+          <span>💳 Paid: ₹${r.totalPaid.toLocaleString('en-IN')}</span>
+        </div>
+      </div>`).join('');
+  }
+
+  function showSlip(pay) {
+    if (!pay) return;
+    _slipPayment = pay;
+    const modal = document.getElementById('slip-modal');
+    const content = document.getElementById('slip-content');
+    content.innerHTML = `
+      <div style="text-align:center;border-bottom:2px dashed var(--border);padding-bottom:16px;margin-bottom:16px;">
+        <div style="font-size:1.5rem;margin-bottom:4px;">🥛</div>
+        <div style="font-weight:900;font-size:1.1rem;color:var(--brown);">PARAG MILK</div>
+        <div style="font-size:0.75rem;color:var(--muted);">Moradabad Dugdh Utpadak Sahakari Sangh Ltd.</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+        <div>
+          <div style="font-size:0.7rem;color:var(--muted);font-weight:700;">SLIP NO.</div>
+          <div style="font-weight:800;font-size:0.95rem;color:#3949AB;">${pay.slipNo}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.7rem;color:var(--muted);font-weight:700;">DATE</div>
+          <div style="font-weight:800;font-size:0.95rem;">${formatDate(pay.date)}</div>
+        </div>
+      </div>
+      <div style="background:var(--cream);border-radius:10px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:0.7rem;color:var(--muted);font-weight:700;margin-bottom:4px;">RECEIVED FROM</div>
+        <div style="font-weight:900;font-size:1.05rem;color:var(--brown);">${pay.dist}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--green),#4CAF50);border-radius:12px;padding:16px;margin-bottom:14px;">
+        <div>
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.8);font-weight:700;">AMOUNT RECEIVED</div>
+          <div style="font-size:1.8rem;font-weight:900;color:white;font-family:var(--mono);">₹${Math.round(pay.amount).toLocaleString('en-IN')}</div>
+        </div>
+        <div style="font-size:2rem;">💰</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="background:var(--blue-light);border-radius:8px;padding:10px;">
+          <div style="font-size:0.68rem;color:var(--blue);font-weight:700;">PAYMENT MODE</div>
+          <div style="font-weight:800;font-size:0.85rem;margin-top:2px;">${pay.mode}</div>
+        </div>
+        <div style="background:var(--cream);border-radius:8px;padding:10px;">
+          <div style="font-size:0.68rem;color:var(--muted);font-weight:700;">REF. NO.</div>
+          <div style="font-weight:700;font-size:0.82rem;margin-top:2px;word-break:break-all;">${pay.ref || '—'}</div>
+        </div>
+      </div>
+      ${pay.note ? `<div style="font-size:0.8rem;color:var(--muted);font-style:italic;border-top:1px solid var(--border);padding-top:10px;">📝 ${pay.note}</div>` : ''}
+      <div style="text-align:center;margin-top:14px;font-size:0.7rem;color:var(--muted);border-top:2px dashed var(--border);padding-top:10px;">
+        Shukriya! Aapka business hamara sammaan hai. 🙏
+      </div>`;
+    modal.style.display = 'flex';
+  }
+
+  function printSlip() {
+    const content = document.getElementById('slip-content').innerHTML;
+    const w = window.open('', '_blank');
+    w.document.write(`<html><head><title>Payment Slip</title>
+      <style>body{font-family:sans-serif;padding:20px;max-width:400px;margin:0 auto;}*{box-sizing:border-box;}</style>
+      </head><body>${content}</body></html>`);
+    w.document.close();
+    w.print();
+  }
+
+  async function shareSlip() {
+    if (!_slipPayment) return;
+    const p = _slipPayment;
+    const text = `🥛 PARAG MILK — Payment Receipt\n` +
+      `━━━━━━━━━━━━━━━━━━━\n` +
+      `Slip No: ${p.slipNo}\n` +
+      `Date: ${formatDate(p.date)}\n` +
+      `Party: ${p.dist}\n` +
+      `Amount: ₹${Math.round(p.amount).toLocaleString('en-IN')}\n` +
+      `Mode: ${p.mode}\n` +
+      (p.ref ? `Ref: ${p.ref}\n` : '') +
+      (p.note ? `Note: ${p.note}\n` : '') +
+      `━━━━━━━━━━━━━━━━━━━\n` +
+      `Shukriya! 🙏`;
+    if (navigator.share) {
+      await navigator.share({ title:'Payment Slip', text });
+    } else {
+      await navigator.clipboard.writeText(text);
+      alert('Slip copy ho gayi! WhatsApp pe paste karo.');
+    }
   }
 
   // ============ EXPENSES ============
