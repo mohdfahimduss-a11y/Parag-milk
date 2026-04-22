@@ -3529,7 +3529,6 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
       let groupCrates = 0;
       let groupAmount = 0;
 
-      // Single header row
       rows.push([groupLabel]);
       rows.push(['PARTY NAME', ...PROD_COLS.map(p => p.name + (p.size ? ' ' + p.size : '')), 'CRATE', 'AMOUNT (₹)']);
 
@@ -3547,7 +3546,6 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
           const crates = itemData ? (typeof itemData==='object' ? (itemData.crates||0) : 0) : 0;
           const sUnit5 = itemData && typeof itemData==='object' ? (itemData.unit||'PKT') : 'PKT';
           const dispQty = ltr6x.includes(p.id) ? (kgltr || qty * 6) : (sUnit5==='PKT' ? qty : (kgltr || qty));
-          // Amount
           const rawRate = (dist && dist.productRates && dist.productRates[p.id]) ? parseFloat(dist.productRates[p.id]) : 0;
           const rDiv = ltr6x.includes(p.id) ? 6 : 1;
           const perUnit = rDiv > 1 ? Math.round(rawRate/rDiv*100)/100 : rawRate;
@@ -3582,8 +3580,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
     if (mrdEntries.length) buildGroupRows(mrdEntries, '📍 MORADABAD').forEach(r => wsData.push(r));
     if (ncrEntries.length) buildGroupRows(ncrEntries, '📍 DELHI / NCR').forEach(r => wsData.push(r));
 
-    wsData.push(['🔢 GRAND TOTAL', ...PROD_COLS.map(p => colTotals[p.id] > 0 ? colTotals[p.id] : ''), grandCrates > 0 ? grandCrates : '', Math.round(grandAmount)]);
-    wsData.push(['CRATES (÷12)', ...PROD_COLS.map(p => colTotals[p.id] > 0 ? (colTotals[p.id]/12).toFixed(2) : ''), '', '']);
+    // No grand total row — sirf group totals
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const totalCols = PROD_COLS.length + 3; // party + products + crate + amount
@@ -3603,15 +3600,14 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
 
     const C = (r, c) => XLSX.utils.encode_cell({ r, c });
 
-    // Style each row
     wsData.forEach((row, r) => {
       if (r === 0) { if (ws[C(0,0)]) ws[C(0,0)].s = { font:{ bold:true, sz:12 } }; return; }
       if (!row.length) return;
       const isHeader = typeof row[0] === 'string' && row[0] === 'PARTY NAME';
-      const isTotal  = typeof row[0] === 'string' && (row[0].includes('TOTAL') || row[0].includes('GRAND'));
+      const isTotal  = typeof row[0] === 'string' && row[0] === 'TOTAL';
       const isCrates = typeof row[0] === 'string' && row[0].includes('CRATES');
       const isGroup  = typeof row[0] === 'string' && row[0].includes('📍');
-      if (isGroup) return;
+      if (isGroup || isCrates) return;
 
       for (let c = 0; c < totalCols; c++) {
         const addr = C(r, c);
@@ -3621,7 +3617,7 @@ ${buildTaxInvoiceBody(id, distName, dist, fromDate, toDate, entriesCount, items,
           ws[addr].s = { fill:darkBlue, font:whiteFont, alignment:c===0?left:ctr, border:allBorder };
         } else if (isTotal) {
           ws[addr].s = { fill:isAmtCol?amtFill:lightBlue, font:boldFont, alignment:c===0?left:isAmtCol?right:ctr, border:allBorder };
-        } else if (!isCrates) {
+        } else {
           const bg = (r%2===0) ? 'FFFFFF' : 'EBF1DE';
           ws[addr].s = { fill:isAmtCol?amtFill:{ patternType:'solid', fgColor:{ rgb:bg } }, font:{ sz:9, bold:c===0||isAmtCol }, alignment:c===0?left:isAmtCol?right:ctr, border:allBorder };
         }
