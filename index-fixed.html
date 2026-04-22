@@ -248,6 +248,11 @@ tr:hover td{background:#FFFBF5;}
       <div class="fg"><label>Phone</label><input type="tel" id="c-phone" placeholder="Mobile"></div>
       <div class="fg"><label>Area/Zone</label><input type="text" id="c-area" placeholder="Moradabad"></div>
       <div class="fg"><label>Vehicle No.</label><input type="text" id="c-veh" placeholder="UP32 AB 1234" style="text-transform:uppercase;"></div>
+      <div class="fg"><label>Parent Distributor (agar sub hai)</label>
+        <select id="c-parent">
+          <option value="">-- Koi Parent Nahi (Main) --</option>
+        </select>
+      </div>
       <div class="fg" style="grid-column:1/-1;"><label>Address</label><input type="text" id="c-addr" placeholder="Address"></div>
     </div>
     <button class="btn bp" onclick="addCust()">+ Add</button>
@@ -273,6 +278,7 @@ tr:hover td{background:#FFFBF5;}
       <div class="fg"><label>Phone</label><input type="tel" id="e-phone"></div>
       <div class="fg"><label>Area</label><input type="text" id="e-area"></div>
       <div class="fg"><label>Vehicle</label><input type="text" id="e-veh" style="text-transform:uppercase;"></div>
+      <div class="fg"><label>Parent Distributor</label><select id="e-parent"><option value="">-- Main (Koi Parent Nahi) --</option></select></div>
       <div class="fg" style="grid-column:1/-1;"><label>Address</label><input type="text" id="e-addr"></div>
     </div>
     <div style="display:flex;gap:8px;"><button class="btn bp" onclick="saveEdit()">💾 Save</button><button class="btn ba" onclick="closeEdit()">Cancel</button></div>
@@ -541,7 +547,7 @@ function showTab(t) {
 function renderAll() {
   renderDash(); renderCusts(); renderProds();
   renderDemSum(); renderExp(); renderPays(); renderOut();
-  updDemDL(); updPayDL();
+  updDemDL(); updPayDL(); updParentDL();
 }
 
 // ══════════════════════════════
@@ -660,48 +666,129 @@ function renderDemSum() {
   const entries = D.demandEntries.filter(e=>e.date===date);
   if (!entries.length){g('dem-sum').innerHTML='<div class="empty">Koi demand nahi.</div>';return;}
 
-  // Collect PIDs
+  // Collect all PIDs
   const pids=[]; const pidSet=new Set();
   entries.forEach(e=>Object.keys(e.items||{}).forEach(p=>{if(!pidSet.has(p)){pidSet.add(p);pids.push(p);}}));
 
-  // Summary table
-  const colTots={}; pids.forEach(p=>colTots[p]=0); let grand=0;
-  let html=`<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+  // Helper: get qty for an entry's pid
+  function getQty(e, pid) {
+    const item=(e.items||{})[pid];
+    return item?(typeof item==='object'?(item.qty||item.kgltr||0):Number(item)):0;
+  }
+  function getAmt(e, dist, pid) {
+    const qty=getQty(e,pid);
+    const rate=(dist&&dist.productRates&&dist.productRates[pid])?parseFloat(dist.productRates[pid]):0;
+    return rate*qty;
+  }
+  function getPidMeta(pid) {
+    const e0=entries.find(e=>(e.items||{})[pid]);
+    const it=e0?e0.items[pid]:null;
+    return {name:it&&it.name?it.name:pid, size:it&&it.size?it.size:''};
+  }
+
+  // Group entries by parent
+  const entryMap = {}; // distName -> entry
+  entries.forEach(e => { entryMap[e.distName]=e; });
+
+  const mainDists = D.customers.filter(c=>!c.parent);
+  const childDists = D.customers.filter(c=>c.parent);
+
+  // Build rows: main + their children grouped
+  let html = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
     <thead><tr style="background:var(--brown);color:white;">
-      <th style="padding:7px 10px;text-align:left;">Distributor</th>
-      ${pids.map(pid=>{const e0=entries.find(e=>(e.items||{})[pid]);const it=e0?(e0.items[pid]):null;
-        return `<th style="padding:5px 6px;text-align:center;min-width:50px;">${it&&it.name?it.name:pid}<br><span style="font-weight:400;opacity:0.8;font-size:0.65rem;">${it&&it.size?it.size:''}</span></th>`;
-      }).join('')}
-      <th style="padding:7px 10px;text-align:right;">Amount</th>
+      <th style="padding:7px 10px;text-align:left;min-width:140px;">Distributor</th>
+      ${pids.map(pid=>{const m=getPidMeta(pid);return `<th style="padding:5px 6px;text-align:center;min-width:50px;">${m.name}<br><span style="font-weight:400;opacity:0.8;font-size:0.65rem;">${m.size}</span></th>`;}).join('')}
+      <th style="padding:7px 10px;text-align:right;min-width:80px;">Amount</th>
     </tr></thead><tbody>`;
 
-  entries.forEach((e,i)=>{
+  const colTots={}; pids.forEach(p=>colTots[p]=0); let grandTotal=0;
+
+  // Entries that belong to known main distributors or their children
+  const renderedDists = new Set();
+
+  mainDists.forEach(main=>{
+    const kids = childDists.filter(c=>c.parent===main.name);
+    const mainEntry = entryMap[main.name];
+    const kidEntries = kids.map(k=>entryMap[k.name]).filter(Boolean);
+    if (!mainEntry && !kidEntries.length) return; // no demand for this group
+
+    // Calculate parent total (own + children)
+    const parentTots = {};
+    pids.forEach(p=>{ parentTots[p]=0; });
+    let parentAmt=0;
+
+    // Own entry
+    if (mainEntry) {
+      const dist=D.customers.find(c=>c.name===mainEntry.distName);
+      pids.forEach(p=>{ parentTots[p]+=getQty(mainEntry,p); parentAmt+=getAmt(mainEntry,dist,p); });
+      renderedDists.add(main.name);
+    }
+    // Children entries
+    kidEntries.forEach(ke=>{
+      const dist=D.customers.find(c=>c.name===ke.distName);
+      pids.forEach(p=>{ parentTots[p]+=getQty(ke,p); parentAmt+=getAmt(ke,dist,p); });
+      renderedDists.add(ke.distName);
+    });
+
+    pids.forEach(p=>colTots[p]+=parentTots[p]);
+    grandTotal+=parentAmt;
+
+    // Parent total row (bold, amber bg)
+    html+=`<tr style="background:#FFF8EE;border-top:2px solid var(--amber);">
+      <td style="padding:7px 10px;font-weight:900;border:1px solid #F5EDE0;color:var(--brown);">
+        ${kids.length>0?'📦 ':''}${main.name}
+        ${kids.length>0?`<span style="font-size:0.68rem;background:var(--amber);color:white;padding:1px 6px;border-radius:8px;margin-left:4px;">${kids.length+( mainEntry?1:0)} parties</span>`:''}
+      </td>
+      ${pids.map(p=>`<td style="text-align:center;padding:5px;border:1px solid #F5EDE0;font-weight:800;color:${parentTots[p]>0?'var(--brown)':'var(--muted)'};">${parentTots[p]||''}</td>`).join('')}
+      <td style="text-align:right;padding:6px 10px;font-family:var(--mono);font-weight:900;color:var(--amber);border:1px solid #F5EDE0;">${parentAmt>0?'₹'+Math.round(parentAmt).toLocaleString('en-IN'):'-'}</td>
+    </tr>`;
+
+    // Child rows (indented)
+    kidEntries.forEach(ke=>{
+      const dist=D.customers.find(c=>c.name===ke.distName);
+      let rowAmt=0;
+      const cells=pids.map(p=>{const qty=getQty(ke,p);const amt=getAmt(ke,dist,p);rowAmt+=amt;return `<td style="text-align:center;padding:5px;border:1px solid #F5EDE0;font-size:0.78rem;">${qty||''}</td>`;}).join('');
+      html+=`<tr style="background:#FFFBF5;">
+        <td style="padding:5px 10px 5px 24px;border:1px solid #F5EDE0;font-size:0.8rem;color:var(--muted);">↳ ${ke.distName}</td>
+        ${cells}
+        <td style="text-align:right;padding:5px;font-family:var(--mono);font-size:0.78rem;color:var(--green);border:1px solid #F5EDE0;">${rowAmt>0?'₹'+Math.round(rowAmt).toLocaleString('en-IN'):'-'}</td>
+      </tr>`;
+    });
+
+    // Own entry row if has children
+    if (mainEntry && kids.length>0) {
+      const dist=D.customers.find(c=>c.name===mainEntry.distName);
+      let rowAmt=0;
+      const cells=pids.map(p=>{const qty=getQty(mainEntry,p);const amt=getAmt(mainEntry,dist,p);rowAmt+=amt;return `<td style="text-align:center;padding:5px;border:1px solid #F5EDE0;font-size:0.78rem;">${qty||''}</td>`;}).join('');
+      html+=`<tr style="background:#FFFBF5;">
+        <td style="padding:5px 10px 5px 24px;border:1px solid #F5EDE0;font-size:0.8rem;color:var(--muted);">↳ ${mainEntry.distName} (own)</td>
+        ${cells}
+        <td style="text-align:right;padding:5px;font-family:var(--mono);font-size:0.78rem;color:var(--green);border:1px solid #F5EDE0;">${rowAmt>0?'₹'+Math.round(rowAmt).toLocaleString('en-IN'):'-'}</td>
+      </tr>`;
+    }
+  });
+
+  // Standalone entries (not in any group)
+  entries.forEach(e=>{
+    if (renderedDists.has(e.distName)) return;
     const dist=D.customers.find(c=>c.name===e.distName);
     let rowAmt=0;
-    const cells=pids.map(pid=>{
-      const item=(e.items||{})[pid];
-      const qty=item?(typeof item==='object'?(item.qty||item.kgltr||0):Number(item)):0;
-      colTots[pid]+=qty;
-      const rate=(dist&&dist.productRates&&dist.productRates[pid])?parseFloat(dist.productRates[pid]):0;
-      rowAmt+=rate*qty;
-      return `<td style="text-align:center;padding:5px;border:1px solid #F5EDE0;">${qty||''}</td>`;
-    }).join('');
-    grand+=rowAmt;
-    html+=`<tr style="${i%2?'background:#FFFBF5':''}">
-      <td style="padding:6px 10px;font-weight:700;border:1px solid #F5EDE0;">${e.distName}</td>
-      ${cells}
-      <td style="text-align:right;padding:6px;font-family:var(--mono);font-weight:800;color:var(--amber);border:1px solid #F5EDE0;">${rowAmt>0?'₹'+Math.round(rowAmt).toLocaleString('en-IN'):'-'}</td>
-    </tr>`;
+    const cells=pids.map(p=>{const qty=getQty(e,p);const amt=getAmt(e,dist,p);rowAmt+=amt;colTots[p]+=qty;return `<td style="text-align:center;padding:5px;border:1px solid #F5EDE0;">${qty||''}</td>`;}).join('');
+    grandTotal+=rowAmt;
+    html+=`<tr><td style="padding:6px 10px;font-weight:700;border:1px solid #F5EDE0;">${e.distName}</td>${cells}<td style="text-align:right;padding:6px;font-family:var(--mono);font-weight:800;color:var(--amber);border:1px solid #F5EDE0;">${rowAmt>0?'₹'+Math.round(rowAmt).toLocaleString('en-IN'):'-'}</td></tr>`;
+    renderedDists.add(e.distName);
   });
+
   html+=`<tr style="background:var(--brown);color:white;">
     <td style="padding:7px 10px;font-weight:800;">TOTAL</td>
     ${pids.map(p=>`<td style="text-align:center;font-weight:800;padding:5px;">${colTots[p]||''}</td>`).join('')}
-    <td style="text-align:right;padding:7px;font-weight:900;font-family:var(--mono);">₹${Math.round(grand).toLocaleString('en-IN')}</td>
+    <td style="text-align:right;padding:7px;font-weight:900;font-family:var(--mono);">₹${Math.round(grandTotal).toLocaleString('en-IN')}</td>
   </tr></tbody></table></div>`;
 
-  // Per distributor cards
+  // Individual detail cards
   entries.forEach(e=>{
     const dist=D.customers.find(c=>c.name===e.distName);
+    const isChild=dist&&dist.parent;
     let tot=0;
     const rows=Object.entries(e.items||{}).map(([pid,item])=>{
       const qty=typeof item==='object'?(item.qty||item.kgltr||0):Number(item);
@@ -712,9 +799,12 @@ function renderDemSum() {
         <td style="text-align:right;color:var(--muted);font-size:0.8rem;">${rate?'₹'+rate:'-'}</td>
         <td style="text-align:right;font-weight:800;color:var(--green);font-family:var(--mono);">${amt>0?'₹'+Math.round(amt).toLocaleString('en-IN'):'-'}</td></tr>`;
     }).join('');
-    html+=`<div style="margin:10px 0;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;">
-      <div style="background:var(--cream);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong>${e.distName}</strong>
+    html+=`<div style="margin:10px 0;border:1.5px solid ${isChild?'var(--amber)':'var(--border)'};border-radius:10px;overflow:hidden;">
+      <div style="background:${isChild?'#FFF8EE':'var(--cream)'};padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+        <div>
+          ${isChild?`<div style="font-size:0.68rem;color:var(--amber);font-weight:700;margin-bottom:2px;">↳ Sub of ${dist.parent}</div>`:''}
+          <strong>${e.distName}</strong>
+        </div>
         <div style="display:flex;gap:6px;align-items:center;">
           ${tot>0?`<span style="font-size:1rem;font-weight:900;color:var(--amber);font-family:var(--mono);">₹${Math.round(tot).toLocaleString('en-IN')}</span>`:''}
           <button onclick="editDem(${e.id})" style="padding:5px 9px;background:var(--amber);color:white;border:none;border-radius:7px;font-size:0.73rem;font-weight:700;cursor:pointer;">✏️</button>
@@ -727,8 +817,10 @@ function renderDemSum() {
         ${tot>0?`<tfoot><tr><td colspan="4" style="text-align:right;padding:7px 10px;font-weight:900;color:var(--green);background:var(--green2);">💰 TOTAL: ₹${Math.round(tot).toLocaleString('en-IN')}</td></tr></tfoot>`:''}
       </table></div>`;
   });
+
   g('dem-sum').innerHTML=html;
 }
+
 
 function editDem(id2) {
   const e=D.demandEntries.find(x=>x.id===id2); if(!e)return;
@@ -944,26 +1036,42 @@ let _editId=null, _rateId=null;
 
 function addCust() {
   const name=v('c-name').trim(); if(!name){alert('Name daalo!');return;}
-  D.customers.unshift({id:Date.now(),code:v('c-code').trim(),name,phone:v('c-phone'),daily:v('c-area'),vehicle:v('c-veh').toUpperCase(),address:v('c-addr'),productRates:{}});
+  const parent=v('c-parent')||'';
+  D.customers.unshift({id:Date.now(),code:v('c-code').trim(),name,phone:v('c-phone'),daily:v('c-area'),vehicle:v('c-veh').toUpperCase(),address:v('c-addr'),parent,productRates:{}});
   save(); ['c-code','c-name','c-phone','c-area','c-veh','c-addr'].forEach(x=>{if(g(x))g(x).value='';});
-  renderCusts(); updDemDL();
+  if(g('c-parent')) g('c-parent').value='';
+  renderCusts(); updDemDL(); updParentDL();
+}
+
+function updParentDL() {
+  const sel=g('c-parent'); if(!sel)return;
+  const cur=sel.value;
+  // Only main distributors (no parent) can be parents
+  const mains=D.customers.filter(c=>!c.parent);
+  sel.innerHTML='<option value="">-- Koi Parent Nahi (Main) --</option>'+
+    mains.map(c=>`<option value="${c.name}" ${c.name===cur?'selected':''}>${c.name}</option>`).join('');
 }
 
 function renderCusts(filter='') {
   const list=g('c-list'), cnt=g('c-cnt');
+  updParentDL();
   let custs=D.customers;
   if(cnt) cnt.textContent=custs.length+' Total';
   if(filter){const q=filter.toLowerCase();custs=custs.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.code||'').toLowerCase().includes(q)||(c.phone||'').includes(q));}
   if(!custs.length){list.innerHTML='<div class="empty">'+(filter?'Koi result nahi.':'Koi distributor nahi.')+'</div>';return;}
-  list.innerHTML=custs.map(c=>{
+
+  function custCard(c, isChild=false) {
     const rc=Object.keys(c.productRates||{}).length;
-    return `<div style="padding:13px 14px;border-bottom:1px solid var(--border);">
+    return `<div style="padding:13px 14px;border-bottom:1px solid var(--border);${isChild?'background:#F8F4EE;padding-left:28px;border-left:3px solid var(--amber);':''}">
       <div style="display:flex;align-items:flex-start;gap:10px;">
-        <div class="da">${(c.name||'?')[0]}</div>
+        <div class="da" style="${isChild?'width:32px;height:32px;font-size:0.85rem;':''}">
+          ${isChild?'↳':''}${(c.name||'?')[0]}
+        </div>
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
             ${c.code?`<span class="badge ba2">${c.code}</span>`:''}
-            <strong style="font-size:0.92rem;">${c.name}</strong>
+            <strong style="font-size:${isChild?'0.85':'0.92'}rem;">${c.name}</strong>
+            ${isChild?'<span style="font-size:0.65rem;background:#FFF3E0;color:var(--amber);padding:1px 6px;border-radius:8px;">Sub</span>':''}
           </div>
           <div style="display:flex;gap:8px;margin-top:3px;flex-wrap:wrap;">
             ${c.phone?`<a href="tel:${c.phone}" style="color:var(--blue);font-size:0.74rem;font-weight:700;text-decoration:none;">📞 ${c.phone}</a>`:''}
@@ -980,7 +1088,28 @@ function renderCusts(filter='') {
         <button onclick="openEdit(${c.id})" style="flex:1;min-width:70px;padding:8px;background:linear-gradient(135deg,var(--amber),var(--amber2));color:white;border:none;border-radius:9px;font-weight:700;font-size:0.8rem;cursor:pointer;">✏️ Edit</button>
       </div>
     </div>`;
-  }).join('');
+  }
+
+  // Group: mains first, then their children
+  const mains = custs.filter(c=>!c.parent);
+  const children = custs.filter(c=>c.parent);
+  // Standalone (filtered) — no grouping when searching
+  if (filter) {
+    list.innerHTML = custs.map(c=>custCard(c, !!c.parent)).join('');
+    return;
+  }
+  // Grouped view
+  let html = '';
+  mains.forEach(m => {
+    html += custCard(m, false);
+    const kids = children.filter(c=>c.parent===m.name);
+    kids.forEach(k => { html += custCard(k, true); });
+  });
+  // Orphan children (parent deleted)
+  const orphans = children.filter(c=>!mains.find(m=>m.name===c.parent));
+  orphans.forEach(o => { html += custCard(o, true); });
+
+  list.innerHTML = html || '<div class="empty">Koi distributor nahi.</div>';
 }
 
 function delCust(id2){if(!confirm('Delete?'))return;D.customers=D.customers.filter(c=>c.id!==id2);save();renderCusts();updDemDL();}
@@ -991,6 +1120,11 @@ function openEdit(id2) {
   g('e-code').value=c.code||''; g('e-name').value=c.name||'';
   g('e-phone').value=c.phone||''; g('e-area').value=c.daily||'';
   g('e-veh').value=c.vehicle||''; g('e-addr').value=c.address||'';
+  // Populate parent dropdown (exclude self)
+  const ep=g('e-parent');
+  const mains=D.customers.filter(x=>!x.parent&&x.id!==id2);
+  ep.innerHTML='<option value="">-- Main (Koi Parent Nahi) --</option>'+
+    mains.map(m=>`<option value="${m.name}" ${m.name===c.parent?'selected':''}>${m.name}</option>`).join('');
   g('edit-panel').style.display='block';
   g('edit-panel').scrollIntoView({behavior:'smooth'});
 }
@@ -1000,6 +1134,7 @@ function saveEdit() {
   c.code=v('e-code').trim(); c.name=v('e-name').trim();
   c.phone=v('e-phone'); c.daily=v('e-area');
   c.vehicle=v('e-veh').toUpperCase(); c.address=v('e-addr');
+  c.parent=v('e-parent')||'';
   save(); closeEdit(); renderCusts(); updDemDL();
 }
 
