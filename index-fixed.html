@@ -457,41 +457,43 @@ function fbSave() {
 
 function fbLoad() {
   if (!dbRef) return;
-  // Show loading
   const ob = g('ob');
   if (ob) { ob.textContent = '🔄 Loading...'; ob.style.background = '#FFF3E0'; ob.style.color = '#C97A2A'; }
 
   dbRef.once('value').then(snap => {
     const val = snap.val();
-    if (!val) {
-      // Firebase empty — push local data up
-      fbSave();
-      updOnline();
-      return;
-    }
-    const toArr = o => o ? Object.values(o).filter(x => x && x.id) : [];
+    if (!val) { fbSave(); updOnline(); return; }
 
-    // Merge: local wins on conflict
-    function merge(local, fbRaw) {
-      const fb = toArr(fbRaw);
+    const toArr = o => {
+      if (!o) return [];
+      if (Array.isArray(o)) return o.filter(x => x && x.id);
+      return Object.values(o).filter(x => x && x.id);
+    };
+
+    // Always use Firebase data — it is the source of truth
+    const fbC = toArr(val.customers);
+    const fbP = toArr(val.products);
+    const fbD = toArr(val.demandEntries);
+    const fbE = toArr(val.expenses);
+    const fbPy = toArr(val.payments);
+
+    // Merge local + Firebase (deduplicate by id), Firebase preferred
+    function merge(local, fb) {
       const m = {};
-      fb.forEach(x => { m[x.id] = x; });
-      local.forEach(x => { if (x && x.id) m[x.id] = x; });
+      (local||[]).forEach(x => { if(x && x.id) m[x.id] = x; });
+      fb.forEach(x => { m[x.id] = x; }); // Firebase overwrites local
       return Object.values(m);
     }
 
-    D.demandEntries = merge(D.demandEntries, val.demandEntries);
-    D.expenses = merge(D.expenses, val.expenses);
-    D.payments = merge(D.payments, val.payments);
-
-    const fbC = toArr(val.customers);
-    if (fbC.length > D.customers.length) D.customers = fbC;
-    const fbP = toArr(val.products);
-    if (fbP.length > D.products.length) D.products = fbP;
+    if (fbC.length > 0) D.customers = merge(D.customers, fbC);
+    if (fbP.length > 0) D.products = merge(D.products, fbP);
+    D.demandEntries = merge(D.demandEntries, fbD);
+    D.expenses = merge(D.expenses, fbE);
+    D.payments = merge(D.payments, fbPy);
 
     saveLS();
     updOnline();
-    renderAll(); // re-render with Firebase data
+    renderAll();
   }).catch(e => {
     console.log('FB load error', e);
     updOnline();
