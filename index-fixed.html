@@ -306,36 +306,79 @@ tr:hover td{background:#FFFBF5;}
 
 <!-- REPORTS -->
 <div class="section" id="tab-reports">
-  <div class="tb"><div class="tbi">📈</div><div><h2>Reports & Export</h2></div></div>
+  <div class="tb"><div class="tbi">📈</div><div><h2>Reports</h2><p>Detailed analysis</p></div></div>
+
+  <!-- Report 1: Distributor Report -->
   <div class="fc">
-    <h3>📥 Excel Downloads</h3>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-      <button class="btn bp" onclick="expDem()">📦 Today Demand</button>
-      <button class="btn bp" onclick="expSummary()">📋 Summary</button>
-    </div>
-    <div style="background:var(--cream);border-radius:9px;padding:10px;border:1.5px solid var(--border);margin-bottom:8px;">
-      <label style="font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">📦 Monthly Demand</label>
-      <div style="display:flex;gap:8px;"><input type="month" id="rep-month" style="flex:1;"><button class="btn bs bp" onclick="expMonthly()">📥</button></div>
-    </div>
-    <div style="background:var(--cream);border-radius:9px;padding:10px;border:1.5px solid var(--border);">
-      <label style="font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">📊 Demand Report</label>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
-        <button onclick="setRng(7)" class="btn bs" style="background:var(--blue2);color:var(--blue);border:1px solid #C0D0F0;">7 Din</button>
-        <button onclick="setRng(15)" class="btn bs" style="background:var(--blue2);color:var(--blue);border:1px solid #C0D0F0;">15 Din</button>
-        <button onclick="setRng(30)" class="btn bs" style="background:var(--blue2);color:var(--blue);border:1px solid #C0D0F0;">30 Din</button>
-        <button onclick="setMon()" class="btn bs" style="background:var(--green2);color:var(--green);border:1px solid #A5D6A7;">Is Mahina</button>
+    <h3>🏪 1. Distributor Report</h3>
+    <p style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">Ek distributor ki products + amount date range mein</p>
+    <div class="fr" style="margin-bottom:10px;">
+      <div class="fg"><label>Distributor</label>
+        <select id="rpt-dist"><option value="">-- Select --</option></select>
       </div>
-      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;"><input type="date" id="rf" style="flex:1;"><span style="color:var(--muted);">→</span><input type="date" id="rt" style="flex:1;"></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="btn bs bp" onclick="showRpt('dist')">🏪 Dist Wise</button>
-        <button class="btn bs bp" onclick="showRpt('item')">🧀 Item Wise</button>
-        <button class="btn bs bp" onclick="showRpt('all')">📋 All Party</button>
+      <div class="fg"><label>Quick Range</label>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+          <button onclick="setRng(7)" class="btn bs" style="background:var(--blue2);color:var(--blue);border:1px solid #C0D0F0;">7D</button>
+          <button onclick="setRng(15)" class="btn bs" style="background:var(--blue2);color:var(--blue);border:1px solid #C0D0F0;">15D</button>
+          <button onclick="setRng(30)" class="btn bs" style="background:var(--blue2);color:var(--blue);border:1px solid #C0D0F0;">30D</button>
+          <button onclick="setMon()" class="btn bs" style="background:var(--green2);color:var(--green);border:1px solid #A5D6A7;">Mahina</button>
+        </div>
       </div>
+      <div class="fg"><label>From</label><input type="date" id="rf"></div>
+      <div class="fg"><label>To</label><input type="date" id="rt"></div>
+    </div>
+    <button class="btn bp" onclick="showDistRpt()">📊 Generate Report</button>
+  </div>
+  <div class="tc" id="dist-rpt-card" style="display:none;">
+    <div class="th"><h3 id="dist-rpt-ttl">Distributor Report</h3>
+      <button class="btn bs" style="background:#1D6F42;color:white;border:none;" onclick="expDistRpt()">📥 Excel</button>
+    </div>
+    <div id="dist-rpt-body"></div>
+  </div>
+
+  <!-- Report 2: Expenses Monthly -->
+  <div class="fc" style="margin-top:4px;">
+    <h3>💸 2. Expenses Report</h3>
+    <p style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">Monthly total expenses category wise</p>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="month" id="exp-rpt-month" style="flex:1;">
+      <button class="btn bp bs" onclick="showExpRpt()">📊 Generate</button>
     </div>
   </div>
-  <div class="tc" id="rpt-card" style="display:none;">
-    <div class="th"><h3 id="rpt-ttl">Report</h3><button class="btn bs" style="background:#1D6F42;color:white;border:none;" onclick="expRpt()">📥 Excel</button></div>
-    <div id="rpt-body"></div>
+  <div class="tc" id="exp-rpt-card" style="display:none;">
+    <div class="th"><h3 id="exp-rpt-ttl">Expenses Report</h3>
+      <button class="btn bs" style="background:#1D6F42;color:white;border:none;" onclick="expExpRpt()">📥 Excel</button>
+    </div>
+    <div id="exp-rpt-body"></div>
+  </div>
+
+  <!-- Report 3: Payments Monthly -->
+  <div class="fc" style="margin-top:4px;">
+    <h3>💳 3. Payments Report</h3>
+    <p style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">Monthly total received + individual distributor</p>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="month" id="pay-rpt-month" style="flex:1;">
+      <button class="btn bp bs" onclick="showPayRpt()">📊 Generate</button>
+    </div>
+  </div>
+  <div class="tc" id="pay-rpt-card" style="display:none;">
+    <div class="th"><h3 id="pay-rpt-ttl">Payments Report</h3>
+      <button class="btn bs" style="background:#1D6F42;color:white;border:none;" onclick="expPayRpt()">📥 Excel</button>
+    </div>
+    <div id="pay-rpt-body"></div>
+  </div>
+
+  <!-- Old demand excel downloads -->
+  <div class="fc" style="margin-top:4px;">
+    <h3>📥 Demand Excel</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <button class="btn bp" onclick="expDem()">📦 Today</button>
+      <button class="btn bp" onclick="expSummary()">📋 Summary</button>
+    </div>
+    <div style="background:var(--cream);border-radius:9px;padding:10px;border:1.5px solid var(--border);">
+      <label style="font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">📦 Monthly Demand Excel</label>
+      <div style="display:flex;gap:8px;"><input type="month" id="rep-month" style="flex:1;"><button class="btn bs bp" onclick="expMonthly()">📥</button></div>
+    </div>
   </div>
 </div>
 
@@ -494,7 +537,7 @@ function doLogout() {
 
 function startApp() {
   loadLS();
-  dbRef = db.ref('paragData_v2'); // new path to avoid old corrupt data
+  dbRef = db.ref('sharedData');
   updOnline();
   setDefs();
   renderAll();
@@ -541,6 +584,7 @@ function showTab(t) {
   if(t==='payments'){updPayDL();renderPays();renderOut();}
   if(t==='customers') renderCusts();
   if(t==='products') renderProds();
+  if(t==='reports') { updRptDistList(); if(g('exp-rpt-month'))g('exp-rpt-month').value=today().slice(0,7); if(g('pay-rpt-month'))g('pay-rpt-month').value=today().slice(0,7); }
   if(t==='dashboard') renderDash();
 }
 
@@ -1215,6 +1259,281 @@ function clrProds(){if(!confirm('Sare products delete karein?'))return;D.product
 // ══════════════════════════════
 // REPORTS
 // ══════════════════════════════
+function updRptDistList() {
+  const sel = g('rpt-dist'); if(!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- Select Distributor --</option>' +
+    D.customers.map(c=>`<option value="${c.name}" ${c.name===cur?'selected':''}>${c.name}</option>`).join('');
+}
+
+// ── Report 1: Distributor Report ──
+let _distRptData = null;
+function showDistRpt() {
+  const distName = v('rpt-dist');
+  const from = v('rf'), to = v('rt');
+  if (!distName) { alert('Distributor select karo!'); return; }
+  if (!from || !to) { alert('Date range select karo!'); return; }
+
+  const dist = D.customers.find(c=>c.name===distName);
+  const entries = D.demandEntries.filter(e=>e.distName===distName&&e.date>=from&&e.date<=to);
+
+  g('dist-rpt-card').style.display='block';
+  g('dist-rpt-ttl').textContent=`🏪 ${distName} — ${fmt(from)} → ${fmt(to)}`;
+
+  if (!entries.length) { g('dist-rpt-body').innerHTML='<div class="empty">Koi demand nahi is range mein.</div>'; return; }
+
+  // Product totals
+  const prodTots = {}; // pid -> {name, size, qty, amount}
+  let grandAmt = 0;
+  entries.forEach(e=>{
+    Object.entries(e.items||{}).forEach(([pid,item])=>{
+      const qty=typeof item==='object'?(item.qty||item.kgltr||0):Number(item);
+      const rate=(dist&&dist.productRates&&dist.productRates[pid])?parseFloat(dist.productRates[pid]):0;
+      const amt=rate*qty;
+      if (!prodTots[pid]) prodTots[pid]={name:item.name||pid,size:item.size||'',qty:0,amount:0,rate};
+      prodTots[pid].qty+=qty; prodTots[pid].amount+=amt;
+      grandAmt+=amt;
+    });
+  });
+
+  _distRptData = {distName,from,to,entries,prodTots,grandAmt};
+
+  // Summary cards
+  let html=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;">
+    <div style="background:var(--blue2);border-radius:9px;padding:11px;text-align:center;">
+      <div style="font-size:0.68rem;font-weight:700;color:var(--blue);">TOTAL DAYS</div>
+      <div style="font-size:1.4rem;font-weight:900;color:var(--blue);">${entries.length}</div>
+    </div>
+    <div style="background:var(--green2);border-radius:9px;padding:11px;text-align:center;">
+      <div style="font-size:0.68rem;font-weight:700;color:var(--green);">TOTAL AMOUNT</div>
+      <div style="font-size:1.2rem;font-weight:900;color:var(--green);font-family:var(--mono);">₹${Math.round(grandAmt).toLocaleString('en-IN')}</div>
+    </div>
+  </div>`;
+
+  // Product table
+  html+=`<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+    <thead><tr style="background:var(--brown);color:white;">
+      <th style="padding:8px 12px;text-align:left;">Product</th>
+      <th style="padding:8px 6px;text-align:center;">Total Qty</th>
+      <th style="padding:8px 6px;text-align:right;">Rate</th>
+      <th style="padding:8px 10px;text-align:right;">Amount</th>
+    </tr></thead><tbody>`;
+
+  Object.values(prodTots).sort((a,b)=>b.amount-a.amount).forEach((p,i)=>{
+    html+=`<tr style="${i%2?'background:#FFFBF5':''}">
+      <td style="padding:8px 12px;font-weight:700;">${p.name} <span style="color:var(--muted);font-size:0.75rem;">${p.size}</span></td>
+      <td style="text-align:center;font-family:var(--mono);font-weight:700;">${p.qty}</td>
+      <td style="text-align:right;color:var(--muted);font-size:0.8rem;">${p.rate?'₹'+p.rate:'-'}</td>
+      <td style="text-align:right;font-weight:800;color:var(--green);font-family:var(--mono);">₹${Math.round(p.amount).toLocaleString('en-IN')}</td>
+    </tr>`;
+  });
+
+  html+=`<tr style="background:var(--brown);color:white;">
+    <td colspan="3" style="padding:8px 12px;font-weight:800;">TOTAL</td>
+    <td style="text-align:right;padding:8px 10px;font-weight:900;font-family:var(--mono);">₹${Math.round(grandAmt).toLocaleString('en-IN')}</td>
+  </tr></tbody></table>`;
+
+  // Day-wise breakdown
+  html+=`<div style="padding:12px 14px;border-top:1.5px solid var(--border);">
+    <div style="font-size:0.78rem;font-weight:700;color:var(--muted);margin-bottom:8px;">📅 DAY WISE BREAKDOWN</div>
+    ${entries.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>{
+      let dayAmt=0;
+      const prods=Object.entries(e.items||{}).map(([pid,item])=>{
+        const qty=typeof item==='object'?(item.qty||item.kgltr||0):Number(item);
+        const rate=(dist&&dist.productRates&&dist.productRates[pid])?parseFloat(dist.productRates[pid]):0;
+        dayAmt+=rate*qty;
+        return `${item.name||pid}(${qty})`;
+      }).join(', ');
+      return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:0.8rem;">
+        <div><span style="font-weight:700;">${fmt(e.date)}</span> <span style="color:var(--muted);">${prods}</span></div>
+        ${dayAmt>0?`<span style="font-family:var(--mono);font-weight:800;color:var(--amber);flex-shrink:0;margin-left:8px;">₹${Math.round(dayAmt).toLocaleString('en-IN')}</span>`:''}
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  g('dist-rpt-body').innerHTML=html;
+}
+
+function expDistRpt() {
+  if (!_distRptData) { alert('Pehle report generate karo!'); return; }
+  if (typeof XLSX==='undefined') { alert('Excel load nahi hui!'); return; }
+  const {distName,from,to,prodTots,grandAmt,entries} = _distRptData;
+  const wb=XLSX.utils.book_new(), ws1Data=[];
+  ws1Data.push([`PARAG MILK — Distributor Report`]);
+  ws1Data.push([`Party: ${distName}`, `Period: ${fmt(from)} to ${fmt(to)}`]);
+  ws1Data.push([]);
+  ws1Data.push(['Product','Size','Total Qty','Rate (₹)','Amount (₹)']);
+  Object.values(prodTots).sort((a,b)=>b.amount-a.amount).forEach(p=>{
+    ws1Data.push([p.name,p.size,p.qty,p.rate||0,Math.round(p.amount)]);
+  });
+  ws1Data.push([]);
+  ws1Data.push(['','','','TOTAL',Math.round(grandAmt)]);
+  ws1Data.push([]);
+  ws1Data.push(['Date','Products','Amount']);
+  const dist=D.customers.find(c=>c.name===distName);
+  entries.sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
+    let amt=0;
+    const prods=Object.entries(e.items||{}).map(([pid,item])=>{const qty=typeof item==='object'?(item.qty||item.kgltr||0):Number(item);const rate=(dist&&dist.productRates&&dist.productRates[pid])?parseFloat(dist.productRates[pid]):0;amt+=rate*qty;return `${item.name||pid}(${qty})`;}).join(', ');
+    ws1Data.push([fmt(e.date),prods,Math.round(amt)]);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(ws1Data);
+  ws['!cols']=[{wch:20},{wch:10},{wch:10},{wch:10},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Distributor Report');
+  XLSX.writeFile(wb,`Parag_${distName}_${from}_${to}.xlsx`);
+}
+
+// ── Report 2: Expenses Monthly ──
+let _expRptData = null;
+function showExpRpt() {
+  const month=v('exp-rpt-month');
+  if (!month){alert('Month select karo!');return;}
+  const exps=D.expenses.filter(e=>(e.date||'').startsWith(month));
+  g('exp-rpt-card').style.display='block';
+  const [y,m]=month.split('-');
+  const mName=new Date(parseInt(y),parseInt(m)-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+  g('exp-rpt-ttl').textContent=`💸 Expenses — ${mName}`;
+  _expRptData={month,exps};
+
+  if (!exps.length){g('exp-rpt-body').innerHTML='<div class="empty">Koi kharch nahi is month.</div>';return;}
+
+  const total=exps.reduce((s,e)=>s+(e.amount||0),0);
+  const bycat={};
+  exps.forEach(e=>{if(!bycat[e.cat])bycat[e.cat]=[];bycat[e.cat].push(e);});
+
+  let html=`<div style="background:var(--red2);border-radius:10px;padding:14px;margin:12px;text-align:center;border:1.5px solid #F0C0BC;">
+    <div style="font-size:0.68rem;font-weight:700;color:var(--red);">TOTAL KHARCH — ${mName}</div>
+    <div style="font-size:1.8rem;font-weight:900;color:var(--red);font-family:var(--mono);">₹${Math.round(total).toLocaleString('en-IN')}</div>
+    <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${exps.length} entries</div>
+  </div>`;
+
+  // Category wise
+  html+=`<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+    <thead><tr style="background:var(--brown);color:white;">
+      <th style="padding:8px 12px;text-align:left;">Category</th>
+      <th style="padding:8px 6px;text-align:center;">Entries</th>
+      <th style="padding:8px 10px;text-align:right;">Amount</th>
+    </tr></thead><tbody>`;
+  Object.entries(bycat).sort((a,b)=>b[1].reduce((s,e)=>s+(e.amount||0),0)-a[1].reduce((s,e)=>s+(e.amount||0),0)).forEach(([cat,arr],i)=>{
+    const catTotal=arr.reduce((s,e)=>s+(e.amount||0),0);
+    html+=`<tr style="${i%2?'background:#FFFBF5':''}">
+      <td style="padding:8px 12px;font-weight:700;">${cat}</td>
+      <td style="text-align:center;">${arr.length}</td>
+      <td style="text-align:right;font-weight:800;color:var(--red);font-family:var(--mono);">₹${Math.round(catTotal).toLocaleString('en-IN')}</td>
+    </tr>`;
+  });
+  html+=`<tr style="background:var(--brown);color:white;"><td colspan="2" style="padding:8px 12px;font-weight:800;">TOTAL</td><td style="text-align:right;padding:8px 10px;font-weight:900;font-family:var(--mono);">₹${Math.round(total).toLocaleString('en-IN')}</td></tr>
+  </tbody></table>`;
+
+  // Individual entries
+  html+=`<div style="padding:8px 0;">`;
+  exps.sort((a,b)=>a.date.localeCompare(b.date)).forEach((e,i)=>{
+    html+=`<div style="padding:9px 14px;border-bottom:1px solid var(--border);${i%2?'background:#FFFBF5':''}display:flex;justify-content:space-between;align-items:center;gap:8px;">
+      <div><div style="font-size:0.72rem;color:var(--muted);">${fmt(e.date)} • ${e.cat}</div>
+      <div style="font-weight:700;font-size:0.85rem;">${e.desc||'—'}</div></div>
+      <strong style="color:var(--red);font-family:var(--mono);flex-shrink:0;">₹${Math.round(e.amount).toLocaleString('en-IN')}</strong>
+    </div>`;
+  });
+  html+=`</div>`;
+  g('exp-rpt-body').innerHTML=html;
+}
+
+function expExpRpt() {
+  if(!_expRptData){alert('Pehle report generate karo!');return;}
+  if(typeof XLSX==='undefined'){alert('Excel load nahi hui!');return;}
+  const {month,exps}=_expRptData;
+  const total=exps.reduce((s,e)=>s+(e.amount||0),0);
+  const wb=XLSX.utils.book_new(), wsData=[];
+  wsData.push([`PARAG MILK — Expenses Report`, `Month: ${month}`]);
+  wsData.push([]);
+  wsData.push(['Date','Category','Description','Mode','Amount (₹)']);
+  exps.sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
+    wsData.push([fmt(e.date),e.cat,e.desc||'',e.mode||'',Math.round(e.amount)]);
+  });
+  wsData.push([]); wsData.push(['','','','TOTAL',Math.round(total)]);
+  const ws=XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols']=[{wch:12},{wch:22},{wch:25},{wch:15},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Expenses');
+  XLSX.writeFile(wb,`Parag_Expenses_${month}.xlsx`);
+}
+
+// ── Report 3: Payments Monthly ──
+let _payRptData = null;
+function showPayRpt() {
+  const month=v('pay-rpt-month');
+  if(!month){alert('Month select karo!');return;}
+  const pays=D.payments.filter(p=>(p.date||'').startsWith(month));
+  g('pay-rpt-card').style.display='block';
+  const [y,m]=month.split('-');
+  const mName=new Date(parseInt(y),parseInt(m)-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+  g('pay-rpt-ttl').textContent=`💳 Payments — ${mName}`;
+  _payRptData={month,pays};
+
+  if(!pays.length){g('pay-rpt-body').innerHTML='<div class="empty">Koi payment nahi is month.</div>';return;}
+
+  const total=pays.reduce((s,p)=>s+(p.amount||0),0);
+  // Distributor wise totals
+  const byDist={};
+  pays.forEach(p=>{if(!byDist[p.dist])byDist[p.dist]=[];byDist[p.dist].push(p);});
+
+  let html=`<div style="background:var(--green2);border-radius:10px;padding:14px;margin:12px;text-align:center;border:1.5px solid #A5D6A7;">
+    <div style="font-size:0.68rem;font-weight:700;color:var(--green);">TOTAL RECEIVED — ${mName}</div>
+    <div style="font-size:1.8rem;font-weight:900;color:var(--green);font-family:var(--mono);">₹${Math.round(total).toLocaleString('en-IN')}</div>
+    <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${pays.length} payments</div>
+  </div>`;
+
+  // Distributor wise summary
+  html+=`<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+    <thead><tr style="background:var(--brown);color:white;">
+      <th style="padding:8px 12px;text-align:left;">Distributor</th>
+      <th style="padding:8px 6px;text-align:center;">Payments</th>
+      <th style="padding:8px 10px;text-align:right;">Total Received</th>
+    </tr></thead><tbody>`;
+  Object.entries(byDist).sort((a,b)=>b[1].reduce((s,p)=>s+(p.amount||0),0)-a[1].reduce((s,p)=>s+(p.amount||0),0)).forEach(([dist,arr],i)=>{
+    const distTotal=arr.reduce((s,p)=>s+(p.amount||0),0);
+    html+=`<tr style="${i%2?'background:#FFFBF5':''}">
+      <td style="padding:8px 12px;font-weight:700;">${dist}</td>
+      <td style="text-align:center;">${arr.length}</td>
+      <td style="text-align:right;font-weight:800;color:var(--green);font-family:var(--mono);">₹${Math.round(distTotal).toLocaleString('en-IN')}</td>
+    </tr>`;
+  });
+  html+=`<tr style="background:var(--brown);color:white;"><td colspan="2" style="padding:8px 12px;font-weight:800;">TOTAL</td><td style="text-align:right;padding:8px 10px;font-weight:900;font-family:var(--mono);">₹${Math.round(total).toLocaleString('en-IN')}</td></tr>
+  </tbody></table>`;
+
+  // Individual payments
+  html+=`<div style="padding:8px 0;">
+    <div style="padding:8px 14px;font-size:0.78rem;font-weight:700;color:var(--muted);">📋 INDIVIDUAL PAYMENTS</div>`;
+  pays.sort((a,b)=>a.date.localeCompare(b.date)).forEach((p,i)=>{
+    html+=`<div style="padding:9px 14px;border-bottom:1px solid var(--border);${i%2?'background:#FFFBF5':''}display:flex;justify-content:space-between;align-items:center;gap:8px;">
+      <div>
+        <div style="display:flex;gap:5px;align-items:center;"><span style="font-size:0.68rem;background:var(--blue2);color:var(--blue);padding:1px 6px;border-radius:8px;">${p.slipNo}</span><strong style="font-size:0.85rem;">${p.dist}</strong></div>
+        <div style="font-size:0.7rem;color:var(--muted);">${fmt(p.date)} • ${p.mode.replace(/^[^\s]+\s/,'')}${p.ref?' • '+p.ref:''}</div>
+      </div>
+      <strong style="color:var(--green);font-family:var(--mono);flex-shrink:0;">₹${Math.round(p.amount).toLocaleString('en-IN')}</strong>
+    </div>`;
+  });
+  html+=`</div>`;
+  g('pay-rpt-body').innerHTML=html;
+}
+
+function expPayRpt() {
+  if(!_payRptData){alert('Pehle report generate karo!');return;}
+  if(typeof XLSX==='undefined'){alert('Excel load nahi hui!');return;}
+  const {month,pays}=_payRptData;
+  const total=pays.reduce((s,p)=>s+(p.amount||0),0);
+  const wb=XLSX.utils.book_new(), wsData=[];
+  wsData.push([`PARAG MILK — Payments Report`,`Month: ${month}`]);
+  wsData.push([]);
+  wsData.push(['Slip No','Date','Distributor','Mode','Ref No','Amount (₹)']);
+  pays.sort((a,b)=>a.date.localeCompare(b.date)).forEach(p=>{
+    wsData.push([p.slipNo,fmt(p.date),p.dist,p.mode,p.ref||'',Math.round(p.amount)]);
+  });
+  wsData.push([]); wsData.push(['','','','','TOTAL',Math.round(total)]);
+  const ws=XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols']=[{wch:10},{wch:12},{wch:25},{wch:16},{wch:18},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Payments');
+  XLSX.writeFile(wb,`Parag_Payments_${month}.xlsx`);
+}
+
 function setRng(days) {
   const to=new Date(),from=new Date(to);
   from.setDate(from.getDate()-days+1);
