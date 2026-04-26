@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vendor Invoice Portal</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',sans-serif;background:#f4f6f9;color:#1a1a2e;height:100vh;display:flex;overflow:hidden}
+  
+  /* Sidebar */
+  #sidebar{width:240px;background:#fff;border-right:1px solid #e8eaf0;display:flex;flex-direction:column;box-shadow:2px 0 8px #0001;transition:width 0.2s;overflow:hidden;flex-shrink:0}
+  #sidebar.collapsed{width:52px}
+  .sidebar-header{padding:14px 12px;border-bottom:1px solid #e8eaf0;display:flex;align-items:center;gap:8px;cursor:pointer}
+  .logo{font-weight:800;font-size:18px;color:#c0392b;letter-spacing:1px;white-space:nowrap}
+  .logo span{color:#e67e22}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-left:3px solid transparent;color:#555;font-size:13px;white-space:nowrap;transition:all 0.15s}
+  .nav-item:hover{background:#fff8f0;color:#c0392b}
+  .nav-item.active{background:#fff3e0;border-left-color:#e67e22;color:#c0392b;font-weight:600}
+  .nav-icon{font-size:16px;min-width:20px;text-align:center}
+  .nav-label{overflow:hidden}
+  .sidebar-footer{padding:10px 14px;font-size:10px;color:#aaa;border-top:1px solid #eee;white-space:nowrap;overflow:hidden}
+
+  /* Main */
+  #main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  
+  /* Topbar */
+  .topbar{background:#fff;padding:12px 20px;border-bottom:1px solid #e8eaf0;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 4px #0001;gap:12px}
+  .topbar-title{font-weight:700;font-size:18px;color:#1a1a2e}
+  .topbar-right{display:flex;align-items:center;gap:10px}
+  .search-box{border:1px solid #ddd;border-radius:6px;padding:6px 12px;font-size:13px;outline:none;width:200px}
+  .avatar{width:32px;height:32px;border-radius:50%;background:#c0392b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+  .gstin-text{font-size:11px;color:#888}
+
+  /* Content */
+  #content{flex:1;overflow-y:auto;padding:16px}
+
+  /* Summary Cards */
+  .cards{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .card{background:#fff;border:1px solid #e8eaf0;border-radius:10px;padding:12px 16px;min-width:130px;flex:1 1 120px;cursor:pointer;box-shadow:0 1px 4px #0001;transition:all 0.15s}
+  .card:hover{transform:translateY(-1px);box-shadow:0 3px 12px #0002}
+  .card.active-filter{border-width:2px}
+  .card-top{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+  .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .card-label{font-size:12px;color:#888;font-weight:500}
+  .card-amount{font-size:17px;font-weight:700}
+  .card-count{font-size:11px;color:#aaa}
+
+  /* Table Card */
+  .table-card{background:#fff;border-radius:10px;box-shadow:0 1px 4px #0001;overflow:hidden}
+  .table-header{padding:12px 16px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .table-title{font-weight:600;font-size:14px}
+  .count-badge{background:#f0f0f0;border-radius:20px;padding:2px 10px;font-size:12px;color:#666}
+  .filter-badge{background:#fff3e0;color:#e65100;border-radius:20px;padding:2px 10px;font-size:11px;cursor:pointer;border:1px solid #ffcc80}
+  .btn-add{background:#1565c0;color:#fff;border:none;border-radius:7px;padding:7px 16px;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap}
+  .btn-add:hover{background:#0d47a1}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead tr{background:#f8f9fa;border-bottom:1px solid #e8eaf0}
+  th{padding:10px 14px;text-align:left;font-weight:600;color:#555;white-space:nowrap}
+  tbody tr{border-bottom:1px solid #f5f5f5;transition:background 0.1s}
+  tbody tr:nth-child(even){background:#fafbfc}
+  tbody tr:hover{background:#f0f4ff}
+  td{padding:10px 14px;vertical-align:middle}
+  .inv-id{font-weight:600;color:#1565c0}
+  .inv-date{font-size:11px;color:#999}
+  .po-no{color:#555;font-family:monospace;font-size:12px}
+  .profit-center{color:#444;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .net-amt{font-size:12px;color:#333;font-weight:600}
+  .gross-amt{font-size:11px;color:#888}
+  .sub-date{color:#666;font-size:12px}
+  .status-badge{border-radius:20px;padding:3px 12px;font-size:12px;font-weight:600;border:1px solid;white-space:nowrap}
+  .empty-row td{padding:40px;text-align:center;color:#aaa}
+
+  /* Modal */
+  .modal-overlay{display:none;position:fixed;inset:0;background:#0006;z-index:1000;align-items:center;justify-content:center}
+  .modal-overlay.show{display:flex}
+  .modal{background:#fff;border-radius:12px;padding:28px;width:460px;max-width:95vw;box-shadow:0 8px 32px #0003}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  .modal-title{font-weight:700;font-size:17px}
+  .modal-close{cursor:pointer;font-size:20px;color:#aaa;line-height:1}
+  .modal-close:hover{color:#333}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form-group{display:flex;flex-direction:column;gap:4px}
+  .form-group.full{grid-column:1/-1}
+  label{font-size:12px;font-weight:600;color:#555}
+  input,select{border:1px solid #ddd;border-radius:6px;padding:8px 10px;font-size:13px;outline:none;font-family:inherit;width:100%}
+  input:focus,select:focus{border-color:#1565c0}
+  .modal-footer{display:flex;gap:10px;margin-top:20px}
+  .btn-cancel{flex:1;border:1px solid #ddd;background:#fff;border-radius:7px;padding:9px;font-weight:600;font-size:13px;cursor:pointer;color:#555}
+  .btn-save{flex:1;background:#1565c0;color:#fff;border:none;border-radius:7px;padding:9px;font-weight:600;font-size:13px;cursor:pointer}
+  .btn-save:hover{background:#0d47a1}
+
+  @media(max-width:600px){
+    #sidebar{display:none}
+    .cards{gap:8px}
+    .card{min-width:100px;padding:10px 12px}
+    .card-amount{font-size:14px}
+    .gstin-text{display:none}
+    .search-box{width:130px}
+    th:nth-child(3),td:nth-child(3){display:none}
+    .form-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div id="sidebar">
+  <div class="sidebar-header" onclick="toggleSidebar()">
+    <span style="font-size:22px">☰</span>
+    <span class="logo" id="logoText">sodex<span>o</span></span>
+  </div>
+  <nav id="nav">
+    <div class="nav-item" onclick="setNav(this)"><span class="nav-icon">⊞</span><span class="nav-label">Dashboard</span></div>
+    <div class="nav-item" onclick="setNav(this)"><span class="nav-icon">📋</span><span class="nav-label">Purchase Orders</span></div>
+    <div class="nav-item active" onclick="setNav(this)"><span class="nav-icon">📄</span><span class="nav-label">Invoices</span></div>
+    <div class="nav-item" onclick="setNav(this)"><span class="nav-icon">💳</span><span class="nav-label">Payment Advice</span></div>
+    <div class="nav-item" onclick="setNav(this)"><span class="nav-icon">✅</span><span class="nav-label">No Due Certificate</span></div>
+    <div class="nav-item" onclick="setNav(this)"><span class="nav-icon">👷</span><span class="nav-label">Manpower Vendor Document</span></div>
+    <div class="nav-item" onclick="setNav(this)"><span class="nav-icon">🍽️</span><span class="nav-label">Food Compliance Document</span></div>
+    <div class="nav-item" onclick="setNav(this)"><span class="nav-icon">💬</span><span class="nav-label">Complaints</span></div>
+    <div class="nav-item" onclick="setNav(this)"><span class="nav-icon">🔄</span><span class="nav-label">Change Request</span></div>
+    <div class="nav-item" onclick="setNav(this)"><span class="nav-icon">📥</span><span class="nav-label">Training Guide (Download)</span></div>
+    <div class="nav-item" onclick="setNav(this)"><span class="nav-icon">🎬</span><span class="nav-label">Training Video (Download)</span></div>
+  </nav>
+  <div class="sidebar-footer" id="sidebarFooter">GSTIN: 09AAAAM5648K1Z7</div>
+</div>
+
+<!-- Main -->
+<div id="main">
+  <!-- Topbar -->
+  <div class="topbar">
+    <span class="topbar-title">Invoices</span>
+    <div class="topbar-right">
+      <input class="search-box" type="text" placeholder="🔍 Search invoice, PO..." oninput="filterTable()" id="searchInput"/>
+      <span class="gstin-text">09AAAAM5648K1Z7</span>
+      <div class="avatar">M</div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div id="content">
+
+    <!-- Summary Cards -->
+    <div class="cards">
+      <div class="card" id="card-Submitted" onclick="filterByStatus('Submitted')" style="border-color:#a5d6a7">
+        <div class="card-top"><div class="dot" style="background:#4caf50"></div><span class="card-label">Submitted</span></div>
+        <div class="card-amount" style="color:#2e7d32" id="amt-Submitted">₹0</div>
+        <div class="card-count" id="cnt-Submitted">Count: 0</div>
+      </div>
+      <div class="card" id="card-Booked" onclick="filterByStatus('Booked')" style="border-color:#ce93d8">
+        <div class="card-top"><div class="dot" style="background:#ab47bc"></div><span class="card-label">Booked</span></div>
+        <div class="card-amount" style="color:#6a1b9a" id="amt-Booked">₹0</div>
+        <div class="card-count" id="cnt-Booked">Count: 0</div>
+      </div>
+      <div class="card" id="card-Hold" onclick="filterByStatus('Hold')" style="border-color:#ffcc80">
+        <div class="card-top"><div class="dot" style="background:#ff7043"></div><span class="card-label">Hold</span></div>
+        <div class="card-amount" style="color:#e65100" id="amt-Hold">₹0</div>
+        <div class="card-count" id="cnt-Hold">Count: 0</div>
+      </div>
+      <div class="card" id="card-Rejected" onclick="filterByStatus('Rejected')" style="border-color:#ef9a9a">
+        <div class="card-top"><div class="dot" style="background:#ef5350"></div><span class="card-label">Rejected</span></div>
+        <div class="card-amount" style="color:#b71c1c" id="amt-Rejected">₹0</div>
+        <div class="card-count" id="cnt-Rejected">Count: 0</div>
+      </div>
+      <div class="card" id="card-Paid" onclick="filterByStatus('Paid')" style="border-color:#90caf9">
+        <div class="card-top"><div class="dot" style="background:#42a5f5"></div><span class="card-label">Paid</span></div>
+        <div class="card-amount" style="color:#1565c0" id="amt-Paid">₹0</div>
+        <div class="card-count" id="cnt-Paid">Count: 0</div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-header">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span class="table-title">Vendor Invoices</span>
+          <span class="count-badge" id="rowCount">0</span>
+          <span class="filter-badge" id="filterBadge" style="display:none" onclick="clearFilter()"></span>
+        </div>
+        <button class="btn-add" onclick="openModal()">+ Add Invoice</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>PO No</th>
+              <th>Profit Center</th>
+              <th>Invoice Amt</th>
+              <th>Submission Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="invoiceBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Add New Invoice</span>
+      <span class="modal-close" onclick="closeModal()">✕</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Invoice Date *</label>
+        <input type="date" id="f-date"/>
+      </div>
+      <div class="form-group">
+        <label>PO Number *</label>
+        <input type="text" id="f-po" placeholder="Pur5270001"/>
+      </div>
+      <div class="form-group">
+        <label>Net Amount (₹) *</label>
+        <input type="number" id="f-net" placeholder="0.00"/>
+      </div>
+      <div class="form-group">
+        <label>Gross Amount (₹)</label>
+        <input type="number" id="f-gross" placeholder="0.00"/>
+      </div>
+      <div class="form-group">
+        <label>Submission Date</label>
+        <input type="date" id="f-subdate"/>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="f-status">
+          <option>Submitted</option>
+          <option>Paid</option>
+          <option>Hold</option>
+          <option>Rejected</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Profit Center</label>
+        <select id="f-pc">
+          <option>17000801-Tata Motors - Rudrapur FS</option>
+          <option>17000802-Tata Motors - Pune FS</option>
+          <option>17000803-Tata Motors - Chennai FS</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveInvoice()">Save Invoice</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATUS_STYLE = {
+  Submitted: {bg:'#e8f5e9',color:'#2e7d32',border:'#a5d6a7'},
+  Paid:      {bg:'#e3f2fd',color:'#1565c0',border:'#90caf9'},
+  Hold:      {bg:'#fff3e0',color:'#e65100',border:'#ffcc80'},
+  Rejected:  {bg:'#fce4ec',color:'#b71c1c',border:'#ef9a9a'},
+  Booked:    {bg:'#f3e5f5',color:'#6a1b9a',border:'#ce93d8'},
+};
+
+let invoices = [
+  {id:464,date:'25-Apr-2026',poNo:'Pur5270019',pc:'17000801-Tata Motors - Rudrapur FS',net:44407,gross:44407,sub:'26-04-2026',status:'Submitted'},
+  {id:463,date:'24-Apr-2026',poNo:'Pur5270021',pc:'17000801-Tata Motors - Rudrapur FS',net:36480,gross:36480,sub:'26-04-2026',status:'Submitted'},
+  {id:462,date:'23-Apr-2026',poNo:'Pur5270319',pc:'17000801-Tata Motors - Rudrapur FS',net:36792,gross:36792,sub:'26-04-2026',status:'Submitted'},
+  {id:461,date:'22-Apr-2026',poNo:'Pur5270320',pc:'17000801-Tata Motors - Rudrapur FS',net:35952,gross:35952,sub:'26-04-2026',status:'Submitted'},
+  {id:460,date:'21-Apr-2026',poNo:'Pur5270323',pc:'17000801-Tata Motors - Rudrapur FS',net:41376,gross:41376,sub:'26-04-2026',status:'Submitted'},
+  {id:459,date:'20-Apr-2026',poNo:'Pur5246836',pc:'17000801-Tata Motors - Rudrapur FS',net:11208,gross:11208,sub:'26-04-2026',status:'Submitted'},
+  {id:458,date:'19-Apr-2026',poNo:'Pur5227774',pc:'17000801-Tata Motors - Rudrapur FS',net:49800,gross:49800,sub:'26-04-2026',status:'Hold'},
+  {id:457,date:'18-Apr-2026',poNo:'Pur5227775',pc:'17000801-Tata Motors - Rudrapur FS',net:44338.84,gross:44338.84,sub:'26-04-2026',status:'Submitted'},
+  {id:456,date:'17-Apr-2026',poNo:'Pur5227779',pc:'17000801-Tata Motors - Rudrapur FS',net:41304,gross:41304,sub:'26-04-2026',status:'Submitted'},
+  {id:455,date:'16-Apr-2026',poNo:'Pur5246840',pc:'17000801-Tata Motors - Rudrapur FS',net:15198,gross:15198,sub:'26-04-2026',status:'Submitted'},
+  {id:454,date:'16-Apr-2026',poNo:'Pur5246839',pc:'17000801-Tata Motors - Rudrapur FS',net:22890,gross:22890,sub:'26-04-2026',status:'Hold'},
+  {id:453,date:'16-Apr-2026',poNo:'Pur5246838',pc:'17000801-Tata Motors - Rudrapur FS',net:12750,gross:12750,sub:'16-04-2026',status:'Submitted'},
+  {id:452,date:'15-Apr-2026',poNo:'Pur5246837',pc:'17000801-Tata Motors - Rudrapur FS',net:130260,gross:130260,sub:'16-04-2026',status:'Submitted'},
+  {id:451,date:'15-Apr-2026',poNo:'Pur5246835',pc:'17000801-Tata Motors - Rudrapur FS',net:12750,gross:12750,sub:'15-04-2026',status:'Submitted'},
+  {id:450,date:'14-Apr-2026',poNo:'Pur5246834',pc:'17000801-Tata Motors - Rudrapur FS',net:44556.84,gross:44556.84,sub:'15-04-2026',status:'Submitted'},
+  {id:449,date:'13-Apr-2026',poNo:'Pur5227773',pc:'17000801-Tata Motors - Rudrapur FS',net:36720,gross:36720,sub:'15-04-2026',status:'Submitted'},
+  {id:448,date:'12-Apr-2026',poNo:'Pur5236294',pc:'17000801-Tata Motors - Rudrapur FS',net:33000,gross:33000,sub:'15-04-2026',status:'Submitted'},
+  {id:447,date:'12-Apr-2026',poNo:'Pur5227778',pc:'17000801-Tata Motors - Rudrapur FS',net:9180,gross:9180,sub:'15-04-2026',status:'Submitted'},
+  {id:446,date:'11-Apr-2026',poNo:'Pur5236293',pc:'17000801-Tata Motors - Rudrapur FS',net:4200,gross:4200,sub:'12-04-2026',status:'Submitted'},
+  {id:445,date:'11-Apr-2026',poNo:'Pur5236292',pc:'17000801-Tata Motors - Rudrapur FS',net:15198,gross:15198,sub:'12-04-2026',status:'Submitted'},
+  {id:444,date:'11-Apr-2026',poNo:'Pur5236291',pc:'17000801-Tata Motors - Rudrapur FS',net:17850,gross:17850,sub:'12-04-2026',status:'Submitted'},
+  {id:443,date:'11-Apr-2026',poNo:'Pur5227781',pc:'17000801-Tata Motors - Rudrapur FS',net:43440,gross:43440,sub:'12-04-2026',status:'Submitted'},
+  {id:442,date:'10-Apr-2026',poNo:'Pur5227780',pc:'17000801-Tata Motors - Rudrapur FS',net:47418,gross:47418,sub:'12-04-2026',status:'Submitted'},
+  {id:439,date:'7-Apr-2026',poNo:'Pur5227771',pc:'17000801-Tata Motors - Rudrapur FS',net:36720,gross:36720,sub:'08-04-2026',status:'Paid'},
+  {id:440,date:'7-Apr-2026',poNo:'pur5236301',pc:'17000801-Tata Motors - Rudrapur FS',net:75900,gross:75900,sub:'08-04-2026',status:'Paid'},
+  {id:441,date:'8-Apr-2026',poNo:'pur5227772',pc:'17000801-Tata Motors - Rudrapur FS',net:45106.84,gross:45106.84,sub:'08-04-2026',status:'Paid'},
+  {id:438,date:'6-Apr-2026',poNo:'pur5227770',pc:'17000801-Tata Motors - Rudrapur FS',net:38250,gross:38250,sub:'08-04-2026',status:'Paid'},
+  {id:437,date:'4-Apr-2026',poNo:'pur5213266',pc:'17000801-Tata Motors - Rudrapur FS',net:7560,gross:7560,sub:'08-04-2026',status:'Paid'},
+  {id:436,date:'4-Apr-2026',poNo:'pur5213264',pc:'17000801-Tata Motors - Rudrapur FS',net:38250,gross:38250,sub:'08-04-2026',status:'Paid'},
+  {id:435,date:'2-Apr-2026',poNo:'pur5213265',pc:'17000801-Tata Motors - Rudrapur FS',net:72600,gross:72600,sub:'08-04-2026',status:'Paid'},
+  {id:434,date:'2-Apr-2026',poNo:'pur5213263',pc:'17000801-Tata Motors - Rudrapur FS',net:36720,gross:36720,sub:'08-04-2026',status:'Paid'},
+  {id:433,date:'1-Apr-2026',poNo:'pur5213262',pc:'17000801-Tata Motors - Rudrapur FS',net:44856.84,gross:44856.84,sub:'08-04-2026',status:'Paid'},
+  {id:432,date:'31-Mar-2026',poNo:'Pur5213261',pc:'17000801-Tata Motors - Rudrapur FS',net:42600,gross:42600,sub:'01-04-2026',status:'Paid'},
+  {id:431,date:'30-Mar-2026',poNo:'Pur5182164',pc:'17000801-Tata Motors - Rudrapur FS',net:9792,gross:9792,sub:'01-04-2026',status:'Paid'},
+  {id:430,date:'30-Mar-2026',poNo:'Pur5213260',pc:'17000801-Tata Motors - Rudrapur FS',net:45120,gross:45120,sub:'01-04-2026',status:'Paid'},
+];
+
+let activeFilter = null;
+
+function fmt(n){return '₹'+Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtK(n){if(n>=1e6)return '₹'+(n/1e6).toFixed(2)+'M';if(n>=1000)return '₹'+(n/1000).toFixed(2)+'K';return '₹'+n.toFixed(2)}
+
+function updateCards(){
+  const stats={Submitted:0,Booked:0,Hold:0,Rejected:0,Paid:0};
+  const cnts={Submitted:0,Booked:0,Hold:0,Rejected:0,Paid:0};
+  invoices.forEach(inv=>{
+    if(stats[inv.status]!==undefined){stats[inv.status]+=inv.gross;cnts[inv.status]++;}
+  });
+  ['Submitted','Booked','Hold','Rejected','Paid'].forEach(s=>{
+    document.getElementById('amt-'+s).textContent=fmtK(stats[s]);
+    document.getElementById('cnt-'+s).textContent='Count: '+cnts[s];
+  });
+}
+
+function renderTable(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const body=document.getElementById('invoiceBody');
+  const filtered=invoices.filter(inv=>{
+    const ms=!activeFilter||inv.status===activeFilter;
+    const mq=!q||String(inv.id).includes(q)||inv.poNo.toLowerCase().includes(q)||inv.pc.toLowerCase().includes(q);
+    return ms&&mq;
+  });
+  document.getElementById('rowCount').textContent=filtered.length;
+  if(!filtered.length){
+    body.innerHTML='<tr class="empty-row"><td colspan="6">Koi invoice nahi mila 🔍</td></tr>';
+    return;
+  }
+  body.innerHTML=filtered.map(inv=>{
+    const st=STATUS_STYLE[inv.status]||{bg:'#eee',color:'#333',border:'#ccc'};
+    return `<tr>
+      <td><div class="inv-id">#${inv.id}</div><div class="inv-date">Date: ${inv.date}</div></td>
+      <td class="po-no">${inv.poNo}</td>
+      <td class="profit-center" title="${inv.pc}">${inv.pc}</td>
+      <td><div class="net-amt">Net Amt: ${fmt(inv.net)}</div><div class="gross-amt">Gross Amt: ${fmt(inv.gross)}</div></td>
+      <td class="sub-date">${inv.sub}</td>
+      <td><span class="status-badge" style="background:${st.bg};color:${st.color};border-color:${st.border}">${inv.status}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterByStatus(s){
+  if(activeFilter===s){clearFilter();return;}
+  activeFilter=s;
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('active-filter'));
+  document.getElementById('card-'+s)?.classList.add('active-filter');
+  const badge=document.getElementById('filterBadge');
+  badge.style.display='inline';
+  badge.textContent=s+' ✕';
+  renderTable();
+}
+
+function clearFilter(){
+  activeFilter=null;
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('active-filter'));
+  document.getElementById('filterBadge').style.display='none';
+  renderTable();
+}
+
+function filterTable(){renderTable()}
+
+function setNav(el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+let sidebarCollapsed=false;
+function toggleSidebar(){
+  sidebarCollapsed=!sidebarCollapsed;
+  const sb=document.getElementById('sidebar');
+  sb.classList.toggle('collapsed',sidebarCollapsed);
+  document.getElementById('logoText').style.display=sidebarCollapsed?'none':'';
+  document.getElementById('sidebarFooter').style.display=sidebarCollapsed?'none':'';
+}
+
+function openModal(){document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+
+function saveInvoice(){
+  const date=document.getElementById('f-date').value;
+  const po=document.getElementById('f-po').value.trim();
+  const net=parseFloat(document.getElementById('f-net').value);
+  if(!date||!po||!net){alert('Date, PO Number aur Net Amount zaroori hai!');return;}
+  const gross=parseFloat(document.getElementById('f-gross').value)||net;
+  const subdate=document.getElementById('f-subdate').value||new Date().toLocaleDateString('en-GB').replace(/\//g,'-');
+  const status=document.getElementById('f-status').value;
+  const pc=document.getElementById('f-pc').value;
+  const newId=Math.max(...invoices.map(i=>i.id))+1;
+  const d=new Date(date);
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dateStr=d.getDate()+'-'+months[d.getMonth()]+'-'+d.getFullYear();
+  invoices.unshift({id:newId,date:dateStr,poNo:po,pc,net,gross,sub:subdate,status});
+  updateCards();
+  renderTable();
+  closeModal();
+  // Reset form
+  ['f-date','f-po','f-net','f-gross','f-subdate'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-status').value='Submitted';
+}
+
+// Close modal on overlay click
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+
+// Init
+updateCards();
+renderTable();
+</script>
+</body>
+</html>
