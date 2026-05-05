@@ -122,6 +122,26 @@ tr:hover td{background:#FFFBF5;}
   <p id="lerr" style="color:#ff6b6b;font-size:0.8rem;margin-top:8px;display:none;"></p>
 </div>
 
+<!-- PAYMENT WARNING MODAL -->
+<div id="payment-warning-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9998;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:white;border-radius:18px;width:100%;max-width:360px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+    <div style="background:linear-gradient(135deg,#8B0000,#C93A2A);padding:24px;text-align:center;">
+      <div style="font-size:3rem;">🚨</div>
+      <div style="color:white;font-size:1.25rem;font-weight:900;margin-top:10px;">SOFTWARE BAND!</div>
+      <div style="color:rgba(255,255,255,0.85);font-size:0.85rem;margin-top:6px;line-height:1.5;">Payment nahi mili, isliye<br>software suspend kar diya gaya hai.</div>
+    </div>
+    <div style="padding:20px;text-align:center;">
+      <div style="background:#FFF0EE;border:1.5px solid #F0C0BC;border-radius:12px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:1rem;font-weight:900;color:#8B0000;margin-bottom:6px;">⛔ Fahim G ka Notice</div>
+        <div style="font-size:0.95rem;color:#3D1F00;line-height:1.6;font-weight:700;">
+          <strong style="color:#C93A2A;">Tere chakkr mai band kar dya! 😡</strong>
+        </div>
+      </div>
+      <button onclick="closeWarningAndStart()" style="width:100%;padding:11px;background:#F5EDE0;color:#8B6A4A;border:1.5px solid #E8D8C0;border-radius:10px;font-size:0.8rem;font-weight:600;cursor:pointer;">App Dekho</button>
+    </div>
+  </div>
+</div>
+
 <div class="hdr">
   <h1>🥛 Parag <span>Milk</span></h1>
   <div class="hdr-r">
@@ -577,7 +597,7 @@ function save() { saveLS(); fbSave(); }
 const PASS = 'parag123';
 
 function initApp() {
-  if (localStorage.getItem(LSA) === 'ok') startApp();
+  if (localStorage.getItem(LSA) === 'ok') showPaymentWarning();
   else g('login-screen').style.display = 'flex';
 }
 
@@ -587,7 +607,44 @@ function doLogin() {
   if (p !== PASS) { showErr('Galat password!'); return; }
   localStorage.setItem(LSA,'ok');
   g('login-screen').style.display = 'none';
+  showPaymentWarning();
+}
+
+function showPaymentWarning() {
+  g('payment-warning-modal').style.display = 'flex';
+}
+
+function closeWarningAndStart() {
+  g('payment-warning-modal').style.display = 'none';
   startApp();
+}
+
+function removeAllData() {
+  if (!confirm('⚠️ PAKKA? Saara data — demands, payments, expenses, distributors — sab delete ho jayega!\n\nYeh action UNDO nahi hoga!')) return;
+  // Clear localStorage
+  localStorage.removeItem(LSK);
+  // Clear Firebase
+  try {
+    if (db) {
+      db.ref('sharedData').remove().then(() => {
+        alert('✅ Saara data delete ho gaya!');
+        g('payment-warning-modal').style.display = 'none';
+        startApp();
+      }).catch(() => {
+        alert('✅ Local data delete hua. Firebase offline hai.');
+        g('payment-warning-modal').style.display = 'none';
+        startApp();
+      });
+    } else {
+      alert('✅ Data delete ho gaya!');
+      g('payment-warning-modal').style.display = 'none';
+      startApp();
+    }
+  } catch(e) {
+    alert('✅ Data delete ho gaya!');
+    g('remove-data-modal').style.display = 'none';
+    startApp();
+  }
 }
 
 function showErr(m) { const e=g('lerr'); e.textContent=m; e.style.display='block'; }
